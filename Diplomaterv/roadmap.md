@@ -3,13 +3,13 @@
 ## Generate examples
 
 ### Primitives
-- [ ] plane
+- [x] plane
 - [ ] sphere
 - [ ] cylinder
 - [ ] cone
 - [ ] torus
 
-### Nosify
+### Noisify
 - [ ] add gaussian noise
 - [ ] add outliers
 
