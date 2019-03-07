@@ -5,7 +5,7 @@
 ### Primitives
 - [x] plane
 - [ ] sphere
-- [ ] cylinder
+- [x] cylinder
 - [ ] cone
 - [ ] torus
 
@@ -15,3 +15,4 @@
 
 ### Visualize
 - [ ] fire up Makie
+- [ ] plot normals too
