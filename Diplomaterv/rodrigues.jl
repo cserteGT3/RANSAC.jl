@@ -18,14 +18,24 @@ function crossprodtensor(v)
     -v[2] v[1] 0]
 end
 
+"""
+    rodriguesrad(nv, ϑ)
+
+Create a rotation matrix from an axis (`nv`) and an angle (`ϑ`) in radians.
+"""
 function rodriguesrad(nv, ϑ)
     nvn = normalize(nv)
-    return rodrigues(nv, ϑ)
+    return rodrigues(nvn, ϑ)
 end
 
+"""
+    rodriguesdeg(nv, ϑ)
+
+Create a rotation matrix from an axis (`nv`) and an angle (`ϑ`) in degrees.
+"""
 function rodriguesdeg(nv, ϑ)
     nvn = normalize(nv)
-    return rodrigues(nv, deg2rad(ϑ))
+    return rodrigues(nvn, deg2rad(ϑ))
 end
 
 end
