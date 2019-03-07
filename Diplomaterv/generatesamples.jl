@@ -6,6 +6,7 @@ using LinearAlgebra: normalize, normalize!, cross, norm
 using .RodriguesRotations: rodriguesrad
 using AbstractPlotting: Point3f0
 export sampleplane, samplecylinder, normalsforplot
+export noisifyvertices, noisifyvertices!
 
 """
     arbitrary_orthogonal(vec)
@@ -111,6 +112,38 @@ function normalsforplot(verts, norms, arrowsize = 0.5)
     @assert size(verts) == size(norms) "They should have the same size."
     as = arrowsize
     return [Point3f0(verts[:,i]) => Point3f0(verts[:,i] + as.*normalize(norms[:,i])) for i in 1:size(verts, 2) ]
+end
+
+"""
+    noisifyvertices!(verts, allvs, scalef = 1)
+
+Add gaussian noise to vertices inplace.
+Random subset or all vertices can be selected.
+
+# Arguments:
+- `scalef`: scale the noise from the [-1,1] interval.
+"""
+function noisifyvertices!(verts, allvs, scalef = 1)
+    randis = (2*scalef) .*rand(eltype(verts),size(verts)) .-1
+    allvs && return verts+randis
+    bools = rand(Bool, size(verts))
+    verts[bools] += randis[bools]
+    return verts
+end
+
+
+"""
+    noisifyvertices(verts, allvs, scalef = 1)
+
+Add gaussian noise to vertices.
+Random subset or all vertices can be selected.
+
+# Arguments:
+- `scalef`: scale the noise from the [-1,1] interval.
+"""
+function noisifyvertices(verts, allvs, scalef = 1)
+    vera = deepcopy(verts)
+    return noisifyvertices!(vera)
 end
 
 end

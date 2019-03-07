@@ -10,7 +10,8 @@
 - [ ] torus
 
 ### Noisify
-- [ ] add gaussian noise
+- [x] add gaussian noise to vertices
+- [ ] add gaussian noise to normals
 - [ ] add outliers
 
 ### Visualize
