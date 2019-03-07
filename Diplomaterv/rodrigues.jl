@@ -5,6 +5,12 @@ using ZChop: zchop!
 
 export rodriguesdeg, rodriguesrad
 
+"""
+    rodrigues(nv, Θ)
+
+Create a rotation matrix from a normalized axis and an angle (in radian).
+Near-zero elements will be chopped to zero.
+"""
 function rodrigues(nv, Θ)
     et = eltype(nv)
     R = zeros(et,3,3)
@@ -12,6 +18,11 @@ function rodrigues(nv, Θ)
     return zchop!(R)
 end
 
+"""
+    crossprodtensor(v)
+
+Create the cross product tensor of 3 dimensional vector.
+"""
 function crossprodtensor(v)
     [0 -v[3] v[2];
     v[3] 0 -v[1];
