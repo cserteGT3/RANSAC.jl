@@ -5,7 +5,7 @@ include("rodrigues.jl")
 using LinearAlgebra: normalize, normalize!, cross, norm
 using .RodriguesRotations: rodriguesrad
 using AbstractPlotting: Point3f0
-export sampleplane, samplecylinder
+export sampleplane, samplecylinder, normalsforplot
 
 """
     arbitrary_orthogonal(vec)
@@ -96,6 +96,21 @@ function samplecylinder(ax, vp, R, h, sizet)
         end
     end
     return (ps, ns)
+end
+
+"""
+    normalsforplot(verts, norms, arrowsize = 0.5)
+
+Create an array of pair of points for plotting the normals with Makie.
+Only the direction of the normals is presented, their size not.
+
+# Arguments:
+- `arrowsize`: scaling factor for the size of the lines.
+"""
+function normalsforplot(verts, norms, arrowsize = 0.5)
+    @assert size(verts) == size(norms) "They should have the same size."
+    as = arrowsize
+    return [Point3f0(verts[:,i]) => Point3f0(verts[:,i] + as.*normalize(norms[:,i])) for i in 1:size(verts, 2) ]
 end
 
 end

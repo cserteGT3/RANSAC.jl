@@ -14,5 +14,5 @@
 - [ ] add outliers
 
 ### Visualize
-- [ ] fire up Makie
-- [ ] plot normals too
+- [x] fire up Makie
+- [x] plot normals too
