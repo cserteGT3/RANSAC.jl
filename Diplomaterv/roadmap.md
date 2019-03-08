@@ -11,7 +11,7 @@
 
 ### Noisify
 - [x] add gaussian noise to vertices
-- [ ] add gaussian noise to normals
+- [x] add gaussian noise to normals
 - [ ] add outliers
 
 ### Visualize

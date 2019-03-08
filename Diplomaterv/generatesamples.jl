@@ -3,10 +3,11 @@ module samples
 include("rodrigues.jl")
 
 using LinearAlgebra: normalize, normalize!, cross, norm
-using .RodriguesRotations: rodriguesrad
+using .RodriguesRotations: rodriguesrad, rodriguesdeg
 using AbstractPlotting: Point3f0
+
 export sampleplane, samplecylinder, normalsforplot
-export noisifyvertices, noisifyvertices!
+export noisifyvertices, noisifyvertices!, noisifynormals
 
 """
     arbitrary_orthogonal(vec)
@@ -121,6 +122,7 @@ Add gaussian noise to vertices inplace.
 Random subset or all vertices can be selected.
 
 # Arguments:
+- `allvs::Bool`: adds noise to every vertice if true.
 - `scalef`: scale the noise from the [-1,1] interval.
 """
 function noisifyvertices!(verts, allvs, scalef = 1)
@@ -139,11 +141,37 @@ Add gaussian noise to vertices.
 Random subset or all vertices can be selected.
 
 # Arguments:
-- `scalef`: scale the noise from the [-1,1] interval.
+- `allvs::Bool`: adds noise to every vertice if true.
+- `scalef::Real`: scale the noise from the [-1,1] interval.
 """
 function noisifyvertices(verts, allvs, scalef = 1)
     vera = deepcopy(verts)
-    return noisifyvertices!(vera)
+    return noisifyvertices!(vera, allvs, scalef)
+end
+
+"""
+    noisifynormals(norms, maxrot)
+
+Add gaussian noise to normals.
+Rotates the normals around a random axis with `maxrot` degrees.
+
+# Arguments:
+- `maxrot::Real`: maximum rotation in degrees.
+"""
+function noisifynormals(norms, maxrot)
+    retn = similar(norms)
+    randis = rand(eltype(norms),size(norms))
+    randrots = maxrot.*rand(eltype(norms),size(norms,2)).-maxrot/2
+    for i in 1:size(retn,2)
+        nr = normalize(randis[:,i])
+        while norm(cross(norms[:,i], nr)) < 0.1
+            nr = normalize(rand(eltype(norms),3))
+        end
+        crv = cross(nr, norms[:,i])
+        rM = rodriguesdeg(crv, randrots[i])
+        retn[:,i] = rM*norms[:,i]
+    end
+    return retn
 end
 
 end
