@@ -15,4 +15,5 @@ A short link collection of the used packages.
 * `Base.LinearAlgebra`: [docs](https://docs.julialang.org/en/v1/stdlib/LinearAlgebra/)
 * Multi-dimensional Arrays: [docs](https://docs.julialang.org/en/v1/manual/arrays/)
 * Arrays: [docs](https://docs.julialang.org/en/v1/base/arrays/)
+* `Base.Random`: [docs](https://docs.julialang.org/en/v1/stdlib/Random/)
 * Juno editor: [keyboard shortcuts](http://docs.junolab.org/latest/man/basic_usage.html)
