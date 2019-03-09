@@ -9,6 +9,10 @@ includet("generatesamples.jl")
 
 using .samples
 
+includet("skecher.jl")
+
+## Easy examples
+
 n1 = [1,0,0]
 n2 = [0,1,0.5]
 nullp = zeros(3)
@@ -43,5 +47,8 @@ scatter(noiVc[1,:], noiVc[2,:], noiVc[3,:])
 linesegments!(plaNc,  color = :blue)
 linesegments!(plaNcoi,  color = :blue)
 
-# that is slower
-# meshscatter(testpS[1,:],testpS[2,:],testpS[3,:])
+## a random sample
+vs, ns, normsP = makemeanexample(true)
+
+scatter(vs[1,:], vs[2,:], vs[3,:])
+linesegments!(normsP, color = :blue)

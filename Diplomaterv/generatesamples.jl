@@ -8,6 +8,7 @@ using AbstractPlotting: Point3f0
 
 export sampleplane, samplecylinder, normalsforplot
 export noisifyvertices, noisifyvertices!, noisifynormals
+export makemeanexample
 
 """
     arbitrary_orthogonal(vec)
@@ -172,6 +173,27 @@ function noisifynormals(norms, maxrot)
         retn[:,i] = rM*norms[:,i]
     end
     return retn
+end
+
+"""
+    makemeanexample(nois = false; all = false)
+
+Generate a definitely not random example.
+"""
+function makemeanexample(nois = false; all = false)
+    pp_, pn_ = sampleplane([0,0,0], [0,0,1], [1,3,0], (13.7, 9.58), (96, 112))
+    cp_, cn_ = samplecylinder([0,0,1], zeros(3), 15, 15, (100, 150))
+    cp2_, cn2_ = samplecylinder([-3,2,1], [0.9, 1.8, -2.3], 7, 9, (150, 100))
+    ps_ = hcat(pp_, cp_, cp2_)
+    ns_ = hcat(pn_, cn_, cn2_)
+    if nois
+        noisifyvertices!(ps_, all)
+        ns2_ = noisifynormals(ns_, 35)
+        nsfp2_ = normalsforplot(ps_, ns2_)
+        return ps_, ns_, nsfp2_
+    end
+    nsfp_ = normalsforplot(ps_, ns_)
+    return ps_, ns_, nsfp_
 end
 
 end
