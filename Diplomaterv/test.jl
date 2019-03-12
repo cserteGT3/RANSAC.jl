@@ -52,3 +52,33 @@ vs, ns, normsP = makemeanexample(true)
 
 scatter(vs[1,:], vs[2,:], vs[3,:])
 linesegments!(normsP, color = :blue)
+
+## Regiontree tests
+
+includet("octree.jl")
+
+using .Octree
+
+using StaticArrays
+using RegionTrees
+
+r = Cell(SVector(0.0,0,0),SVector(1.0,1,1))
+split!(r)
+cb1 = child_boundary(r,(1,1,1))
+vcb1 = vertices(cb1)
+
+for i in 1:2
+   for j in 1:2
+       for k in 1:2
+           @show (i,j,k)
+           @show child_boundary(r,(i,j,k))
+       end
+   end
+end
+
+v2 = collect(1:30);
+v3 = rand(Bool,10);
+v33 = rand(Bool,10);
+
+v4 = SVector(0,0);
+v5 = SVector(-1,1);
