@@ -6,11 +6,13 @@ using RegionTrees: child_boundary, Cell
 using RegionTrees: HyperRectangle, vertices
 
 export OctreeNode
-export iswithinrectangle
+export iswithinrectangle, OctreeRefinery
 
-mutable struct OctreeNode{A<:AbstractArray}
-    indexes::A
+mutable struct OctreeNode{A<:AbstractArray, B<:AbstractArray}
+    cloudarray::A
+    incellpoints::B
     weight::Float64
+    depth::Int64
 end
 
 struct OctreeRefinery <: AbstractRefinery
@@ -18,14 +20,18 @@ struct OctreeRefinery <: AbstractRefinery
 end
 
 function needs_refinement(r::OctreeRefinery, cell)
-    cell.data.indexes > r.count
+    length(cell.data.incellpoints) > r.count
 end
 
 function refine_data(r::OctreeRefinery, cell::Cell, indices)
     boundary = child_boundary(cell, indices)
     # a visszatérési érték azoknak a pontoknak az indexe, amelyik a boundary-ban van
-    indexes = cell.data.indexes
-    # de hogyan szerzem meg a pontokat az index alapján?
+    # de hogyan szerzem meg a pontokat az index alapján?-> cloudarray
+    points = cell.data.cloudarray[cell.data.incellpoints]
+    bolarr = map(x -> iswithinrectangle(boundary, x), points)
+    # new cell inherits the weight and ++ of the depth
+    d = cell.data.depth + 1
+    OctreeNode(cell.data.cloudarray, cell.data.incellpoints[bolarr], cell.data.weight, d)
 end
 
 """
