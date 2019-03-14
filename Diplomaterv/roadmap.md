@@ -28,3 +28,4 @@
 - [ ] use `Array` of `StaticArrays` (instead of 2dim array)
 - [ ] check if `Point3f0` and 64 bit `Svector` is fine
 - [ ] does changing the original cloudarray changes things?
+- [ ] `struc PointCloud`: vertices, normals, enabling bits
