@@ -22,6 +22,7 @@
 - [ ] working Octree
 - [ ] `OctreeNode`
 - [ ] Octree tests
+- [ ] `iswithinrectangle()` test
 
 ### Tasks
 - [ ] use `Array` of `StaticArrays` (instead of 2dim array)
