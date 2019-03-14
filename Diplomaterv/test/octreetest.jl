@@ -1,5 +1,8 @@
 ## Octree test
-using StaticArrays: Svector
+
+# construct a pointcloud
+
+using StaticArrays: SVector
 
 minV = [0.0, 0, 0];
 maxV = [5.5, 10, 7.8];
@@ -23,3 +26,15 @@ scatter(corners, color=:blue)
 scatter!(full8p, color=:red)
 scatter!(quadrant, color= :green)
 scatter!(online, color=:brown)
+
+# build octree
+using RegionTrees
+
+include("../octree.jl")
+using .Octree
+
+root = Cell(SVector{3}(minV), SVector{3}(maxV), OctreeNode(pc, collect(1:length(pc)), 0.0, 1))
+
+r = OctreeRefinery(8)
+
+adaptivesampling!(root, r)
