@@ -22,7 +22,8 @@
 - [ ] working Octree
 - [ ] `OctreeNode`
 - [ ] Octree tests
-- [ ] `iswithinrectangle()` tests
+- [x] `iswithinrectangle()` tests
+- [ ] generalize `iswithinrectangle()`
 - [ ] visualize Octree
 
 ### Tasks
