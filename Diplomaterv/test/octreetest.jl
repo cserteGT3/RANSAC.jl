@@ -21,14 +21,14 @@ pc = vcat(full8p, quadrant, online)
 ## visualize
 
 using Makie
-
-scatter(corners, color=:blue)
+s = Scene()
+scatter!(corners, color=:blue)
 scatter!(full8p, color=:red)
 scatter!(quadrant, color= :green)
 scatter!(online, color=:brown)
 
 # build octree
-using RegionTrees
+using RegionTrees: adaptivesampling!, Cell, allleaves
 
 include("../octree.jl")
 using .Octree
@@ -38,3 +38,27 @@ root = Cell(SVector{3}(minV), SVector{3}(maxV), OctreeNode(pc, collect(1:length(
 r = OctreeRefinery(8)
 
 adaptivesampling!(root, r)
+
+tp = 0.1
+@show "let's get started"
+i = 1
+for leaf in allleaves(root)
+    ku = GeometryTypes.HyperRectangle(Vec3(leaf.boundary.origin...), Vec3(leaf.boundary.widths...))
+    if leaf.data.depth == 2
+        mesh!(s, ku, color = (:red, tp), transparency = true)
+        text!(s, "$i,2", position = Vec3(leaf.boundary.origin...), textsize = 0.5 )
+    elseif leaf.data.depth == 3
+        mesh!(s, ku, color = (:green, tp), transparency = true)
+        text!(s, "$i,3", position = Vec3(leaf.boundary.origin...), textsize = 0.5 )
+    else
+        println("please no")
+    end
+    @show leaf.data.depth
+    global i +=1
+end
+s
+using GeometryTypes
+kubi = GeometryTypes.HyperRectangle(Vec3(root.boundary.origin...), Vec3(root.boundary.widths...))
+
+s22  = mesh(kubi, color = (:green, 0.2), transparency = true)
+text!(s22, "1", position = Vec3(root.boundary.origin...), textsize = 0.5)
