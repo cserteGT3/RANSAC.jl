@@ -109,7 +109,7 @@ Only the direction of the normals is presented, their size not.
 function normalsforplot(verts, norms, arrowsize = 0.5)
     @assert size(verts) == size(norms) "They should have the same size."
     as = arrowsize
-    return [Point3f0(verts[:,i]) => Point3f0(verts[:,i] + as.*normalize(norms[:,i])) for i in 1:size(verts, 2) ]
+    return [verts[i] => verts[i] + as .*normalize(norms[i]) for i in 1:length(verts) ]
 end
 
 """
@@ -148,7 +148,7 @@ function noisifynormals(norms, maxrot)
         randis[i] = SVector(rand(eltype(eltype(norms)),3)...)
     end
     randrots = maxrot.*rand(eltype(eltype(norms)), length(norms)).-maxrot/2
-    for i in 1:size(retn,2)
+    for i in 1:length(retn)
         nr = normalize(randis[i])
         while norm(cross(norms[i], nr)) < 0.1
             nr = normalize(rand(eltype(norms),3))

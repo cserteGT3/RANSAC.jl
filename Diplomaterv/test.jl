@@ -5,6 +5,8 @@ using Revise
 using LinearAlgebra
 using StaticArrays
 using Makie
+AbstractPlotting.__init__()
+#using Debugger
 
 includet("generatesamples.jl")
 
@@ -25,8 +27,8 @@ noiV = noisifyvertices(pV, true, 0.2)
 plaN = normalsforplot(pV, pN);
 plaNoi = normalsforplot(noiV, noiN);
 
-scatter(pV[1,:], pV[2,:], pV[3,:])
-scatter(noiV[1,:], noiV[2,:], noiV[3,:])
+scatter(pV)
+scatter(noiV)
 
 linesegments!(plaNoi, color = :blue)
 linesegments!(plaN, color = :blue)
