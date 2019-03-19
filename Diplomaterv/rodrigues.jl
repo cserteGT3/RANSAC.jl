@@ -1,7 +1,7 @@
 module RodriguesRotations
 
 using LinearAlgebra
-using ZChop: zchop!
+using ZChop: zchop
 
 export rodriguesdeg, rodriguesrad
 
@@ -15,7 +15,7 @@ function rodrigues(nv, Θ)
     et = eltype(nv)
     R = zeros(et,3,3)
     R = nv*nv' + cos(Θ).*(Matrix{et}(I, 3,3) - nv*nv') + sin(Θ).*crossprodtensor(nv)
-    return zchop!(R)
+    return R
 end
 
 """

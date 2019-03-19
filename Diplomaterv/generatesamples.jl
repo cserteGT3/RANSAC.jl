@@ -6,9 +6,10 @@ using LinearAlgebra: normalize, normalize!, cross, norm
 using .RodriguesRotations: rodriguesrad, rodriguesdeg
 using AbstractPlotting: Point3f0
 using StaticArrays: SVector
+using Debugger
 
 export sampleplane, samplecylinder, normalsforplot
-export noisifyvertices, noisifyvertices!, noisifynormals
+export noisifyvertices, noisifynormals
 export makemeanexample
 
 """
@@ -112,25 +113,6 @@ function normalsforplot(verts, norms, arrowsize = 0.5)
 end
 
 """
-    noisifyvertices!(verts, allvs, scalef = 1)
-
-Add gaussian noise to vertices inplace.
-Random subset or all vertices can be selected.
-
-# Arguments:
-- `allvs::Bool`: adds noise to every vertice if true.
-- `scalef`: scale the noise from the [-1,1] interval.
-"""
-function noisifyvertices!(verts, allvs, scalef = 1)
-    randis = (2*scalef) .*rand(eltype(verts),size(verts)) .-1
-    allvs && return verts+randis
-    bools = rand(Bool, size(verts))
-    verts[bools] += randis[bools]
-    return verts
-end
-
-
-"""
     noisifyvertices(verts, allvs, scalef = 1)
 
 Add gaussian noise to vertices.
@@ -141,8 +123,13 @@ Random subset or all vertices can be selected.
 - `scalef::Real`: scale the noise from the [-1,1] interval.
 """
 function noisifyvertices(verts, allvs, scalef = 1)
-    vera = deepcopy(verts)
-    return noisifyvertices!(vera, allvs, scalef)
+    randis = similar(verts)
+    for i in eachindex(randis)
+        randis[i] = (2*scalef) .*SVector(rand(eltype(eltype(verts)),3)...) .-1
+    end
+    allvs && return verts+randis
+    bools = rand(Bool, size(verts))
+    verts[bools] + randis[bools]
 end
 
 """
@@ -156,16 +143,19 @@ Rotates the normals around a random axis with `maxrot` degrees.
 """
 function noisifynormals(norms, maxrot)
     retn = similar(norms)
-    randis = rand(eltype(norms),size(norms))
-    randrots = maxrot.*rand(eltype(norms),size(norms,2)).-maxrot/2
+    randis = similar(norms)
+    for i in eachindex(randis)
+        randis[i] = SVector(rand(eltype(eltype(norms)),3)...)
+    end
+    randrots = maxrot.*rand(eltype(eltype(norms)), length(norms)).-maxrot/2
     for i in 1:size(retn,2)
-        nr = normalize(randis[:,i])
-        while norm(cross(norms[:,i], nr)) < 0.1
+        nr = normalize(randis[i])
+        while norm(cross(norms[i], nr)) < 0.1
             nr = normalize(rand(eltype(norms),3))
         end
-        crv = cross(nr, norms[:,i])
+        crv = cross(nr, norms[i])
         rM = rodriguesdeg(crv, randrots[i])
-        retn[:,i] = rM*norms[:,i]
+        retn[i] = rM*norms[i]
     end
     return retn
 end
