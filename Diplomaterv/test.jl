@@ -34,7 +34,7 @@ linesegments!(plaNoi, color = :blue)
 linesegments!(plaN, color = :blue)
 
 # Cylinder
-cP, cN = samplecylinder([0,0,1], nullp, 5, 10, (100, 150));
+cP, cN = samplecylinder(SVector(0,0,1), nullp, 5, 10, (100, 150))
 
 noiNc = noisifynormals(cN, 45);
 noiVc = noisifyvertices(cP, true, 0.2);
@@ -42,8 +42,8 @@ noiVc = noisifyvertices(cP, true, 0.2);
 plaNc = normalsforplot(cP, cN);
 plaNcoi = normalsforplot(noiVc, noiNc);
 
-scatter(cP[1,:], cP[2,:], cP[3,:])
-scatter(noiVc[1,:], noiVc[2,:], noiVc[3,:])
+scatter(cP)
+scatter(noiVc)
 
 linesegments!(plaNc,  color = :blue)
 linesegments!(plaNcoi,  color = :blue)
@@ -51,7 +51,7 @@ linesegments!(plaNcoi,  color = :blue)
 ## a random sample
 vs, ns, normsP = makemeanexample(true)
 
-scatter(vs[1,:], vs[2,:], vs[3,:])
+scatter(vs)
 linesegments!(normsP, color = :blue)
 
 ## Regiontree tests
