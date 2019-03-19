@@ -8,6 +8,7 @@ A short link collection of the used packages.
 This is also the list of packages that you need to add if you want to use this repo.
 
 * `Revise.jl`: [GitHub](https://github.com/timholy/Revise.jl), [docs](https://timholy.github.io/Revise.jl/dev/)
+* `Debugger.jl`: [GitHub](https://github.com/JuliaDebug/Debugger.jl)
 * `Makie.jl`: [GitHub](https://github.com/JuliaPlots/Makie.jl), [docs](http://juliaplots.org/MakieGallery.jl/stable/)
 * `ZChop.jl`: [GitHub](https://github.com/jlapeyre/ZChop.jl)
 * `RegionTrees.jl`: [GitHub](https://github.com/rdeits/RegionTrees.jl), [demo NB](https://github.com/rdeits/RegionTrees.jl/blob/master/examples/demo/demo.ipynb)
