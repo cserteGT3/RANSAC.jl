@@ -3,19 +3,18 @@ Pkg.activate()
 
 using Revise
 using LinearAlgebra
+using StaticArrays
 using Makie
 
 includet("generatesamples.jl")
 
 using .samples
 
-includet("skecher.jl")
-
 ## Easy examples
 
-n1 = [1,0,0]
-n2 = [0,1,0.5]
-nullp = zeros(3)
+n1 = SVector(1,0,0)
+n2 = SVector(0,1,0.5)
+nullp = SVector(0,0,0)
 
 # Plane
 pV, pN = sampleplane(nullp, n1, n2, (1,1), (4,4));
@@ -82,3 +81,12 @@ v33 = rand(Bool,10);
 
 v4 = SVector(0,0);
 v5 = SVector(-1,1);
+
+using GeometryTypes: Point3f0
+r = Cell(SVector(0.0,0,0),SVector(1.0,1,1))
+d = OctreeNode(rand(Point3f0, 10), collect(1:10), 1.0)
+octref = OctreeRefinery(1)
+r2 = Cell(SVector(0.0,0,0),SVector(1.0,1,1), d)
+
+iswithinrectangle(r2.boundary, rand(Point3f0))
+map(x -> iswithinrectangle(r2.boundary, x), rand(Point3f0,10))

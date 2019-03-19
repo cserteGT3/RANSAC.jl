@@ -5,6 +5,7 @@ include("rodrigues.jl")
 using LinearAlgebra: normalize, normalize!, cross, norm
 using .RodriguesRotations: rodriguesrad, rodriguesdeg
 using AbstractPlotting: Point3f0
+using StaticArrays: SVector
 
 export sampleplane, samplecylinder, normalsforplot
 export noisifyvertices, noisifyvertices!, noisifynormals
@@ -45,15 +46,9 @@ function sampleplane(vp, v1, v2, lengtht, sizet)
     s1, s2 = sizet
     @assert s1 > 0 && s2 > 0 "Should sample more than 0."
     s1l, s2l = lengtht
-    pn = repeat(n, 1, s1*s2)
-    ps = similar(pn)
-    linind = LinearIndices((1:s1, 1:s2))
-    vp = vp - (s1l*v1n + s2l*v2n)/2
-    for u in 1:s1
-        for v in 1:s2
-            ps[:,linind[u,v]] = vp + v1n*u/s1l + v2n*v/s2l
-        end
-    end
+    pn = [n for i in 1:s1*s2]
+    vpn = vp - (s1l*v1n + s2l*v2n)/2
+    ps = [vpn + v1n*u/s1l + v2n*v/s2l for u in 1:s1 for v in 1:s2]
     return (ps, pn)
 end
 
