@@ -5,12 +5,24 @@ using Revise
 using LinearAlgebra
 using StaticArrays
 using Makie
+using Debugger
 AbstractPlotting.__init__()
-#using Debugger
 
 includet("generatesamples.jl")
 
 using .samples
+
+function showgeometry(scene, vs, ns; arrow = 0.5)
+        plns = normalsforplot(vs, ns, arrow)
+        scene = scatter(vs)
+        linesegments!(scene, plns, color = :blue)
+end
+
+function showgeometry!(scene, vs, ns; arrow = 0.5)
+        plns = normalsforplot(vs, ns, arrow)
+        scatter!(scene, vs)
+        linesegments!(scene, plns, color = :blue)
+end
 
 ## Easy examples
 
@@ -86,9 +98,28 @@ v5 = SVector(-1,1);
 
 using GeometryTypes: Point3f0
 r = Cell(SVector(0.0,0,0),SVector(1.0,1,1))
-d = OctreeNode(rand(Point3f0, 10), collect(1:10), 1.0)
+d = OctreeNode(rand(Point3f0, 10), collect(1:10), 1.0, 0)
 octref = OctreeRefinery(1)
 r2 = Cell(SVector(0.0,0,0),SVector(1.0,1,1), d)
 
 iswithinrectangle(r2.boundary, rand(Point3f0))
 map(x -> iswithinrectangle(r2.boundary, x), rand(Point3f0,10))
+
+## Fitting tests
+
+includet("fitting.jl")
+using .Fitting
+
+n1 = SVector(1,0,0);
+n2 = SVector(0,1,0);
+nullp = SVector(0,0,0);
+
+tpv, tpn = sampleplane(nullp, n1, n2, (0.5,7.5), (2,2));
+
+s = Scene();
+showgeometry(s, tpv, tpn)
+
+α = 10;
+Juno.@trace isplane(tpv,tpn, deg2rad(α))
+
+fp = isplane(cP,cN, deg2rad(α))
