@@ -6,7 +6,6 @@ using LinearAlgebra: normalize, normalize!, cross, norm
 using .RodriguesRotations: rodriguesrad, rodriguesdeg
 using AbstractPlotting: Point3f0
 using StaticArrays: SVector
-using Debugger
 
 export arbitrary_orthogonal
 export sampleplane, samplecylinder, normalsforplot
@@ -153,7 +152,6 @@ function noisifynormals(norms, maxrot)
             nr = SVector{3}(normalize(rand(eltype(norms),3)))
         end
         crv = cross(nr, norms[i])
-        #@show randrots[i]
         rM = rodriguesdeg(crv, randrots[i])
         retn[i] = rM*norms[i]
     end
