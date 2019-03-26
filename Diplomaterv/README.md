@@ -20,4 +20,4 @@ This is also the list of packages that you need to add if you want to use this r
 * Multi-dimensional Arrays: [docs](https://docs.julialang.org/en/v1/manual/arrays/)
 * Arrays: [docs](https://docs.julialang.org/en/v1/base/arrays/)
 * `Base.Random`: [docs](https://docs.julialang.org/en/v1/stdlib/Random/)
-* Juno IDE: [keyboard shortcuts](http://docs.junolab.org/latest/man/basic_usage.html)
+* Juno IDE: [keyboard shortcuts](http://docs.junolab.org/latest/man/basic_usage.html), [docs](http://docs.junolab.org/dev/)
