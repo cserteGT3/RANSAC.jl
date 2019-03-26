@@ -6,9 +6,11 @@ using LinearAlgebra: normalize, normalize!, cross, norm
 using .RodriguesRotations: rodriguesrad, rodriguesdeg
 using AbstractPlotting: Point3f0
 using StaticArrays: SVector
+using ZChop: zchop!
 
 export arbitrary_orthogonal
-export sampleplane, samplecylinder, normalsforplot
+export sampleplane, samplecylinder, samplesphere
+export normalsforplot
 export noisifyvertices, noisifynormals
 export makemeanexample
 
@@ -90,6 +92,34 @@ function samplecylinder(ax, vp, R, h, sizet)
     ps = [ dontMul(rotMat, p1, i) + ((j-1)*h/(s2-1)).*axn   for i in 1:s1 for j in 1:s2]
     ns = [ dontMul(rotMat, n1, i) for i in 1:s1 for j in 1:s2]
     return (ps, ns)
+end
+
+"""
+    samplesphere(cp, R, sizet)
+
+Create a tuple of points on a sphere and their normals.
+
+# Arguments:
+- `cp`: centerpoint of sphere.
+- `R`: radius of the sphere.
+- `sizet`: tuple containing the number of samples along two great circles.
+"""
+function samplesphere(cp, R, sizet)
+    @assert R>0 "Can't construct sphere with radius < 0."
+    s1, s2 = sizet
+    @assert s1 > 2 && s2 > 2 "Should sample more than 2."
+    r1 = range(0, π, length = s1+2)[2:end-1]
+    r2 = range(0, 2π, length = s2+1)[1:end-1]
+    r = R/2
+    vert = [cp + r*SVector{3}(zchop!([sin(i)*cos(j), sin(i)*sin(j), cos(i)])) for i in r1 for j in r2]
+    rV = SVector(0,0,r)
+    append!(vert, [cp-rV,cp+rV])
+
+    ns = similar(vert)
+    for i in eachindex(ns)
+        ns[i] = normalize(vert[i]-cp)
+    end
+    return vert, ns
 end
 
 """

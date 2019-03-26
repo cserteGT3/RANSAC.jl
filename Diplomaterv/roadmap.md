@@ -4,7 +4,7 @@
 
 ### Primitives
 - [x] plane
-- [ ] sphere
+- [x] sphere
 - [x] cylinder
 - [ ] cone
 - [ ] torus

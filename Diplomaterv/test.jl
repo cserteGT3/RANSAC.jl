@@ -60,6 +60,20 @@ scatter(noiVc)
 linesegments!(plaNc,  color = :blue)
 linesegments!(plaNcoi,  color = :blue)
 
+# Sphere
+sP, sN = samplesphere(SVector(1,0.5,7), 5, (70,73))
+scatter(sP)
+
+sphereN = normalsforplot(sP, sN);
+linesegments!(sphereN, color = :blue)
+
+noisPsp = noisifyvertices(sP, true, 0.02);
+noisNsp = noisifynormals(sN, 20);
+sphereNois = normalsforplot(noisPsp, noisNsp);
+
+scatter(noisPsp)
+linesegments!(sphereNois, color = :blue)
+
 ## a random sample
 vs, ns, normsP = makemeanexample(true)
 
