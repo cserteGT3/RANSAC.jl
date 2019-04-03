@@ -110,8 +110,7 @@ function samplesphere(cp, R, sizet)
     @assert s1 > 2 && s2 > 2 "Should sample more than 2."
     r1 = range(0, π, length = s1+2)[2:end-1]
     r2 = range(0, 2π, length = s2+1)[1:end-1]
-    r = R/2
-    vert = [cp + r*SVector{3}(zchop!([sin(i)*cos(j), sin(i)*sin(j), cos(i)])) for i in r1 for j in r2]
+    vert = [cp + R*SVector{3}(zchop!([sin(i)*cos(j), sin(i)*sin(j), cos(i)])) for i in r1 for j in r2]
     rV = SVector(0,0,r)
     append!(vert, [cp-rV,cp+rV])
 
