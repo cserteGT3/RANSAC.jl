@@ -111,7 +111,7 @@ function samplesphere(cp, R, sizet)
     r1 = range(0, π, length = s1+2)[2:end-1]
     r2 = range(0, 2π, length = s2+1)[1:end-1]
     vert = [cp + R*SVector{3}(zchop!([sin(i)*cos(j), sin(i)*sin(j), cos(i)])) for i in r1 for j in r2]
-    rV = SVector(0,0,r)
+    rV = SVector(0,0,R)
     append!(vert, [cp-rV,cp+rV])
 
     ns = similar(vert)
