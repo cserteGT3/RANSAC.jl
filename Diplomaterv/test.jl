@@ -8,7 +8,7 @@ using Makie
 using Debugger
 AbstractPlotting.__init__()
 
-includet("generatesamples.jl")
+include("generatesamples.jl")
 
 using .samples
 
@@ -124,6 +124,8 @@ map(x -> iswithinrectangle(r2.boundary, x), rand(Point3f0,10))
 includet("fitting.jl")
 using .Fitting
 
+# plane
+
 n1 = SVector(1,0,0);
 n2 = SVector(0,1,0);
 nullp = SVector(0,0,0);
@@ -134,6 +136,22 @@ s = Scene();
 showgeometry(s, tpv, tpn)
 
 α = 10;
-Juno.@trace isplane(tpv,tpn, deg2rad(α))
+isplane(tpv,tpn, deg2rad(α))
 
 fp = isplane(cP,cN, deg2rad(α))
+
+# sphere
+o = SVector(0.0,0,0);
+R = 5;
+tsP, tsN = samplesphere(o, R, (70,73));
+
+s = Scene();
+showgeometry(s, tsP, tsN)
+
+α = 10;
+ϵ = 0.1;
+rk = 1:3;
+issphere(tsP[rk], tsN[rk], ϵ, deg2rad(α))
+
+testv = [SVector(6,8,4), SVector(6,8,2)];
+testn = [SVector(6,7,0), SVector(6,7,4)];

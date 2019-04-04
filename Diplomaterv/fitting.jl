@@ -1,10 +1,11 @@
 module Fitting
 
 using StaticArrays: SVector, MVector
-using LinearAlgebra: cross, dot, normalize, normalize!, norm
+using LinearAlgebra: cross, ×, dot, normalize, normalize!, norm
 using ZChop: zchop, zchop!
 
 export FittedPlane, isplane
+export FittedSphere, issphere
 
 struct FittedPlane{A<:AbstractArray}
     isplane::Bool
@@ -62,6 +63,62 @@ function isplane(p, n, alpharad, collin_threshold = 0.2)
     norm_ok == trues(tc) && return FittedPlane(true, p[1], SVector{3}(crossv))
     invnorm_ok == trues(tc) && return FittedPlane(true, p[1], SVector{3}(-1*crossv))
     return FittedPlane(false, NaNVec, NaNVec)
+end
+
+struct FittedSphere{A<:AbstractArray, R<:Real}
+    issphere::Bool
+    center::A
+    radius::R
+end
+
+function fitsphere(v, n)
+    n1n = normalize(n[1])
+    n2n = normalize(n[2])
+
+    if abs(dot(n1n, n2n)) > 0.98
+        # parallel normals
+        # fit it, if bad, will fall out later
+        centerp = (v[1]+v[2])/2
+        return FittedSphere(true, centerp, norm(centerp-v[1]))
+    else
+        # not parallel normals
+        # first check if they intersect
+        g = v[2]-v[1]
+        h = cross(n2n, g)
+        k = cross(n2n, n1n)
+        nk = norm(k)
+        nh = norm(h)
+
+        if nk < 0.02 || nh < 0.02
+            # if nk == 0 || nh == 0, but it's numeric
+            # no intersection
+            n2 = n2n × (n1n × n2n)
+            n1 = n1n × (n2n × n1n)
+            c1 = v[1] + dot( (v[2]-v[1]), n2 )/dot( n[1], n2 ) * n[1]
+            c2 = v[2] + dot( (v[1]-v[2]), n1 )/dot( n[2], n1 ) * n[2]
+            centerp = (c1+c2)/2
+            r = (norm(v[1]-centerp) + norm(v[1]-centerp))/2
+            return FittedSphere(true, centerp, r)
+        else
+            # intersection
+            if dot(h, k) > 0
+                # point the same direction -> +
+                M = v[1] + nh/nk * n1n
+                return FittedSphere(true, SVector{3}(zchop!(MVector{3}(M))), norm(M-v[1]))
+            else
+                # point in different direction -> -
+                M = v[1] - nh/nk * n1n
+                return FittedSphere(true, SVector{3}(zchop!(MVector{3}(M))), norm(M-v[1]))
+            end
+        end
+    end
+end
+
+function issphere(p, n, epsilon, alpharad)
+    @assert length(p) == length(n) "Size must be the same."
+    @assert length(p) > 2 "Size must be at least 3."
+    sp = fitsphere(p, n)
+    return sp
 end
 
 end #module
