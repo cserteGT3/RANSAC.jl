@@ -57,6 +57,24 @@ function sampleplane(vp, v1, v2, lengtht, sizet)
 end
 
 """
+    sampleplane(vp, n, lengtht, sizet)
+
+Create a tuple of points on a plane and their normals based on a point (`vp`) and
+a surface normal (`n`).
+
+# Arguments:
+- `vp`: a point of the plane.
+- `n`: surface normal.
+- `sizet`: tuple containing the number of samples along each side.
+- `lengtht`: tuple containing the length of the plane along each side.
+"""
+function sampleplane(vp, n, lengtht, sizet)
+    arbnorm = arbitrary_orthogonal(n)
+    norm2 = cross(n, arbnorm)
+    return sampleplane(vp, arbnorm, norm2, lengtht, sizet)
+end
+
+"""
     samplecylinder(ax, vp, R, h, sizet)
 
 Create a tuple of points on a cylinder and their normals based on an axis (`ax`),
