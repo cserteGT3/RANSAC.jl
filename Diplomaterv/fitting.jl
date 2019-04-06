@@ -132,17 +132,21 @@ function issphere(p, n, epsilon, alpharad)
     # check if real sphere
     sp.issphere || return sp
     thr = cos(alpharad)
+    vert_ok = falses(pl)
+    norm_ok = falses(pl)
+    invnorm_ok = falses(pl)
     for i in 1:pl
         # vertice check
-        if abs(norm(p[i]-sp.center)-sp.radius) > epsilon
-            return FittedSphere(false, NaNVec, 0)
-        end
+        vert_ok[i] = abs(norm(p[i]-sp.center)-sp.radius) < epsilon
         # normal check
-        if abs(dot( normalize(p[i]-sp.center), normalize(n[i]) )) < thr
-            return FittedSphere(false, NaNVec, 0)
-        end
+        dotp = dot( normalize(p[i]-sp.center), normalize(n[i]) )
+        norm_ok[i] = dotp > thr
+        invnorm_ok[i] = dotp < -thr
     end
-    return sp
+    vert_ok == trues(pl) || return FittedSphere(false, NaNVec, 0)
+    norm_ok == trues(pl) && return sp
+    invnorm_ok == trues(pl) && return sp
+    return FittedSphere(false, NaNVec, 0)
 end
 
 end #module
