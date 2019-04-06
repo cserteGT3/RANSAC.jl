@@ -1,5 +1,10 @@
 # Roadmap
 
+## General TODOs
+
+- [ ] consistent use of `zchop`
+- [ ] consistent use of thresholds
+
 ## Generate examples
 
 ### Primitives
