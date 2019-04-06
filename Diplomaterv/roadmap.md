@@ -4,6 +4,9 @@
 
 - [ ] consistent use of `zchop`
 - [ ] consistent use of thresholds
+- [ ] define assertion of normed surface normals
+* - [ ] decision
+* - [ ] consistent implementation: delete unnecessary `normalize()`
 
 ## Generate examples
 
