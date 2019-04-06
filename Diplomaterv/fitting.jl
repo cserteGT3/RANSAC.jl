@@ -114,6 +114,15 @@ function fitsphere(v, n)
     end
 end
 
+"""
+    issphere(p, n, epsilon, alpharad)
+
+Fit a sphere to 2 points. Additional points and their normals are used to validate the fit.
+
+# Arguments:
+- `epsilon::Real`: maximum distance-difference between the fitted and measured spheres.
+- `alpharad::Real`: maximum difference between the normals (in radians).
+"""
 function issphere(p, n, epsilon, alpharad)
     pl = length(p)
     @assert pl == length(n) "Size must be the same."
@@ -129,7 +138,7 @@ function issphere(p, n, epsilon, alpharad)
             return FittedSphere(false, NaNVec, 0)
         end
         # normal check
-        if abs(dot( normalize(p[i]-sp.center), normalize(n[i]) )) > thr
+        if abs(dot( normalize(p[i]-sp.center), normalize(n[i]) )) < thr
             return FittedSphere(false, NaNVec, 0)
         end
     end

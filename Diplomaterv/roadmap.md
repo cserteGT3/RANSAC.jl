@@ -43,7 +43,7 @@
 ## Fitting
 - [ ] `isa...` for every shape
 * - [x] plane
-* - [ ] sphere
+* - [x] sphere
 * - [ ] cylinder
 * - [ ] cone
 * - [ ] torus

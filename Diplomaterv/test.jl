@@ -141,8 +141,8 @@ isplane(tpv,tpn, deg2rad(α))
 fp = isplane(cP,cN, deg2rad(α))
 
 # sphere
-o = SVector(0.0,0,0);
-R = 5;
+o = SVector(0.0,5,π);
+R = 0.1;
 tsP, tsN = samplesphere(o, R, (70,73));
 
 s = Scene();
@@ -150,7 +150,7 @@ showgeometry(s, tsP, tsN)
 
 α = 10;
 ϵ = 0.1;
-rk = 1:3;
+rk = [125, 1517, 2941];
 issphere(tsP[rk], tsN[rk], ϵ, deg2rad(α))
 
 testv = [SVector(6,8,4), SVector(6,8,2)];
