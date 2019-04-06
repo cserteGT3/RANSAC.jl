@@ -115,9 +115,24 @@ function fitsphere(v, n)
 end
 
 function issphere(p, n, epsilon, alpharad)
-    @assert length(p) == length(n) "Size must be the same."
-    @assert length(p) > 2 "Size must be at least 3."
+    pl = length(p)
+    @assert pl == length(n) "Size must be the same."
+    @assert pl > 2 "Size must be at least 3."
+    # "forcefit" a sphere
     sp = fitsphere(p, n)
+    # check if real sphere
+    sp.issphere || return sp
+    thr = cos(alpharad)
+    for i in 1:pl
+        # vertice check
+        if abs(norm(p[i]-sp.center)-sp.radius) > epsilon
+            return FittedSphere(false, NaNVec, 0)
+        end
+        # normal check
+        if abs(dot( normalize(p[i]-sp.center), normalize(n[i]) )) > thr
+            return FittedSphere(false, NaNVec, 0)
+        end
+    end
     return sp
 end
 
