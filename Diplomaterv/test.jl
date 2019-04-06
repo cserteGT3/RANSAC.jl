@@ -5,7 +5,6 @@ using Revise
 using LinearAlgebra
 using StaticArrays
 using Makie
-using Debugger
 AbstractPlotting.__init__()
 
 include("generatesamples.jl")
@@ -155,3 +154,13 @@ issphere(tsP[rk], tsN[rk], ϵ, deg2rad(α))
 
 testv = [SVector(6,8,4), SVector(6,8,2)];
 testn = [SVector(6,7,0), SVector(6,7,4)];
+
+# cross test
+
+tpv2, tpn2 = sampleplane(nullp, n1, n2, (0.5,7.5), (70,73));
+tsP2, tsN2 = samplesphere(o, R, (70,73));
+
+ra = [195,1596,3845]
+isplane(tsP2[ra],tsP2[ra], deg2rad(α))
+
+issphere(tpv2[rk], tpv2[rk], ϵ, deg2rad(α))
