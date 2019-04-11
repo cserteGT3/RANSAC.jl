@@ -11,3 +11,6 @@ I do not have copyright on the pictures used for this course.
 
 ## Diplomaterv
 This is some code for my final project.
+
+## MRD
+This is my course at BME GPK called Dynamics of Systems in Mechanics.
