@@ -50,3 +50,29 @@ function rodriguesdeg(nv, ϑ)
 end
 
 end
+
+"""
+Collection of useful functions.
+"""
+module Utilities
+
+using LinearAlgebra: normalize, normalize!, cross
+
+export arbitrary_orthogonal
+
+"""
+    arbitrary_orthogonal(vec)
+
+Create an arbitrary orthogonal vector to `vec`.
+"""
+function arbitrary_orthogonal(vec)
+    @assert size(vec,1) == 3 "Implemented only for 3 dimensional."
+    v = normalize(vec)
+    b0 = (v[1] <  v[2]) && (v[1] <  v[3]);
+    b1 = (v[2] <= v[1]) && (v[2] <  v[3]);
+    b2 = (v[3] <= v[1]) && (v[3] <= v[2]);
+    rv = normalize!([convert(Int, b0), convert(Int, b1), convert(Int, b2)])
+    return convert(typeof(vec), cross(v, rv))
+end
+
+end # module

@@ -1,33 +1,18 @@
 module samples
 
-include("rodrigues.jl")
+include("utilities.jl")
 
 using LinearAlgebra: normalize, normalize!, cross, norm
 using .RodriguesRotations: rodriguesrad, rodriguesdeg
+using .Utilities: arbitrary_orthogonal
 using AbstractPlotting: Point3f0
 using StaticArrays: SVector
 using ZChop: zchop!
 
-export arbitrary_orthogonal
 export sampleplane, samplecylinder, samplesphere
 export normalsforplot
 export noisifyvertices, noisifynormals
 export makemeanexample
-
-"""
-    arbitrary_orthogonal(vec)
-
-Create an arbitrary orthogonal vector to `vec`.
-"""
-function arbitrary_orthogonal(vec)
-    @assert size(vec,1) == 3 "Implemented only for 3 dimensional."
-    v = normalize(vec)
-    b0 = (v[1] <  v[2]) && (v[1] <  v[3]);
-    b1 = (v[2] <= v[1]) && (v[2] <  v[3]);
-    b2 = (v[3] <= v[1]) && (v[3] <= v[2]);
-    rv = normalize!([convert(Int, b0), convert(Int, b1), convert(Int, b2)])
-    return convert(typeof(vec), cross(v, rv))
-end
 
 """
     sampleplane(vp, v1, v2, lengtht, sizet)
