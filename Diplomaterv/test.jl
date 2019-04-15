@@ -141,7 +141,7 @@ fp = isplane(cP,cN, deg2rad(α))
 
 # sphere
 o = SVector(0.0,5,π);
-R = 0.1;
+R = 5;
 tsP, tsN = samplesphere(o, R, (70,73));
 
 s = Scene();
@@ -164,3 +164,33 @@ ra = [195,1596,3845]
 isplane(tsP2[ra],tsP2[ra], deg2rad(α))
 
 issphere(tpv2[rk], tpv2[rk], ϵ, deg2rad(α))
+
+## bitmap
+# plane
+
+includet("utilities.jl")
+using .Utilities
+
+includet("fitting.jl")
+using .Fitting
+
+includet("parameterspacebitmap.jl")
+using .ParameterspaceBitmap
+
+v1 = [0,1,0];
+degg = 45;
+v2 = normalize([cos(deg2rad(degg)),sin(deg2rad(degg)),0])
+
+isparallel(v1, [0,-1,0], deg2rad(1))
+
+n1 = SVector(1,0,0);
+n2 = SVector(0,1,0.0);
+nullp = SVector(0,0,0);
+
+# Plane
+pV, pN = sampleplane(nullp, n1, n2, (1,1), (5,5));
+ixs = [1,15,20]
+tp = isplane(pV[ixs], pN[ixs], deg2rad(50))
+
+compatibles(tp, pV, pN, 0.1, deg2rad(10))
+compatibles(tp, tsP, tsN, 0.1, deg2rad(10))
