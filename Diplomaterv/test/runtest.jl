@@ -7,3 +7,7 @@ end
 @testset "dummy sphere test" begin
     include("dummyspheretest.jl")
 end
+
+@testset "utility tests" begin
+    include("utilitytests.jl")
+end

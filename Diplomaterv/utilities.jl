@@ -57,9 +57,12 @@ Collection of useful functions.
 module Utilities
 
 using LinearAlgebra: normalize, normalize!, cross, dot
+using StaticArrays: SVector
 
 export arbitrary_orthogonal
 export isparallel
+export findAABB
+export chopzaxis
 
 """
     arbitrary_orthogonal(vec)
@@ -86,6 +89,36 @@ The vectors considered to be normalized.
 """
 function isparallel(v1, v2, alpharad)
     dot(v1, v2) > cos(alpharad)
+end
+
+
+"""
+    findAABB(points)
+
+Find the axis aligned minimum bounding box of the given pointcloud.
+"""
+function findAABB(points)
+    minV = convert(Array, points[1])
+    maxV = convert(Array, points[1])
+    for i in 1:length(points)
+        a = points[i]
+        for j in 1:length(minV)
+            minV[j] = minV[j] > a[j] ? a[j] : minV[j]
+            maxV[j] = maxV[j] < a[j] ? a[j] : maxV[j]
+        end
+    end
+    return convert(eltype(points), minV), convert(eltype(points), maxV)
+end
+
+
+"""
+    chopzaxis(points)
+
+Chop the 3rd element of every point.
+"""
+function chopzaxis(points)
+    @assert length(points[1]) == 3 "Implemented only for 3 long vectors."
+    [ SVector(a[1], a[2]) for a in points]
 end
 
 end # module
