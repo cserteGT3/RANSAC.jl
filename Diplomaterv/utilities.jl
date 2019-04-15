@@ -56,9 +56,10 @@ Collection of useful functions.
 """
 module Utilities
 
-using LinearAlgebra: normalize, normalize!, cross
+using LinearAlgebra: normalize, normalize!, cross, dot
 
 export arbitrary_orthogonal
+export isparallel
 
 """
     arbitrary_orthogonal(vec)
@@ -73,6 +74,18 @@ function arbitrary_orthogonal(vec)
     b2 = (v[3] <= v[1]) && (v[3] <= v[2]);
     rv = normalize!([convert(Int, b0), convert(Int, b1), convert(Int, b2)])
     return convert(typeof(vec), cross(v, rv))
+end
+
+
+"""
+    isparallel(v1, v2, alpharad)
+
+Check if `v1` and `v2` are parallel in an `alpharad` angle.
+
+The vectors considered to be normalized.
+"""
+function isparallel(v1, v2, alpharad)
+    dot(v1, v2) > cos(alpharad)
 end
 
 end # module
