@@ -13,50 +13,50 @@ using Observables: on
 """
 
 function triad!(scene, len; translation = (0f0,0f0,0f0), show_axis = false)
- ret = linesegments!(
-     scene, [
-         Point3f0(0,0,0) => Point3f0(len,0,0),
-         Point3f0(0,0,0) => Point3f0(0,len,0),
-         Point3f0(0,0,0) => Point3f0(0,0,len)
-     ],
-     color = [:red, :green, :blue],
-     linewidth = 3, show_axis = show_axis
- )[end]
- translate!(ret, translation)
- return ret
+    ret = linesegments!(
+                        scene, [
+                         Point3f0(0,0,0) => Point3f0(len,0,0),
+                         Point3f0(0,0,0) => Point3f0(0,len,0),
+                         Point3f0(0,0,0) => Point3f0(0,0,len)
+                        ],
+                        color = [:red, :green, :blue],
+                        linewidth = 3, show_axis = show_axis
+                        )[end]
+    translate!(ret, translation)
+    return ret
 end
 
 # Joint vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 mutable struct Joint
- scene::Scene
- triad::LineSegments
- # link::Mesh
- angle::Float32
- axis::Vec3f0
- offset::Vec3f0
+    scene::Scene
+    triad::LineSegments
+    # link::Mesh
+    angle::Float32
+    axis::Vec3f0
+    offset::Vec3f0
 end
 
 s = Scene()
 
 function Joint(s::Scene)
- newscene = Scene(s)
- triad = triad!(newscene, 1)
- Joint(newscene, triad, 0f0, (0, 1, 0), (0, 0, 0))
+    newscene = Scene(s)
+    triad = triad!(newscene, 1)
+    Joint(newscene, triad, 0f0, (0, 1, 0), (0, 0, 0))
 end
 
 function Joint(j::Joint; offset::Point3f0=(0,0,0), axis=(0, 1, 0), angle=0)
- jnew = Joint(j.scene)
- translate!(jnew.scene, j.offset)
- linesegments!(jnew.scene, [Point3f0(0) => offset], linewidth=4, color=:magenta, show_axis=false)
- jnew.axis = axis
- jnew.offset = offset
- setangle!(jnew, angle)
- return jnew
+    jnew = Joint(j.scene)
+    translate!(jnew.scene, j.offset)
+    linesegments!(jnew.scene, [Point3f0(0) => offset], linewidth=4, color=:magenta, show_axis=false)
+    jnew.axis = axis
+    jnew.offset = offset
+    setangle!(jnew, angle)
+    return jnew
 end
 
 function setangle!(j::Joint, angle::Real)
- j.angle = angle
- rotate!(j.scene, qrotation(j.axis, angle))
+    j.angle = angle
+    rotate!(j.scene, qrotation(j.axis, angle))
 end
 
 # Joint ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -79,12 +79,12 @@ push!(joints, Joint(joints[end]; offset=Point3f0(0,0,0), axis=(1,0,0))) # Roll
 sliders = []
 vals = []
 for i = 1:length(joints)
- slider, val = textslider(-180.0:1.0:180.0, "Joint $(i)", start=rad2deg(joints[i].angle))
- push!(sliders, slider)
- push!(vals, val)
- on(val) do x
-     setangle!(joints[i], deg2rad(x))
- end
+    slider, val = textslider(-180.0:1.0:180.0, "Joint $(i)", start=rad2deg(joints[i].angle))
+    push!(sliders, slider)
+    push!(vals, val)
+    on(val) do x
+        setangle!(joints[i], deg2rad(x))
+    end
 end
 
 # Add sphere to end effector:
