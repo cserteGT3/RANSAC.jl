@@ -67,17 +67,19 @@ struct FittedSphere{A<:AbstractArray, R<:Real}
     issphere::Bool
     center::A
     radius::R
+    outwards::Bool
 end
 
 function fitsphere(v, n)
     n1n = normalize(n[1])
     n2n = normalize(n[2])
 
+    b = false
     if abs(dot(n1n, n2n)) > 0.98
         # parallel normals
         # fit it, if bad, will fall out later
         centerp = (v[1]+v[2])/2
-        return FittedSphere(true, centerp, norm(centerp-v[1]))
+        return FittedSphere(true, centerp, norm(centerp-v[1]), b)
     else
         # not parallel normals
         # first check if they intersect
@@ -96,20 +98,24 @@ function fitsphere(v, n)
             c2 = v[2] + dot( (v[1]-v[2]), n1 )/dot( n[2], n1 ) * n[2]
             centerp = (c1+c2)/2
             r = (norm(v[1]-centerp) + norm(v[1]-centerp))/2
-            return FittedSphere(true, centerp, r)
+            return FittedSphere(true, centerp, r, b)
         else
             # intersection
             if dot(h, k) > 0
                 # point the same direction -> +
                 M = v[1] + nh/nk * n1n
-                return FittedSphere(true, SVector{3}(zchop!(MVector{3}(M))), norm(M-v[1]))
+                return FittedSphere(true, SVector{3}(zchop!(MVector{3}(M))), norm(M-v[1]), b)
             else
                 # point in different direction -> -
                 M = v[1] - nh/nk * n1n
-                return FittedSphere(true, SVector{3}(zchop!(MVector{3}(M))), norm(M-v[1]))
+                return FittedSphere(true, SVector{3}(zchop!(MVector{3}(M))), norm(M-v[1]), b)
             end
         end
     end
+end
+
+function setsphereOuterity(sp, b)
+    FittedSphere(sp.issphere, sp.center, sp.radius, b)
 end
 
 """
@@ -141,10 +147,10 @@ function issphere(p, n, epsilon, alpharad)
         norm_ok[i] = dotp > thr
         invnorm_ok[i] = dotp < -thr
     end
-    vert_ok == trues(pl) || return FittedSphere(false, NaNVec, 0)
-    norm_ok == trues(pl) && return sp
-    invnorm_ok == trues(pl) && return sp
-    return FittedSphere(false, NaNVec, 0)
+    vert_ok == trues(pl) || return FittedSphere(false, NaNVec, 0, false)
+    norm_ok == trues(pl) && return setsphereOuterity(sp, true)
+    invnorm_ok == trues(pl) && return setsphereOuterity(sp, false)
+    return FittedSphere(false, NaNVec, 0, false)
 end
 
 end #module
