@@ -192,5 +192,9 @@ pV, pN = sampleplane(nullp, n1, n2, (1,1), (5,5));
 ixs = [1,15,20]
 tp = isplane(pV[ixs], pN[ixs], deg2rad(50))
 
-compatibles(tp, pV, pN, 0.1, deg2rad(10))
-compatibles(tp, tsP, tsN, 0.1, deg2rad(10))
+pC, pP = compatibles(tp, pV, pN, 0.1, deg2rad(10));
+sC, sP = compatibles(tp, tsP, tsN, 0.1, deg2rad(10));
+
+# bitmapper
+
+bM, idxM = bitmapparameters(chopzaxis(pP), pC, 0.1);

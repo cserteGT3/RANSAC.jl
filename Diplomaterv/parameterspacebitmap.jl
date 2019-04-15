@@ -5,11 +5,12 @@ include("fitting.jl")
 
 using StaticArrays: SVector, MVector
 using LinearAlgebra: cross, dot, normalize, normalize!, norm
+using Logging
 
 using .Fitting: FittedPlane, FittedSphere
-using .Utilities: arbitrary_orthogonal, isparallel
+using .Utilities: arbitrary_orthogonal, isparallel, findAABB
 
-export project2plane, compatibles
+export project2plane, compatibles, bitmapparameters
 
 """
     project2plane(plane, points)
@@ -50,6 +51,35 @@ function compatibles(plane, points, normals, eps, alpharad)
     c2 = [isparallel(plane.normal, normals[i], alpharad) && c1[i] for i in eachindex(normals)]
     # projecteds[c2] are the compatible points
     return c2, projecteds
+end
+
+function bitmapparameters(parameters, compatibility, beta)
+    minv, maxv = findAABB(parameters)
+    xs = round(Int, (maxv[1]-minv[1])/beta)
+    ys = round(Int, (maxv[2]-minv[2])/beta)
+    @assert xs > 0 && ys > 0 "max-min should be positive. Check the code!"
+    βx = (maxv[1]-minv[1])/xs
+    βy = (maxv[2]-minv[2])/ys
+
+    bitmap = falses(xs,ys)
+    idxmap = zeros(Int,xs,ys)
+    for i in eachindex(parameters)
+        if compatibility[i]
+            xplace = ceil(Int,(parameters[i][1]-minv[1])/βx)
+            yplace = ceil(Int,(parameters[i][2]-minv[2])/βy)
+            if xplace!=0 && yplace!=0
+                if !bitmap[xplace, yplace]
+                    bitmap[xplace, yplace] = true
+                    idxmap[xplace, yplace] = i
+                else
+                    @warn "Should not project 2 or more points into one pixel! $i-th iteration."
+                end
+            else
+                @warn "that would be boundserror at $i !"
+            end
+        end
+    end
+    return bitmap, idxmap
 end
 
 end # module
