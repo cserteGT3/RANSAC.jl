@@ -83,7 +83,7 @@ end
 """
     isparallel(v1, v2, alpharad)
 
-Check if `v1` and `v2` are parallel in an `alpharad` angle.
+Check if `v1` and `v2` are parallel in an `alpharad` angle and point towards the same direction.
 
 The vectors considered to be normalized.
 """
