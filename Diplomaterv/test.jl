@@ -17,12 +17,6 @@ function showgeometry(scene, vs, ns; arrow = 0.5)
         linesegments!(scene, plns, color = :blue)
 end
 
-function showgeometry!(scene, vs, ns; arrow = 0.5)
-        plns = normalsforplot(vs, ns, arrow)
-        scatter!(scene, vs)
-        linesegments!(scene, plns, color = :blue)
-end
-
 ## Easy examples
 
 n1 = SVector(1,0,0)
