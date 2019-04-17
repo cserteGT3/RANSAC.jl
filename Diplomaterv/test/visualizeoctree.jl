@@ -5,25 +5,27 @@ pkg"activate"
 include("../octree.jl")
 
 using .ExamplePointCloud
+using Makie
+using RegionTrees: adaptivesampling!, Cell, allleaves
+using .Octree
+using StaticArrays: SVector
+import GeometryTypes
 
+function testvisoctree()
+
+## visualize
 pcd = buildexamplecloud();
 corners = pcd.corners
 cloud = pcd.pc
 
-## visualize
-
-using Makie
 s = Scene()
 scatter!(s, corners, color=:blue)
 scatter!(s, cloud, color= :green)
 
 # build octree
-using RegionTrees: adaptivesampling!, Cell, allleaves
 
-using .Octree
-using StaticArrays: SVector
-import GeometryTypes
-root = Cell(SVector{3}(pcd.minP), SVector{3}(pcd.maxP), OctreeNode(cloud, collect(1:length(cloud)), 0.0, 1))
+pc = PointCloud(cloud, cloud, rand(length(cloud)), trues(length(cloud)))
+root = Cell(SVector{3}(pcd.minP), SVector{3}(pcd.maxP), OctreeNode(pc, collect(1:length(cloud)), 0.0, 1))
 
 r = OctreeRefinery(8)
 
@@ -44,6 +46,9 @@ for leaf in allleaves(root)
         println("please no")
     end
     @show leaf.data.depth
-    global i +=1
+    i +=1
 end
 s
+end
+
+testvisoctree()
