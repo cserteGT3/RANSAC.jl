@@ -11,12 +11,6 @@ include("generatesamples.jl")
 
 using .samples
 
-function showgeometry(scene, vs, ns; arrow = 0.5)
-        plns = normalsforplot(vs, ns, arrow)
-        scene = scatter(vs)
-        linesegments!(scene, plns, color = :blue)
-end
-
 ## Easy examples
 
 n1 = SVector(1,0,0)
@@ -125,8 +119,7 @@ nullp = SVector(0,0,0);
 
 tpv, tpn = sampleplane(nullp, n1, n2, (0.5,7.5), (2,2));
 
-s = Scene();
-showgeometry(s, tpv, tpn)
+showgeometry(tpv, tpn)
 
 α = 10;
 isplane(tpv,tpn, deg2rad(α))

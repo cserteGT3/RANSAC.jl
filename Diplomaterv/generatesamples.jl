@@ -8,11 +8,13 @@ using .Utilities: arbitrary_orthogonal
 using AbstractPlotting: Point3f0
 using StaticArrays: SVector
 using ZChop: zchop!
+using Makie: scatter, linesegments!
 
 export sampleplane, samplecylinder, samplesphere
 export normalsforplot
 export noisifyvertices, noisifynormals
 export makemeanexample
+export showgeometry
 
 """
     sampleplane(vp, v1, v2, lengtht, sizet)
@@ -210,6 +212,17 @@ function makemeanexample(nois = false; all = false)
     end
     nsfp_ = normalsforplot(vs, ns)
     return vs, ns, nsfp_
+end
+
+"""
+    showgeometry(scene, vs, ns; arrow = 0.5)
+
+Show pointcloud with normals.
+"""
+function showgeometry(vs, ns; arrow = 0.5)
+        plns = normalsforplot(vs, ns, arrow)
+        scene = scatter(vs)
+        linesegments!(scene, plns, color = :blue)
 end
 
 end #module
