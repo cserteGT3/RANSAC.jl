@@ -7,9 +7,17 @@ using RegionTrees: HyperRectangle, vertices
 
 export OctreeNode
 export iswithinrectangle, OctreeRefinery
+export PointCloud
 
-mutable struct OctreeNode{A<:AbstractArray, B<:AbstractArray}
-    cloudarray::A
+struct PointCloud{A<:AbstractArray, B<:AbstractArray}
+    vertices::A
+    normals::A
+    subsets::B
+    isenabled::BitArray{1}
+end
+
+mutable struct OctreeNode{B<:AbstractArray}
+    cloudarray::PointCloud
     incellpoints::B
     weight::Float64
     depth::Int64
@@ -27,7 +35,7 @@ function refine_data(r::OctreeRefinery, cell::Cell, indices)
     boundary = child_boundary(cell, indices)
     # a visszatérési érték azoknak a pontoknak az indexe, amelyik a boundary-ban van
     # de hogyan szerzem meg a pontokat az index alapján?-> cloudarray
-    points = cell.data.cloudarray[cell.data.incellpoints]
+    points = @view cell.data.cloudarray.vertices[cell.data.incellpoints]
     bolarr = map(x -> iswithinrectangle(boundary, x), points)
     # new cell inherits the weight and ++ of the depth
     d = cell.data.depth + 1
