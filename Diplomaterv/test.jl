@@ -192,9 +192,19 @@ pV, pN = sampleplane(nullp, n1, n2, (1,1), (5,5));
 ixs = [1,15,20]
 tp = isplane(pV[ixs], pN[ixs], deg2rad(50))
 
-pC, pP = compatibles(tp, pV, pN, 0.1, deg2rad(10));
-sC, sP = compatibles(tp, tsP, tsN, 0.1, deg2rad(10));
+pC, pP = compatiblesPlane(tp, pV, pN, 0.1, deg2rad(10));
+sC, sP = compatiblesPlane(tp, tsP, tsN, 0.1, deg2rad(10));
 
 # bitmapper
 
 bM, idxM = bitmapparameters(chopzaxis(pP), pC, 0.1);
+
+# Sphere
+
+sP, sN = samplesphere(SVector(1,0.5,7), 5, (70,73));
+α = 10;
+ϵ = 0.1;
+rk = [125, 1517, 2941];
+fsp = issphere(sP[rk], sN[rk], ϵ, deg2rad(α));
+
+cSP = compatiblesSphere(fsp, sP, sN, ϵ, deg2rad(50));

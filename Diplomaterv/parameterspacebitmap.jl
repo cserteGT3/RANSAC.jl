@@ -10,7 +10,9 @@ using Logging
 using .Fitting: FittedPlane, FittedSphere
 using .Utilities: arbitrary_orthogonal, isparallel, findAABB
 
-export project2plane, compatibles, bitmapparameters
+export project2plane, compatiblesPlane
+export bitmapparameters
+export compatiblesSphere
 
 """
     project2plane(plane, points)
@@ -35,14 +37,14 @@ function project2plane(plane, points)
 end
 
 """
-    compatibles(plane, points, normals, eps, alpharad)
+    compatiblesPlane(plane, points, normals, eps, alpharad)
 
 Create a bool-indexer array for those points that are compatible to the plane.
 Give back the projected points too for parameter space magic.
 
 Compatibility is measured with an `eps` distance to the plane and an `alpharad` angle to it's normal.
 """
-function compatibles(plane, points, normals, eps, alpharad)
+function compatiblesPlane(plane, points, normals, eps, alpharad)
     @assert length(points) == length(normals) "Size must be the same."
     projecteds = project2plane(plane, points)
     # eps check
@@ -80,6 +82,30 @@ function bitmapparameters(parameters, compatibility, beta)
         end
     end
     return bitmap, idxmap
+end
+
+"""
+    compatiblesSphere(plane, points, normals, eps, alpharad)
+
+Create a bool-indexer array for those points that are compatible to the sphere.
+Give back the projected points too for parameter space magic.
+
+Compatibility is measured with an `eps` distance to the sphere and an `alpharad` angle to it's normal.
+"""
+function compatiblesSphere(sphere, points, normals, eps, alpharad)
+    @assert length(points) == length(normals) "Size must be the same."
+    # eps check
+    o = sphere.center
+    R = sphere.radius
+    c1 = [abs(norm(a-o)-R) < eps for a in points]
+    # alpha check
+    α = cos(alpharad)
+    if sphere.outwards
+        c2 = [isparallel(normalize(points[i]-o), normals[i], α) && c1[i] for i in eachindex(points)]
+    else
+        c2 = [isparallel(normalize(o-points[i], normals[i]), α) && c1[i] for i in eachindex(points)]
+    end
+    return c2
 end
 
 end # module
