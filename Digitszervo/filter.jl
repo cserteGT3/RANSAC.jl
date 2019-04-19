@@ -1,6 +1,7 @@
 # Generate code for the filters
 
 using ControlSystems
+using LinearAlgebra
 
 """
     cSS(A, B)
@@ -17,10 +18,10 @@ function makeLyrics(sys)
     lyrics = Array{String}(undef, 0)
     it = 1:size(sys.A, 1)
     for i in it, j in it
-        push!(lyrics, "static float ad$i$j = $(sys.A[i,j]);")
+        push!(lyrics, "float ad$i$j = $(sys.A[i,j]);")
     end
     for i in it
-        push!(lyrics, "static float bd$i = $(sys.B[i]);")
+        push!(lyrics, "float bd$i = $(sys.B[i]);")
     end
     lyrics
 end
@@ -32,6 +33,13 @@ function writeLyrics(lyricsname, lyrics)
         end
     end
 end
+
+"""
+    rad2enc(x)
+
+Compute radian into encoder ticks.
+"""
+rad2enc(x) = x*512/(2*π)
 
 ## Constants
 
