@@ -8,7 +8,7 @@ using LinearAlgebra: cross, dot, normalize, normalize!, norm
 using Logging
 
 using .Fitting: FittedPlane, FittedSphere
-using .Utilities: arbitrary_orthogonal, isparallel, findAABB
+using .Utilities
 
 export project2plane, compatiblesPlane
 export bitmapparameters
@@ -55,7 +55,19 @@ function compatiblesPlane(plane, points, normals, eps, alpharad)
     return c2, projecteds
 end
 
-function bitmapparameters(parameters, compatibility, beta)
+"""
+    bitmapparameters(parameters, compatibility, beta, idsource)
+
+Bitmap the compatible parameters. An `idsource` is used to create the indexer map.
+
+# Arguments:
+- `parameters::AbstractArray`: contains the parameter pairs.
+- `compatibility::AbstractArray`: indicates if the i-th parameter-pair is compatible.
+- `beta<:Real`: resolution of the bitmap.
+- `idsource::AbstractArray`: source of the indexer map.
+"""
+function bitmapparameters(parameters, compatibility, beta, idsource)
+    @assert length(parameters) == length(compatibility) == length(idsource) "Everything must have the same length."
     minv, maxv = findAABB(parameters)
     xs = round(Int, (maxv[1]-minv[1])/beta)
     ys = round(Int, (maxv[2]-minv[2])/beta)
@@ -72,7 +84,7 @@ function bitmapparameters(parameters, compatibility, beta)
             if xplace!=0 && yplace!=0
                 if !bitmap[xplace, yplace]
                     bitmap[xplace, yplace] = true
-                    idxmap[xplace, yplace] = i
+                    idxmap[xplace, yplace] = idsource[i]
                 else
                     @warn "Should not project 2 or more points into one pixel! $i-th iteration."
                 end
@@ -81,7 +93,21 @@ function bitmapparameters(parameters, compatibility, beta)
             end
         end
     end
-    return bitmap, idxmap
+    return bitmap, idxmap, (βx, βy)
+end
+
+"""
+    bitmapparameters(parameters, compatibility, beta)
+
+Bitmap the compatible parameters. The `idsource` is: `1:length(parameters)`.
+
+# Arguments:
+- `parameters::AbstractArray`: contains the parameter pairs.
+- `compatibility::AbstractArray`: indicates if the i-th parameter-pair is compatible.
+- `beta<:Real`: resolution of the bitmap.
+"""
+function bitmapparameters(parameters, compatibility, beta)
+    return bitmapparameters(parameters, compatibility, beta, 1:length(parameters))
 end
 
 """
@@ -105,7 +131,21 @@ function compatiblesSphere(sphere, points, normals, eps, alpharad)
     else
         c2 = [isparallel(normalize(o-points[i], normals[i]), α) && c1[i] for i in eachindex(points)]
     end
-    return c2
+
+    under = Array{Int}(undef, 0)
+    over = Array{Int}(undef, 0)
+    for i in eachindex(points)
+        if points[i][3] <= o[3]
+            c2[i] && push!(under, i)
+        else
+            c2[i] && push!(over, i)
+        end
+    end
+    # TODO
+    # normalize by it's own length or maximum length??? r+3ϵ
+    proj_points = [SVector{2}(normalize(a[1:2]-o[1:2])) for a in points]
+    param_points = unitdisk2square.(proj_points)
+    return c2, (under=under, over=over), param_points
 end
 
 end # module

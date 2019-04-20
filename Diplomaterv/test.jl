@@ -184,7 +184,7 @@ sC, sP = compatiblesPlane(tp, tsP, tsN, 0.1, deg2rad(10));
 
 # bitmapper
 
-bM, idxM = bitmapparameters(chopzaxis(pP), pC, 0.1);
+bM, idxM, betas = bitmapparameters(chopzaxis(pP), pC, 0.1);
 
 # Sphere
 
@@ -194,4 +194,8 @@ sP, sN = samplesphere(SVector(1,0.5,7), 5, (70,73));
 rk = [125, 1517, 2941];
 fsp = issphere(sP[rk], sN[rk], ϵ, deg2rad(α));
 
-cSP = compatiblesSphere(fsp, sP, sN, ϵ, deg2rad(50));
+cSP, uoT, params = compatiblesSphere(fsp, sP, sN, ϵ, deg2rad(50));
+unders = uoT.under;
+overs = uoT.over;
+overSbm, overSid, overSb = bitmapparameters(params[overs], cSP[overs], 0.001, overs);
+underSbm, underSid, underSb = bitmapparameters(params[unders], cSP[unders], 0.1, unders);
