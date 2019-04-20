@@ -99,8 +99,8 @@ end
 Find the axis aligned minimum bounding box of the given pointcloud.
 """
 function findAABB(points)
-    minV = convert(Array, points[1])
-    maxV = convert(Array, points[1])
+    minV = convert(Array, deepcopy(points[1]))
+    maxV = convert(Array, deepcopy(points[1]))
     for i in 1:length(points)
         a = points[i]
         for j in 1:length(minV)
