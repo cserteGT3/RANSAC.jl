@@ -56,13 +56,14 @@ Collection of useful functions.
 """
 module Utilities
 
-using LinearAlgebra: normalize, normalize!, cross, dot
+using LinearAlgebra: normalize, normalize!, cross, dot, norm
 using StaticArrays: SVector
 
 export arbitrary_orthogonal
 export isparallel
 export findAABB
 export chopzaxis
+export unitdisk2square
 
 """
     arbitrary_orthogonal(vec)
@@ -119,6 +120,38 @@ Chop the 3rd element of every point.
 function chopzaxis(points)
     @assert length(points[1]) == 3 "Implemented only for 3 long vectors."
     [ SVector(a[1], a[2]) for a in points]
+end
+
+"""
+    unitdisk2square(p)
+
+Transform point on unit disk to unit sqaure.
+
+Maps a unit circle to a unit sqaure [0,1]^2.
+Source: shirley1997 - A low distortion map between disk and square
+"""
+function unitdisk2square(p)
+    r = norm(p)
+    phi = atan(p[2], p[1])
+    if phi < -π/4
+        phi += 2*π # in range [-pi/4,7pi/4]
+    end
+    if phi < π/4 # region 1
+        a = r
+        b = phi*a/(π/4)
+    elseif phi < 3*π/4 # region 2
+        b = r
+        a = -(phi-π/2)*b/(π/4)
+    elseif phi < 5*π/4 # region 3
+        a = -r
+        b = (phi - π)*a/(π/4)
+    else # region 4
+        b = -r
+        a = -(phi-3*π/2)*b/(π/4)
+    end
+    # TODO:
+    # decision: squre: [-1,1]^2 or [0,1]^2
+    convert(typeof(p), [(a+1)/2, (b+1)/2])
 end
 
 end # module
