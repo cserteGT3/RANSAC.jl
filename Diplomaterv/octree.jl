@@ -9,6 +9,26 @@ export OctreeNode
 export iswithinrectangle, OctreeRefinery
 export PointCloud
 
+## extend RegionTrees
+"""
+    cellandparents(cell::Cell)
+
+Returns the cell and all it's parents.
+"""
+function cellandparents(cell::Cell)
+    Channel() do c
+        queue = [cell]
+        while !isempty(queue)
+            current = pop!(queue)
+            put!(c, current)
+            p = parent(current)
+            if ! (p === nothing)
+                push!(queue, p)
+            end
+        end
+    end
+end
+
 struct PointCloud{A<:AbstractArray, B<:AbstractArray}
     vertices::A
     normals::A
