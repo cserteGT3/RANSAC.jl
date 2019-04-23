@@ -18,6 +18,10 @@ export compatiblesSphere
     project2plane(plane, points)
 
 Project `points` on to the `plane`.
+
+# Arguments:
+- 'plane::FittedPlane': a plane.
+- 'points::AbstractArray': an array of points (array-of-arrays).
 """
 function project2plane(plane, points)
     # create a coordinate frame
