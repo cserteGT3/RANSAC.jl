@@ -7,6 +7,7 @@
 - [ ] define assertion of normed surface normals
 * - [ ] decision
 * - [ ] consistent implementation: delete unnecessary `normalize()`
+- [ ] add `cellandparents()` to `RegionTrees.jl`
 
 ## Generate examples
 
@@ -53,3 +54,8 @@
 * - [ ] cylinder
 * - [ ] cone
 * - [ ] torus
+
+## Main loop
+
+- [ ] add tests for `ConfidenceInterval`
+- [ ] use of `Distributions.Hypergeometric`(?)
