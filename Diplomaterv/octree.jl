@@ -14,6 +14,16 @@ struct PointCloud{A<:AbstractArray, B<:AbstractArray}
     normals::A
     subsets::B
     isenabled::BitArray{1}
+    size::Int
+end
+
+"""
+    PointCloud(vertices, normals, subsets, isenabled)
+
+Construct a `PointCloud` with filling it's `size` field.
+"""
+function PointCloud(vertices, normals, subsets, isenabled)
+    return PointCloud(vertices, normals, subsets, isenabled, length(vertices))
 end
 
 mutable struct OctreeNode{B<:AbstractArray}
