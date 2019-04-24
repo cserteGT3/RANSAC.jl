@@ -44,27 +44,38 @@ function getcellandparents(cell::Cell)
     aoc
 end
 
-struct PointCloud{A<:AbstractArray, B<:AbstractArray}
+mutable struct PointCloud{A<:AbstractArray, B<:AbstractArray, C<:AbstractArray}
     vertices::A
     normals::A
     subsets::B
     isenabled::BitArray{1}
     size::Int
+    levelweight::C
 end
 
 """
     PointCloud(vertices, normals, subsets, isenabled)
 
-Construct a `PointCloud` with filling it's `size` field.
+Construct a `PointCloud` with filling it's `size` and `levelweight` fields.
 """
 function PointCloud(vertices, normals, subsets, isenabled)
-    return PointCloud(vertices, normals, subsets, isenabled, length(vertices))
+    return PointCloud(vertices, normals, subsets, isenabled, length(vertices), [1.0])
 end
 
-mutable struct OctreeNode{B<:AbstractArray}
-    cloudarray::PointCloud
+"""
+    PointCloud(vertices, normals, subsets)
+
+Construct a `PointCloud`, filling it's other fields.
+
+Every point is enabled, and the weight vector defaults to `[1.0]`.
+"""
+function PointCloud(vertices, normals, subsets)
+    return PointCloud(vertices, normals, subsets, trues(length(vertices)), length(vertices), [1.0])
+end
+
+struct OctreeNode{B<:AbstractArray}
+    pointcloud::PointCloud
     incellpoints::B
-    weight::Float64
     depth::Int64
 end
 
@@ -79,12 +90,16 @@ end
 function refine_data(r::OctreeRefinery, cell::Cell, indices)
     boundary = child_boundary(cell, indices)
     # a visszatérési érték azoknak a pontoknak az indexe, amelyik a boundary-ban van
-    # de hogyan szerzem meg a pontokat az index alapján?-> cloudarray
-    points = @view cell.data.cloudarray.vertices[cell.data.incellpoints]
+    # de hogyan szerzem meg a pontokat az index alapján?-> pointcloud
+    points = @view cell.data.pointcloud.vertices[cell.data.incellpoints]
     bolarr = map(x -> iswithinrectangle(boundary, x), points)
     # new cell inherits the weight and ++ of the depth
     d = cell.data.depth + 1
-    OctreeNode(cell.data.cloudarray, cell.data.incellpoints[bolarr], cell.data.weight, d)
+    lw = cell.data.pointcloud.levelweight
+    if d > length(lw)
+        push!(lw, convert(eltype(lw), d))
+    end
+    OctreeNode(cell.data.pointcloud, cell.data.incellpoints[bolarr], d)
 end
 
 """
