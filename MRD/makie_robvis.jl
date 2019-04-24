@@ -3,6 +3,7 @@ pkg"activate"
 
 using StaticArrays: SVector
 using Makie
+using Colors
 
 """
     drawcf(s, o, x, y, z; llength = 0.5, lwidth = 0.5)
@@ -69,10 +70,6 @@ end
 mx, my, mz = makietori(10,2, 500, 500);
 surface(mx, my, mz, colormap=[:green], transparency = false, shading = true)
 
-using StaticArrays
-using Makie
-using Colors
-
 ## MRD homework parameters
 l10 = 0.8; #m
 l11 = 0.6; #m
@@ -87,26 +84,28 @@ s1 = o+v1;
 s2 = s1+v11;
 s3 = s2+v20;
 
-segments = [o => s1; s1 => s2; s2 => s3];
-
-n = 100;
-mx, my, mz = makietori(l11, l20, n, n, z0 = l10);
-s = surface(mx, my, mz, color = fill(RGBA(1.,1.,1.,0.4), n, n), transparency = true, shading = true)
-linesegments!(s, segments, linewidth = 5)
-axis = s[Axis];
-axis[:showgrid] = false
-
 ax = SVector(1,0,0.0);
 ay = SVector(0,1,0.0);
 az = SVector(0,0,1.0);
 
+segments = [o => s1; s1 => s2; s2 => s3];
+
+n = 100;
+mx, my, mz = makietori(l11, l20, n, n, z0 = l10);
+s = surface(mx, my, mz, color = fill(RGBA(1.,1.,1.,0.3), n, n), transparency = true, shading = true)
+linesegments!(s, segments, linewidth = 5)
+axis = s[Axis];
+axis[:showgrid] = false
+
 # x0: o, ax,ay,az
 # x1: s1, ay,-ax,az
-# x2: s2, ay,az,ax
+# x2: s2, ay,-az,-ax
 # x3: s3, ax, ay, az
 ll = 0.15;
 lw = 4;
 drawcf(s, o, ax, ay, az, llength = ll, lwidth = lw)
 drawcf(s, s1, ay, -ax, az, llength = ll, lwidth = lw)
-drawcf(s, s2, ay, az, ax, llength = ll, lwidth = lw)
+drawcf(s, s2, ay, -az, -ax, llength = ll, lwidth = lw)
 drawcf(s, s3, ax, ay, az, llength = ll, lwidth = lw)
+
+Makie.save("angle2.png", s)
