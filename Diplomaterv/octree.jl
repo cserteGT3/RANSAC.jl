@@ -4,6 +4,7 @@ import RegionTrees: AbstractRefinery, needs_refinement, refine_data
 
 using RegionTrees: child_boundary, Cell
 using RegionTrees: HyperRectangle, vertices
+using Random: randperm
 
 export OctreeNode
 export iswithinrectangle, OctreeRefinery
@@ -71,6 +72,27 @@ Every point is enabled, and the weight vector defaults to `[1.0]`.
 """
 function PointCloud(vertices, normals, subsets)
     return PointCloud(vertices, normals, subsets, trues(length(vertices)), length(vertices), [1.0])
+end
+
+"""
+    PointCloud(vertices, normals, numofsubsets::Int)
+
+Construct a `PointCloud` with `numofsubsets` random subsets.
+
+Every point is enabled, and the weight vector defaults to `[1.0]`.
+"""
+function PointCloud(vertices, normals, numofsubsets::Int)
+    @assert numofsubsets > 0 "At least 1 subset please!"
+    # subset length
+    function makesubset(l, n)
+        ssl = fld(l, n)
+        alls = randperm(l)
+        subsets = [ alls[(i-1)*ssl+1:i*ssl] for i in 1:n-1]
+        push!(subsets, alls[(n-1)*ssl+1:end])
+        subsets
+    end
+    subs = makesubset(length(vertices), numofsubsets)
+    return PointCloud(vertices, normals, subs, trues(length(vertices)), length(vertices), [1.0])
 end
 
 struct OctreeNode{B<:AbstractArray}
