@@ -8,25 +8,40 @@ using RegionTrees: HyperRectangle, vertices
 export OctreeNode
 export iswithinrectangle, OctreeRefinery
 export PointCloud
+export getcellandparents
+export allparents
 
 ## extend RegionTrees
 """
     cellandparents(cell::Cell)
 
-Returns the cell and all it's parents.
+Returns all parents of a cell.
 """
-function cellandparents(cell::Cell)
+function allparents(cell::Cell)
     Channel() do c
         queue = [cell]
         while !isempty(queue)
             current = pop!(queue)
-            put!(c, current)
             p = parent(current)
             if ! (p === nothing)
+                put!(c, p)
                 push!(queue, p)
             end
+
         end
     end
+end
+
+"""
+    getcellandparents(cell::Cell)
+
+Collect the cell and it's parents into an array.
+"""
+function getcellandparents(cell::Cell)
+    p = allparents(cell)
+    aoc = [i for i in p]
+    pushfirst!(aoc, cell)
+    aoc
 end
 
 struct PointCloud{A<:AbstractArray, B<:AbstractArray}
