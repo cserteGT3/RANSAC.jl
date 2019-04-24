@@ -1,16 +1,66 @@
 module Fitting
 
+include("utilities.jl")
+
 using StaticArrays: SVector, MVector
 using LinearAlgebra: cross, ×, dot, normalize, normalize!, norm
 using ZChop: zchop, zchop!
 
+using .Utilities
+
+export FittedShape, isshape
 export FittedPlane, isplane
 export FittedSphere, issphere
+export ShapeCandidate, findhighestscore
 
-struct FittedPlane{A<:AbstractArray}
+"""
+An abstract type that wraps the fitted shapes.
+"""
+abstract type FittedShape end
+
+struct FittedPlane{A<:AbstractArray} <: FittedShape
     isplane::Bool
     point::A
     normal::A
+end
+
+function isshape(shape::FittedPlane)
+    return shape.isplane
+end
+
+mutable struct ShapeCandidate{S<:FittedShape, A<:AbstractArray}
+    shape::S
+    score::ConfidenceInterval
+    inpoints::A
+    bitmapped::Bool
+end
+
+ShapeCandidate(shape, score) = ShapeCandidate(shape, score, [], false)
+
+"""
+    findhighestscore(A)
+
+Find the largest expected value in an array of `ShapeCandidate`s.
+
+Indicate if there's an overlap.
+"""
+function findhighestscore(A)
+    (length(A) > 0) || return (index = 0, overlap = false)
+    ind = 1
+    highest = E(A[1].score)
+    for i in eachindex(A)
+        esc = E(A[i].score)
+        if esc > highest
+            highest = esc
+            ind = i
+        end
+    end
+    overlaps = [isoverlap(A[ind].score, a.score) for a in A]
+    overlap[ind] = false
+    # no overlap:
+    overlaps == falses(length(A)) && return (index = ind, overlap = false)
+    # overlap:
+    return (index = ind, overlap = true)
 end
 
 """
@@ -63,11 +113,15 @@ function isplane(p, n, alpharad, collin_threshold = 0.2)
     return FittedPlane(false, NaNVec, NaNVec)
 end
 
-struct FittedSphere{A<:AbstractArray, R<:Real}
+struct FittedSphere{A<:AbstractArray, R<:Real} <: FittedShape
     issphere::Bool
     center::A
     radius::R
     outwards::Bool
+end
+
+function isshape(shape::FittedSphere)
+    return shape.issphere
 end
 
 function fitsphere(v, n)
