@@ -2,6 +2,7 @@ using Pkg
 pkg"activate"
 
 using StaticArrays: SVector
+using Makie
 
 """
     drawcf(s, o, x, y, z; llength = 0.5, lwidth = 0.5)
@@ -63,3 +64,19 @@ meshscatter(x, y, z)
 s = Scene();
 scatter!(s, sri)
 drawcf(s, o, ax, ay, az, lwidth = 5)
+
+function makietori(R, r, lR, lr)
+    @assert R > r "Ring tori, I told you."
+    theta = range(0, 2π, length=lR)
+    phi = range(0, 2π, length=lr)
+    x_(Θ, ϕ) = (R + r*cos(Θ))*cos(ϕ)
+    y_(Θ, ϕ) = (R + r*cos(Θ))*sin(ϕ)
+    z_(Θ, ϕ) = r*sin(Θ)
+    x = [x_(θ, ϕ) for θ in theta, ϕ in phi]
+    y = [y_(θ, ϕ) for θ in theta, ϕ in phi]
+    z = [z_(θ, ϕ) for θ in theta, ϕ in phi]
+    return x, y, z
+end
+
+mx, my, mz = makietori(10,2, 500, 500);
+surface(mx, my, mz, colormap=[:green], transparency = false, shading = true)
