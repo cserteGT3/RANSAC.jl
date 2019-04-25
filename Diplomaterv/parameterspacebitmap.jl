@@ -5,6 +5,7 @@ include("fitting.jl")
 
 using StaticArrays: SVector, MVector
 using LinearAlgebra: cross, dot, normalize, normalize!, norm
+using Images: label_components, component_lengths
 using Logging
 
 using .Fitting: FittedPlane, FittedSphere
@@ -13,6 +14,7 @@ using .Utilities
 export project2plane, compatiblesPlane
 export bitmapparameters
 export compatiblesSphere
+export largestconncomp
 
 """
     project2plane(plane, points)
@@ -150,6 +152,49 @@ function compatiblesSphere(sphere, points, normals, eps, alpharad)
     proj_points = [SVector{2}(normalize(a[1:2]-o[1:2])) for a in points]
     param_points = unitdisk2square.(proj_points)
     return c2, (under=under, over=over), param_points
+end
+
+"""
+    largestconncomp(bimage, indmap, connectivity)
+
+Search for the largest connected component on a binary image.
+
+Return the indexes from `indmap` that are part of the largest component.
+"""
+function largestconncomp(bimage, indmap, connectivity::AbstractArray)
+    @assert size(bimage) == size(indmap) "Binary image and index map are not the same size!"
+    # labeling
+    labeled = label_components(bimage, connectivity)
+    # size of each labelled area
+    lab_length = component_lengths(labeled)
+    # largest connected component (lab_length[1] is the background)
+    max_l = argmax(lab_length[2:end])+1
+    # indexes that counts towards the largest area
+    inds = findall(x->x==max_l-1, labeled)
+    # get all the indexes that count towards the largest component
+    return indmap[inds]
+end
+
+"""
+    largestconncomp(bimage, indmap, conn_key = :default)
+
+Search for the largest connected component on a binary image.
+
+Return the indexes from `indmap` that are part of the largest component.
+
+# Arguments:
+- `bimage::BitArray{2}`: binary image, where `true` is the object.
+- `indmap::AbstractArray`: index map, with the size of `bimage`.
+- `conn_key::Symbol`: currently `:default` or `:eight` connectivity.
+"""
+function largestconncomp(bimage, indmap, conn_key::Symbol = :default)
+    if conn_key == :default
+        return largestconncomp(bimage, indmap, 1:ndims(bimage))
+    elseif conn_key == :eight
+        return largestconncomp(bimage, indmap, trues(3,3))
+    else
+        @error("No such key implemented: $conn_key.")
+    end
 end
 
 end # module
