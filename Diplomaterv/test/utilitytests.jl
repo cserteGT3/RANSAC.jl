@@ -29,3 +29,15 @@ end
     @test minV2 == iV2
     @test maxV2 == aV2
 end
+
+@testset "smallest distance 2D" begin
+    tv = [SVector(0.0, 0), SVector(1.0, 1), SVector(2.2, 2)]
+    sd = smallestdistance(tv)
+    @test isapprox(sd, sqrt(2))
+end
+
+@testset "smallest distance 3D" begin
+    tv = [SVector(0.0,0,0), SVector(1.0,1,1), SVector(2.2,2,2)]
+    sd = smallestdistance(tv)
+    @test isapprox(sd, sqrt(3))
+end
