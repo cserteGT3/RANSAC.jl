@@ -67,6 +67,7 @@ export unitdisk2square
 export ConfidenceInterval, notsoconfident
 export estimatescore
 export smallestdistance
+export prob
 
 """
     arbitrary_orthogonal(vec)
@@ -235,5 +236,19 @@ function smallestdistance(points)
     end
     ld
 end
+
+"""
+    prob(n, s, N; k = 4)
+
+The probability of successful detection of a shape sized `n`,
+from a point cloud size of `N`, with `k` size of minimal sets and `s` draws.
+
+# Arguments:
+- `n`: size of the shape.
+- `s`: number of candidates that have been drawn.
+- `N`: size of the point cloud.
+- `k`: size of the minimal set required to define a shape candidate.
+"""
+prob(n, s, N; k = 4) = 1-(1-(n/N)^k)^s
 
 end # module
