@@ -7,7 +7,8 @@
 - [ ] define assertion of normed surface normals
 * - [ ] decision
 * - [ ] consistent implementation: delete unnecessary `normalize()`
-- [ ] add `cellandparents()` to `RegionTrees.jl`
+- [x] add `cellandparents()` to `RegionTrees.jl`
+* - [ ] writed test for it
 
 ## Generate examples
 
@@ -54,6 +55,7 @@
 * - [ ] cylinder
 * - [ ] cone
 * - [ ] torus
+* - [ ] generalized interface for fitting
 
 ## Main loop
 
