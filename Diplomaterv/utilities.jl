@@ -66,6 +66,7 @@ export chopzaxis
 export unitdisk2square
 export ConfidenceInterval, notsoconfident
 export estimatescore
+export smallestdistance
 
 """
     arbitrary_orthogonal(vec)
@@ -214,6 +215,25 @@ Give an estimate score for the whole pointcloud.
 function estimatescore(S1length, Plength, σS1)
     gd = hypergeomdev(-2-S1length, -2-Plength, -1-σS1)
     return notsoconfident(-1-gd.min, -1-gd.max)
+end
+
+"""
+    smallestdistance(points)
+
+Find the smallest distance between the points.
+"""
+function smallestdistance(points)
+    @assert length(points) > 1 "At least two point is needed for that."
+    ld = norm(points[2]-points[1])
+    for i in eachindex(points)
+        for j in eachindex(points)
+            if i!=j
+                d = norm(points[i]-points[j])
+                ld = d < ld ? d : ld
+            end
+        end
+    end
+    ld
 end
 
 end # module
