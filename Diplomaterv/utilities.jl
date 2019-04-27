@@ -68,6 +68,7 @@ export ConfidenceInterval, notsoconfident
 export estimatescore
 export smallestdistance
 export prob
+export havesameelement
 
 """
     arbitrary_orthogonal(vec)
@@ -250,5 +251,20 @@ from a point cloud size of `N`, with `k` size of minimal sets and `s` draws.
 - `k`: size of the minimal set required to define a shape candidate.
 """
 prob(n, s, N; k = 4) = 1-(1-(n/N)^k)^s
+
+
+"""
+    havesameelement(A, B)
+
+Return true if `A` and `B` have at least one common element.
+"""
+function havesameelement(A, B)
+    for a in A
+        for b in B
+            a == b && return true
+        end
+    end
+    false
+end
 
 end # module
