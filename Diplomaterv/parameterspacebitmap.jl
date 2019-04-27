@@ -74,10 +74,15 @@ Bitmap the compatible parameters. An `idsource` is used to create the indexer ma
 """
 function bitmapparameters(parameters, compatibility, beta, idsource)
     @assert length(parameters) == length(compatibility) == length(idsource) "Everything must have the same length."
-    minv, maxv = findAABB(parameters)
+    miv, mav = findAABB(parameters)
+    # perturbe minv and maxv
+    pert = convert(typeof(miv), fill(0.1, length(miv)))
+    minv = miv-pert
+    maxv = mav+pert
     xs = round(Int, (maxv[1]-minv[1])/beta)
     ys = round(Int, (maxv[2]-minv[2])/beta)
-    @assert xs > 0 && ys > 0 "max-min should be positive. Check the code!"
+    # TODO: ransac(pcr, αα, ϵϵ, tt, usegloββ, connekeyy, ptt, ττ, itermax)
+    @assert xs > 0 && ys > 0 "max-min should be positive. Check the code! xs: $xs, ys:$ys"
     βx = (maxv[1]-minv[1])/xs
     βy = (maxv[2]-minv[2])/ys
 
@@ -87,15 +92,15 @@ function bitmapparameters(parameters, compatibility, beta, idsource)
         if compatibility[i]
             xplace = ceil(Int,(parameters[i][1]-minv[1])/βx)
             yplace = ceil(Int,(parameters[i][2]-minv[2])/βy)
-            if xplace!=0 && yplace!=0
+            if xplace!=0 && yplace!=0 && xplace!=xs && yplace!=ys
                 if !bitmap[xplace, yplace]
                     bitmap[xplace, yplace] = true
                     idxmap[xplace, yplace] = idsource[i]
                 else
-                    @warn "Should not project 2 or more points into one pixel! $i-th iteration."
+                    @warn "Project 2 or more into one! iteration:$i, id:$(idsource[i])."
                 end
             else
-                @warn "that would be boundserror at $i !"
+                @warn "boundserror at $i: ($xplace,$yplace)!"
             end
         end
     end
@@ -135,7 +140,7 @@ function compatiblesSphere(sphere, points, normals, eps, alpharad)
     if sphere.outwards
         c2 = [isparallel(normalize(points[i]-o), normals[i], α) && c1[i] for i in eachindex(points)]
     else
-        c2 = [isparallel(normalize(o-points[i], normals[i]), α) && c1[i] for i in eachindex(points)]
+        c2 = [isparallel(normalize(o-points[i]), normals[i], α) && c1[i] for i in eachindex(points)]
     end
 
     under = Array{Int}(undef, 0)
@@ -168,6 +173,7 @@ function largestconncomp(bimage, indmap, connectivity::AbstractArray)
     # size of each labelled area
     lab_length = component_lengths(labeled)
     # largest connected component (lab_length[1] is the background)
+    # TODO: ERROR: ArgumentError: collection must be non-empty
     max_l = argmax(lab_length[2:end])+1
     # indexes that counts towards the largest area
     inds = findall(x->x==max_l-1, labeled)

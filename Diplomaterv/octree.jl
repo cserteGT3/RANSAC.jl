@@ -11,6 +11,7 @@ export iswithinrectangle, OctreeRefinery
 export PointCloud
 export getcellandparents
 export allparents
+export updatelevelweight
 
 ## extend RegionTrees
 """
@@ -52,6 +53,7 @@ mutable struct PointCloud{A<:AbstractArray, B<:AbstractArray, C<:AbstractArray}
     isenabled::BitArray{1}
     size::Int
     levelweight::C
+    levelscore::C
 end
 
 """
@@ -60,7 +62,7 @@ end
 Construct a `PointCloud` with filling it's `size` and `levelweight` fields.
 """
 function PointCloud(vertices, normals, subsets, isenabled)
-    return PointCloud(vertices, normals, subsets, isenabled, length(vertices), [1.0])
+    return PointCloud(vertices, normals, subsets, isenabled, length(vertices), [1.0], [1.0])
 end
 
 """
@@ -71,7 +73,7 @@ Construct a `PointCloud`, filling it's other fields.
 Every point is enabled, and the weight vector defaults to `[1.0]`.
 """
 function PointCloud(vertices, normals, subsets)
-    return PointCloud(vertices, normals, subsets, trues(length(vertices)), length(vertices), [1.0])
+    return PointCloud(vertices, normals, subsets, trues(length(vertices)), length(vertices), [1.0], [1.0])
 end
 
 """
@@ -92,7 +94,7 @@ function PointCloud(vertices, normals, numofsubsets::Int)
         subsets
     end
     subs = makesubset(length(vertices), numofsubsets)
-    return PointCloud(vertices, normals, subs, trues(length(vertices)), length(vertices), [1.0])
+    return PointCloud(vertices, normals, subs, trues(length(vertices)), length(vertices), [1.0], [1.0])
 end
 
 struct OctreeNode{B<:AbstractArray}
@@ -120,6 +122,7 @@ function refine_data(r::OctreeRefinery, cell::Cell, indices)
     lw = cell.data.pointcloud.levelweight
     if d > length(lw)
         push!(lw, convert(eltype(lw), d))
+        push!(cell.data.pointcloud.levelscore, convert(eltype(lw), d))
     end
     OctreeNode(cell.data.pointcloud, cell.data.incellpoints[bolarr], d)
 end
@@ -141,6 +144,15 @@ function iswithinrectangle(rect::HyperRectangle, p)
         vmax[i] >= p[i] || return false
     end
     return true
+end
+
+function updatelevelweight(pc, x = 0.9)
+    P = pc.levelweight
+    σ = pc.levelscore
+    w = sum( σ[i]/P[i] for i in eachindex(P) )
+    for i in eachindex(P)
+        pc.levelweight[i] = x*σ[i]/(w*P[i]) + (1-x)/length(P)
+    end
 end
 
 end #module

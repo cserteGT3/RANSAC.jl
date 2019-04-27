@@ -12,6 +12,7 @@ export FittedShape, isshape
 export FittedPlane, isplane
 export FittedSphere, issphere
 export ShapeCandidate, findhighestscore
+export largestshape
 
 """
 An abstract type that wraps the fitted shapes.
@@ -30,12 +31,14 @@ end
 
 mutable struct ShapeCandidate{S<:FittedShape, A<:AbstractArray}
     shape::S
-    score::ConfidenceInterval
+    score::Union{ConfidenceInterval, Nothing}
     inpoints::A
-    bitmapped::Bool
+    scored::Bool
+    octree_lev::Int
 end
 
-ShapeCandidate(shape, score) = ShapeCandidate(shape, score, [], false)
+ShapeCandidate(shape, score, octlev) = ShapeCandidate(shape, score, [], false, octlev)
+ShapeCandidate(shape, octlev) = ShapeCandidate(shape, nothing, [], false, octlev)
 
 """
     findhighestscore(A)
@@ -61,6 +64,23 @@ function findhighestscore(A)
     overlaps == falses(length(A)) && return (index = ind, overlap = false)
     # overlap:
     return (index = ind, overlap = true)
+end
+
+"""
+    largestshape(A)
+
+Find the largest shape in an array of `ShapeCandidate`s.
+"""
+function largestshape(A)
+    length(A) < 1 && return (index = 0, size = 0)
+    bestscore = length(A[1].inpoints)
+    bestind = 1
+    for i in eachindex(A)
+        length(A[i].inpoints) <= bestscore && continue
+        bestscore = length(A[i].inpoints)
+        bestind = i
+    end
+    return (index = bestind, size = bestscore)
 end
 
 """
