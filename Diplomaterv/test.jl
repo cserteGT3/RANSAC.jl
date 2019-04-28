@@ -183,8 +183,11 @@ pC, pP = compatiblesPlane(tp, pV, pN, 0.1, deg2rad(10));
 sC, sP = compatiblesPlane(tp, tsP, tsN, 0.1, deg2rad(10));
 
 # bitmapper
+using ImageView
 
 bM, idxM, betas = bitmapparameters(chopzaxis(pP), pC, 0.1);
+imshow(bM);
+largestconncomp(bM, idxM)
 
 # Sphere
 
@@ -197,5 +200,11 @@ fsp = issphere(sP[rk], sN[rk], ϵ, deg2rad(α));
 cSP, uoT, params = compatiblesSphere(fsp, sP, sN, ϵ, deg2rad(50));
 unders = uoT.under;
 overs = uoT.over;
-overSbm, overSid, overSb = bitmapparameters(params[overs], cSP[overs], 0.001, overs);
+overSbm, overSid, overSb = bitmapparameters(params[overs], cSP[overs], 0.1, overs);
 underSbm, underSid, underSb = bitmapparameters(params[unders], cSP[unders], 0.1, unders);
+
+imshow(overSbm);
+imshow(underSbm);
+
+largestconncomp(overSbm, overSid)
+largestconncomp(underSbm, underSid)
