@@ -1,9 +1,13 @@
 # Outline of the algorithm
 
-#valamit
-println("szeva")
+function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, setenabled)
+    if setenabled
+        pc.isenabled = trues(pc.size)
+    end
+    ransac(pc, α, ϵ, t, pt, τ, itmax, drawN)
+end
 
-function ransac(pc, α, ϵ, t, usegloβ, connekey, pt, τ, itmax, drawN)
+function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN)
     # build an octree
     @assert drawN > 2
     minV, maxV = findAABB(vs);
@@ -142,7 +146,7 @@ function ransac(pc, α, ϵ, t, usegloβ, connekey, pt, τ, itmax, drawN)
             @info "Iteration: $k"
         end
     end # iterate end
-    @warn "Iteration finished."
+    @info "Iteration finished."
     return candidates, extracted
 end # ransac function
 

@@ -246,10 +246,6 @@ pcr = PointCloud(vs, ns, 8);
 ϵϵ = 0.5;
 # number of minimal subsets drawed in one iteration
 tt = 30;
-# use "global" or "local β"
-usegloββ = false
-# connetivitiy for connected components
-connekeyy = :eight
 # probability that we found shapes
 ptt = 0.9
 # minimum shape size
@@ -259,11 +255,11 @@ itermax = 10000
 # size of the minimal set
 draws = 3
 include("ransac.jl")
-pcr.isenabled = trues(pcr.size)
-cand, extr = ransac(pcr, αα, ϵϵ, tt, usegloββ, connekeyy, ptt, ττ, itermax, draws)
+cand, extr = ransac(pcr, αα, ϵϵ, tt, ptt, ττ, itermax, draws, true)
 
 using Makie
 
 sc = showshapes(pcr, extr)
 sco = scatter(vs)
 m = vbox(sco, sc)
+# Makie.save("plot.png", m)
