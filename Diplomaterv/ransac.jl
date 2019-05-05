@@ -1,13 +1,13 @@
 # Outline of the algorithm
 
-function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, setenabled)
+function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover, setenabled)
     if setenabled
         pc.isenabled = trues(pc.size)
     end
-    ransac(pc, α, ϵ, t, pt, τ, itmax, drawN)
+    ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover)
 end
 
-function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN)
+function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover)
     # build an octree
     @assert drawN > 2
     minV, maxV = findAABB(vs);
@@ -27,6 +27,9 @@ function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN)
     @info "Iteration begins."
     # iterate begin
     for k in 1:itermax
+        if length(findall(pc.isenabled)) < minleftover
+            @info "Break at $k, because left only: $(length(findall(pc.isenabled)))"
+        end
         # generate t candidate
         for i in 1:t
             #TODO: that is unsafe, but probably won't interate over the whole pc
@@ -102,7 +105,7 @@ function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN)
             # search for the largest score == length(inpoints) (for now)
             best = largestshape(candidates)
             bestsize = best.size
-            if mod(k,itermax/5) == 0
+            if mod(k,itermax/30) == 0
                 @info "best size: $bestsize"
             end
             # if the probability is large enough, extract the shape
@@ -169,4 +172,8 @@ end
 function showshapes(pointcloud, candidateA)
     sc = Scene()
     showshapes(sc, pointcloud, candidateA)
+end
+
+function getrest(pc)
+    return findall(pc.isenabled)
 end
