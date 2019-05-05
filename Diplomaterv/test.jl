@@ -208,3 +208,62 @@ imshow(underSbm);
 
 largestconncomp(overSbm, overSid)
 largestconncomp(underSbm, underSid)
+
+
+## RANSAC
+using Pkg
+Pkg.activate()
+
+# every include
+using LinearAlgebra
+using StaticArrays
+using RegionTrees
+using Random
+using Logging
+using Revise
+using Colors
+
+
+include("generatesamples.jl")
+includet("octree.jl")
+includet("utilities.jl")
+includet("fitting.jl")
+includet("parameterspacebitmap.jl")
+
+using .samples
+using .Octree
+using .Utilities
+using .Fitting
+using .ParameterspaceBitmap
+
+include("ransac.jl")
+
+# inputs
+vs, ns, norms4Plot, shape_s = examplepc2();
+# (normalize surface normals if needed)
+pcr = PointCloud(vs, ns, 8);
+αα = deg2rad(10);
+ϵϵ = 0.5;
+# number of minimal subsets drawed in one iteration
+tt = 30;
+# use "global" or "local β"
+usegloββ = false
+# connetivitiy for connected components
+connekeyy = :eight
+# probability that we found shapes
+ptt = 0.9
+# minimum shape size
+ττ = 1000
+# maximum number of iteration
+itermax = 10000
+# size of the minimal set
+draws = 3
+include("ransac.jl")
+pcr.isenabled = trues(pcr.size)
+cand, extr = ransac(pcr, αα, ϵϵ, tt, usegloββ, connekeyy, ptt, ττ, itermax, draws)
+
+using Makie
+
+sc = showshapes(pcr, extr)
+sco = scatter(vs)
+m = vbox(sco, sc)

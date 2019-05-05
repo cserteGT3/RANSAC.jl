@@ -1,34 +1,11 @@
 # Outline of the algorithm
 
-using Pkg
-Pkg.activate()
-
-# every include
-using Revise
-using LinearAlgebra
-using StaticArrays
-using RegionTrees
-using Random
-using Logging
-using ImageView
-using Makie
-
-include("generatesamples.jl")
-includet("octree.jl")
-includet("utilities.jl")
-includet("fitting.jl")
-includet("parameterspacebitmap.jl")
-
-using .samples
-using .Octree
-using .Utilities
-using .Fitting
-using .ParameterspaceBitmap
-
 #valamit
+println("szeva")
 
-function ransac(pc, α, ϵ, t, usegloβ, connekey, pt, τ, itmax)
+function ransac(pc, α, ϵ, t, usegloβ, connekey, pt, τ, itmax, drawN)
     # build an octree
+    @assert drawN > 2
     minV, maxV = findAABB(vs);
     octree = Cell(SVector{3}(minV), SVector{3}(maxV), OctreeNode(pc, collect(1:length(vs)), 1));
     r = OctreeRefinery(8);
@@ -50,8 +27,15 @@ function ransac(pc, α, ϵ, t, usegloβ, connekey, pt, τ, itmax)
         for i in 1:t
             #TODO: that is unsafe, but probably won't interate over the whole pc
             # select a random point
+            if length(random_points)<100
+                random_points = randperm(pc.size)
+                @warn "Recomputing randperm."
+            end
             r1 = popfirst!(random_points)
 
+            while ! pc.isenabled[r1]
+                r1 = popfirst!(random_points)
+            end
             # search for r1 in octree
             current_leaf = findleaf(octree, pc.vertices[r1])
             # get all the parents
@@ -61,9 +45,18 @@ function ransac(pc, α, ϵ, t, usegloβ, connekey, pt, τ, itmax)
             # chosse the level with the highest score
             curr_level = argmax(pc.levelweight[1:length(cs)])
             # choose 3 more from cs[curr_level].data.incellpoints
-            sd = shuffle(cs[curr_level].data.incellpoints)[1:3]
-            push!(sd, r1)
-            # sd: 4 indexes of the actually selected points
+            sdf = shuffle(cs[curr_level].data.incellpoints)
+            sd = [r1]
+            while length(sd) < 3 && length(sdf) > 0
+                n = popfirst!(sdf)
+                # don't use the same point twice
+                n == r1 && continue
+                pc.isenabled[n] && push!(sd, n)
+            end
+            # sd: 3 indexes of the actually selected points
+
+            # if there's no 3 points, continue to the next draw
+            length(sd) < 3 && continue
 
             #TODO: this should be something more general
             # fit plane to the selected points
@@ -82,23 +75,47 @@ function ransac(pc, α, ϵ, t, usegloβ, connekey, pt, τ, itmax)
             #TODO: save the bitmmaped parameters for debug
             if isa(c.shape, FittedPlane)
                 # plane
-                cp, pp = compatiblesPlane(c.shape, pc.vertices, pc.normals, ϵ, α)
+                cp, pp = compatiblesPlane(c.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
+                #scatter(pp)
+                #print("ez egy sík. mehetünk?")
+                #readline()
+                #println("plane compatibility: ", length(findall(cp)))
+                #=
                 beta = usegloβ ? lsd : smallestdistance(pp)
                 bm, idm, _ = bitmapparameters(pp, cp, beta)
                 c.inpoints = largestconncomp(bm, idm, connekey)
+                =#
+                #c.inpoints = (1:length(pc.vertices[pc.isenabled]))[cp]
+                c.inpoints = ((1:pc.size)[pc.isenabled])[cp]
                 c.scored = true
                 pc.levelscore[c.octree_lev] = pc.levelscore[c.octree_lev] + length(c.inpoints)
             elseif isa(c.shape, FittedSphere)
                 # sphere
-                cpl, uo, sp = compatiblesSphere(c.shape, pc.vertices, pc.normals, ϵ, α)
-                betau = usegloβ ? lsd : smallestdistance(sp[uo.under])
-                betao = usegloβ ? lsd : smallestdistance(sp[uo.over])
-                verti = 1:pc.size
+                cpl, uo, sp = compatiblesSphere(c.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
+                #betau = usegloβ ? lsd : smallestdistance(sp[uo.under])
+                #betao = usegloβ ? lsd : smallestdistance(sp[uo.over])
+                #scatter(sp[uo.under])
+                #print("ez egy gömb alja. mehetünk?")
+                #readline()
+                #scatter(sp[uo.over])
+                #print("ez egy gömb teteje. mehetünk?")
+                #readline()
+                #println("undersphere compatibility: ", length(findall(cpl[uo.under])))
+                #println("overshphere compatibility: ", length(findall(cpl[uo.over])))
+                #=
                 ubm, uid, _ = bitmapparameters(sp[uo.under], cpl[uo.under], betau, verti[uo.under])
                 obm, oid, _ = bitmapparameters(sp[uo.over], cpl[uo.over], betao, verti[uo.over])
                 upoints = largestconncomp(ubm, uid, connekey)
                 opoints = largestconncomp(obm, oid, connekey)
-                c.inpoints = length(upoints) >= length(opoints) ? upoints : opoints
+                =#
+                # old:
+                # c.inpoints = ((1:pc.size)[pc.isenabled])[cp]
+                # verti: összes pont indexe, ami enabled és kompatibilis
+                verti = ( (1:pc.size)[pc.isenabled] )
+                underEn = uo.under .& cpl
+                overEn = uo.over .& cpl
+                # c.inpoints = length(uo.under) >= length(uo.over) ? verti[uo.under] : verti[uo.over]
+                c.inpoints = count(underEn) >= count(overEn) ? verti[underEn] : verti[overEn]
                 c.scored = true
                 pc.levelscore[c.octree_lev] = pc.levelscore[c.octree_lev] + length(c.inpoints)
             else
@@ -109,22 +126,25 @@ function ransac(pc, α, ϵ, t, usegloβ, connekey, pt, τ, itmax)
         if length(candidates) > 0
             # search for the largest score == length(inpoints) (for now)
             best = largestshape(candidates)
-            bestsize = length(candidates[best.index].inpoints)
+            bestsize = best.size
+            if mod(k,itermax/5) == 0
+                @info "best size: $bestsize"
+            end
             # if the probability is large enough, extract the shape
-            @info "best size: $bestsize"
-            @info "best prob: $(prob(bestsize, length(candidates), pc.size, k=4))"
-            if prob(bestsize, length(candidates), pc.size, k=4) > pt
+            #@show prob(bestsize, length(candidates), pc.size, k=drawN)
+
+            if prob(bestsize, length(candidates), pc.size, k=drawN) > pt
                 @info "exxxxxxxtraction!!!"
                 # invalidate points
                 for a in candidates[best.index].inpoints
                     pc.isenabled[a] = false
                 end
-
+                push!(extracted, deepcopy(candidates[best.index]))
+                deleteat!(candidates, best.index)
                 # mark candidates that have invalid points
                 toremove = Int[]
                 for i in eachindex(candidates)
-                    i == best.index && continue
-                    for a in candidate[i].inpoints
+                    for a in candidates[i].inpoints
                         if ! pc.isenabled[a]
                             push!(toremove, i)
                             break
@@ -133,10 +153,9 @@ function ransac(pc, α, ϵ, t, usegloβ, connekey, pt, τ, itmax)
                 end
                 # extract the shape
                 # TODO: refit
-                push!(extracted, candidates[best.index])
+
                 # remove candidates that have invalid points
                 # also remove the extracted shape
-                push!(toremove, best.index)
                 deleteat!(candidates, toremove)
             end # if extract shape
         end # if length(candidates)
@@ -144,33 +163,18 @@ function ransac(pc, α, ϵ, t, usegloβ, connekey, pt, τ, itmax)
         updatelevelweight(pc)
 
         # check exit condition
-        prob(τ, length(candidates), pc.size, k=4) > pt && break
+        if prob(τ, length(candidates), pc.size, k=drawN) > pt
+            @info "break at: $k"
+            break
+        end
         if mod(k,itermax/10) == 0
             @info "Iteration: $k"
         end
     end # iterate end
+    @warn "Iteration finished."
+    @info "Length of extr: $(length(extracted))"
     return candidates, extracted
 end # ransac function
-
-# inputs
-vs, ns, norms4Plot = makemeanexample();
-# (normalize surface normals if needed)
-pcr = PointCloud(vs, ns, 8);
-αα = deg2rad(20);
-ϵϵ = 0.5;
-# number of minimal subsets drawed in one iteration
-tt = 6;
-# use "global" or "local β"
-usegloββ = true
-# connetivitiy for connected components
-connekeyy = :eight
-# probability that we found shapes
-ptt = 0.99
-# minimum shape size
-ττ = 10
-# maximum number of iteration
-itermax = 200
-cand, extr = ransac(pcr, αα, ϵϵ, tt, usegloββ, connekeyy, ptt, ττ, itermax)
 
 function showcandlength(ck)
     for c in ck
@@ -178,4 +182,17 @@ function showcandlength(ck)
     end
 end
 
-s = Scene()
+function showshapes(s, pointcloud, candidateA)
+    colA = [:blue, :black, :darkred, :green, :brown, :yellow, :orange, :lighsalmon1, :goldenrod4, :olivedrab2, :indigo]
+    @assert length(candidateA) <= length(colA) "Not enough color in colorarray. Fix it manually. :/"
+    for i in 1:length(candidateA)
+        ind = candidateA[i].inpoints
+        scatter!(s, pointcloud.vertices[ind], color = colA[i])
+    end
+    s
+end
+
+function showshapes(pointcloud, candidateA)
+    sc = Scene()
+    showshapes(sc, pointcloud, candidateA)
+end
