@@ -228,7 +228,7 @@ function examplepc2(nois = false; all = false)
 
     vc1, nc1 = samplesphere(SVector(5.0,5,-1), 10, (72,85))
     vc2, nc2 = samplesphere(SVector(1.0,-7,8), 5, (45,57))
-
+    shape_sizes = [96*70, 50*75, 30*42, 72*85, 45*57]
     vs = vcat(vp1, vc1, vc2, vp2, vp3)
     ns = vcat(np1, nc1, nc2, np2, np3)
     if nois
@@ -238,7 +238,7 @@ function examplepc2(nois = false; all = false)
         return vs_n, ns_n, nsfp2_
     end
     nsfp_ = normalsforplot(vs, ns)
-    return vs, ns, nsfp_
+    return vs, ns, nsfp_, shape_sizes
 end
 
 """
