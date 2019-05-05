@@ -216,11 +216,11 @@ function makemeanexample(nois = false; all = false)
 end
 
 """
-    examplepc2(nois = false; all = false)
+    examplepc2(nois = false; all = false, mrotdeg = 10, vertscale = 0.5)
 
 Generate a definitely not random example consisting planes and spheres.
 """
-function examplepc2(nois = false; all = false)
+function examplepc2(nois = false; all = false, mrotdeg = 10, vertscale = 0.5)
     vp1, np1 = sampleplane(SVector(0,0,0), SVector(0,0,1), SVector(1,3,0), (13.7, 9.58), (96, 70))
     vp2, np2 = sampleplane(SVector(7,2,1), SVector(1.5,7,0), SVector(0,3,1), (9.7, 15), (50, 75))
     vp3, np3 = sampleplane(SVector(15,-5,-10), SVector(.98,.02,0), SVector(0,1,0), (17.2, 11.1), (30, 42))
@@ -232,10 +232,10 @@ function examplepc2(nois = false; all = false)
     vs = vcat(vp1, vc1, vc2, vp2, vp3)
     ns = vcat(np1, nc1, nc2, np2, np3)
     if nois
-        vs_n = noisifyvertices(vs, all)
-        ns_n = noisifynormals(ns, 35)
+        vs_n = noisifyvertices(vs, all, vertscale)
+        ns_n = noisifynormals(ns, mrotdeg)
         nsfp2_ = normalsforplot(vs_n, ns_n)
-        return vs_n, ns_n, nsfp2_
+        return vs_n, ns_n, nsfp2_, shape_sizes
     end
     nsfp_ = normalsforplot(vs, ns)
     return vs, ns, nsfp_, shape_sizes
