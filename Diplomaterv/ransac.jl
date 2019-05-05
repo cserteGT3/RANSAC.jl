@@ -29,19 +29,20 @@ function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover)
     for k in 1:itermax
         if length(findall(pc.isenabled)) < minleftover
             @info "Break at $k, because left only: $(length(findall(pc.isenabled)))"
+            break
         end
         # generate t candidate
         for i in 1:t
             #TODO: that is unsafe, but probably won't interate over the whole pc
             # select a random point
-            if length(random_points)<100
+            if length(random_points)<1000
                 random_points = randperm(pc.size)
                 @warn "Recomputing randperm."
             end
             r1 = popfirst!(random_points)
 
             while ! pc.isenabled[r1]
-                r1 = popfirst!(random_points)
+                r1 = rand(1:pc.size)
             end
             # search for r1 in octree
             current_leaf = findleaf(octree, pc.vertices[r1])
