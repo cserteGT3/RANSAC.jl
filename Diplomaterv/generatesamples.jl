@@ -222,15 +222,15 @@ Generate a definitely not random example consisting planes and spheres.
 """
 function examplepc2(nois = false; all = false, mrotdeg = 10, vertscale = 0.5)
     vp1, np1 = sampleplane(SVector(0,0,0), SVector(0,0,1), SVector(1,3,0), (13.7, 9.58), (96, 70))
-    vp2, np2 = sampleplane(SVector(7,2,1), SVector(1.5,7,0), SVector(0,3,1), (9.7, 15), (50, 75))
+    # vp2, np2 = sampleplane(SVector(7,2,1), SVector(1.9,2,0), SVector(0,1.2,1), (9.7, 15), (50, 75))
     vp3, np3 = sampleplane(SVector(15,-5,-10), SVector(.98,.02,0), SVector(0,1,0), (17.2, 11.1), (30, 42))
 
 
     vc1, nc1 = samplesphere(SVector(5.0,5,-1), 10, (72,85))
     vc2, nc2 = samplesphere(SVector(1.0,-7,8), 5, (45,57))
-    shape_sizes = [96*70, 50*75, 30*42, 72*85, 45*57]
-    vs = vcat(vp1, vc1, vc2, vp2, vp3)
-    ns = vcat(np1, nc1, nc2, np2, np3)
+    shape_sizes = [96*70, 30*42, 72*85, 45*57]
+    vs = vcat(vp1, vc1, vc2, vp3)
+    ns = vcat(np1, nc1, nc2, np3)
     if nois
         vs_n = noisifyvertices(vs, all, vertscale)
         ns_n = noisifynormals(ns, mrotdeg)
