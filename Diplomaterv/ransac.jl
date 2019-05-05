@@ -76,45 +76,16 @@ function ransac(pc, α, ϵ, t, usegloβ, connekey, pt, τ, itmax, drawN)
             if isa(c.shape, FittedPlane)
                 # plane
                 cp, pp = compatiblesPlane(c.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
-                #scatter(pp)
-                #print("ez egy sík. mehetünk?")
-                #readline()
-                #println("plane compatibility: ", length(findall(cp)))
-                #=
-                beta = usegloβ ? lsd : smallestdistance(pp)
-                bm, idm, _ = bitmapparameters(pp, cp, beta)
-                c.inpoints = largestconncomp(bm, idm, connekey)
-                =#
-                #c.inpoints = (1:length(pc.vertices[pc.isenabled]))[cp]
                 c.inpoints = ((1:pc.size)[pc.isenabled])[cp]
                 c.scored = true
                 pc.levelscore[c.octree_lev] = pc.levelscore[c.octree_lev] + length(c.inpoints)
             elseif isa(c.shape, FittedSphere)
                 # sphere
                 cpl, uo, sp = compatiblesSphere(c.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
-                #betau = usegloβ ? lsd : smallestdistance(sp[uo.under])
-                #betao = usegloβ ? lsd : smallestdistance(sp[uo.over])
-                #scatter(sp[uo.under])
-                #print("ez egy gömb alja. mehetünk?")
-                #readline()
-                #scatter(sp[uo.over])
-                #print("ez egy gömb teteje. mehetünk?")
-                #readline()
-                #println("undersphere compatibility: ", length(findall(cpl[uo.under])))
-                #println("overshphere compatibility: ", length(findall(cpl[uo.over])))
-                #=
-                ubm, uid, _ = bitmapparameters(sp[uo.under], cpl[uo.under], betau, verti[uo.under])
-                obm, oid, _ = bitmapparameters(sp[uo.over], cpl[uo.over], betao, verti[uo.over])
-                upoints = largestconncomp(ubm, uid, connekey)
-                opoints = largestconncomp(obm, oid, connekey)
-                =#
-                # old:
-                # c.inpoints = ((1:pc.size)[pc.isenabled])[cp]
                 # verti: összes pont indexe, ami enabled és kompatibilis
                 verti = ( (1:pc.size)[pc.isenabled] )
                 underEn = uo.under .& cpl
                 overEn = uo.over .& cpl
-                # c.inpoints = length(uo.under) >= length(uo.over) ? verti[uo.under] : verti[uo.over]
                 c.inpoints = count(underEn) >= count(overEn) ? verti[underEn] : verti[overEn]
                 c.scored = true
                 pc.levelscore[c.octree_lev] = pc.levelscore[c.octree_lev] + length(c.inpoints)
@@ -134,11 +105,12 @@ function ransac(pc, α, ϵ, t, usegloβ, connekey, pt, τ, itmax, drawN)
             #@show prob(bestsize, length(candidates), pc.size, k=drawN)
 
             if prob(bestsize, length(candidates), pc.size, k=drawN) > pt
-                @info "exxxxxxxtraction!!!"
+                @info "Extraction!"
                 # invalidate points
                 for a in candidates[best.index].inpoints
                     pc.isenabled[a] = false
                 end
+                # extract the shape and delete from candidates
                 push!(extracted, deepcopy(candidates[best.index]))
                 deleteat!(candidates, best.index)
                 # mark candidates that have invalid points
@@ -155,7 +127,6 @@ function ransac(pc, α, ϵ, t, usegloβ, connekey, pt, τ, itmax, drawN)
                 # TODO: refit
 
                 # remove candidates that have invalid points
-                # also remove the extracted shape
                 deleteat!(candidates, toremove)
             end # if extract shape
         end # if length(candidates)
@@ -164,7 +135,7 @@ function ransac(pc, α, ϵ, t, usegloβ, connekey, pt, τ, itmax, drawN)
 
         # check exit condition
         if prob(τ, length(candidates), pc.size, k=drawN) > pt
-            @info "break at: $k"
+            @info "Break out from iteration at: $k"
             break
         end
         if mod(k,itermax/10) == 0
@@ -172,7 +143,6 @@ function ransac(pc, α, ϵ, t, usegloβ, connekey, pt, τ, itmax, drawN)
         end
     end # iterate end
     @warn "Iteration finished."
-    @info "Length of extr: $(length(extracted))"
     return candidates, extracted
 end # ransac function
 
