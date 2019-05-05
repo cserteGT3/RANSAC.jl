@@ -126,6 +126,7 @@ end
 
 Create a bool-indexer array for those points that are compatible to the sphere.
 Give back the projected points too for parameter space magic.
+Return a bool indexer for (under,over) too.
 
 Compatibility is measured with an `eps` distance to the sphere and an `alpharad` angle to it's normal.
 """
@@ -143,13 +144,13 @@ function compatiblesSphere(sphere, points, normals, eps, alpharad)
         c2 = [isparallel(normalize(o-points[i]), normals[i], α) && c1[i] for i in eachindex(points)]
     end
 
-    under = Array{Int}(undef, 0)
-    over = Array{Int}(undef, 0)
+    under = falses(length(points))
+    over = falses(length(points))
     for i in eachindex(points)
         if points[i][3] <= o[3]
-            c2[i] && push!(under, i)
+            under[i] = true
         else
-            c2[i] && push!(over, i)
+            over[i] = true
         end
     end
     # TODO
