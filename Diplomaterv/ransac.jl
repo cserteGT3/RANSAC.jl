@@ -35,7 +35,7 @@ function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover)
         for i in 1:t
             #TODO: that is unsafe, but probably won't interate over the whole pc
             # select a random point
-            if length(random_points)<1000
+            if length(random_points)<10
                 random_points = randperm(pc.size)
                 @warn "Recomputing randperm."
             end
@@ -51,20 +51,22 @@ function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover)
             # revese the order, cause it's easier to map with levelweight
             reverse!(cs)
             # chosse the level with the highest score
+            # if multiple maximum, the first=largest cell will be used
             curr_level = argmax(pc.levelweight[1:length(cs)])
             # choose 3 more from cs[curr_level].data.incellpoints
             sdf = shuffle(cs[curr_level].data.incellpoints)
             sd = [r1]
-            while length(sd) < 3 && length(sdf) > 0
+            while length(sd) < drawN && length(sdf) > 0
                 n = popfirst!(sdf)
                 # don't use the same point twice
                 n == r1 && continue
+                # use only the enabled points
                 pc.isenabled[n] && push!(sd, n)
             end
             # sd: 3 indexes of the actually selected points
 
             # if there's no 3 points, continue to the next draw
-            length(sd) < 3 && continue
+            length(sd) < drawN && continue
 
             #TODO: this should be something more general
             # fit plane to the selected points
