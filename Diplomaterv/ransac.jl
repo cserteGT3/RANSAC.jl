@@ -10,6 +10,7 @@ end
 function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover)
     # build an octree
     @assert drawN > 2
+    subsetN = length(pc.subsets)
     minV, maxV = findAABB(vs);
     octree = Cell(SVector{3}(minV), SVector{3}(maxV), OctreeNode(pc, collect(1:length(vs)), 1));
     r = OctreeRefinery(8);
@@ -21,7 +22,8 @@ function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover)
 
     random_points = randperm(pc.size);
     candidates = ShapeCandidate[]
-    extracted = ShapeCandidate[]
+    scoredshapes = ScoredShape[]
+    extracted = ScoredShape[]
     # smallest distance in the pointcloud
     lsd = smallestdistance(pc.vertices)
     @info "Iteration begins."
@@ -81,79 +83,106 @@ function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover)
         # TODO: do something with octree levels and scores
 
         for c in candidates
-            c.scored && continue
             #TODO: save the bitmmaped parameters for debug
+            which_ = 1
+            ps = @view pc.vertices[pc.subsets[which_]]
+            ns = @view pc.normals[pc.subsets[which_]]
+            ens = @view pc.isenabled[pc.subsets[which_]]
+
             if isa(c.shape, FittedPlane)
                 # plane
-                cp, pp = compatiblesPlane(c.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
-                c.inpoints = ((1:pc.size)[pc.isenabled])[cp]
-                c.scored = true
-                pc.levelscore[c.octree_lev] = pc.levelscore[c.octree_lev] + length(c.inpoints)
+                # cp, pp = compatiblesPlane(c.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
+                cp, pp = compatiblesPlane(c.shape, ps, ns, ϵ, α)
+                inder = cp.&ens
+                inpoints = (pc.subsets[which_])[inder]
+                #inpoints = ((pc.subsets[1])[ens])[cp]
+                score = estimatescore(length(pc.subsets[which_]), pc.size, length(inpoints))
+                pc.levelscore[c.octree_lev] = pc.levelscore[c.octree_lev] + E(score)
+                push!(scoredshapes, ScoredShape(c, score, inpoints))
             elseif isa(c.shape, FittedSphere)
                 # sphere
-                cpl, uo, sp = compatiblesSphere(c.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
+                # cpl, uo, sp = compatiblesSphere(c.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
+                cpl, uo, sp = compatiblesSphere(c.shape, ps, ns, ϵ, α)
                 # verti: összes pont indexe, ami enabled és kompatibilis
-                verti = ( (1:pc.size)[pc.isenabled] )
+                # lenne, ha működne, de inkább a boolean indexelést machináljuk
+                verti = pc.subsets[1]
                 underEn = uo.under .& cpl
                 overEn = uo.over .& cpl
-                c.inpoints = count(underEn) >= count(overEn) ? verti[underEn] : verti[overEn]
-                c.scored = true
-                pc.levelscore[c.octree_lev] = pc.levelscore[c.octree_lev] + length(c.inpoints)
+
+                inpoints = count(underEn) >= count(overEn) ? verti[underEn] : verti[overEn]
+                score = estimatescore(length(pc.subsets[which_]), pc.size, length(inpoints))
+                pc.levelscore[c.octree_lev] = pc.levelscore[c.octree_lev] + E(score)
+                push!(scoredshapes, ScoredShape(c, score, inpoints))
             else
                 # currently nothing else is implemented
                 @warn "What the: $c"
             end # if
         end # for c
-        if length(candidates) > 0
-            # search for the largest score == length(inpoints) (for now)
-            best = largestshape(candidates)
-            bestsize = best.size
-            if mod(k,itermax/30) == 0
-                @info "best size: $bestsize"
-            end
-            # if the probability is large enough, extract the shape
-            #@show prob(bestsize, length(candidates), pc.size, k=drawN)
+        # by now every candidate is scored into scoredshapes
+        empty!(candidates)
 
-            if prob(bestsize, length(candidates), pc.size, k=drawN) > pt
-                @info "Extraction!"
+        if length(scoredshapes) > 0
+            # search for the largest score == length(inpoints) (for now)
+            # best = largestshape(scoredshapes)
+            best = findhighestscore(scoredshapes)
+            bestshape = scoredshapes[best.index]
+            # TODO: refine if best.overlap
+            scr = E(bestshape.score)
+            lengttt = length(bestshape.inpoints)
+            ppp = prob(length(bestshape.inpoints), length(scoredshapes), pc.size, k=drawN)*subsetN
+            if k%4 == 0
+                @info "$k. iteráció, $lengttt db pont, $scr score, $ppp prob."
+            end
+            #TODO: length will be only 1/numberofsubsets
+            # if the probability is large enough, extract the shape
+            if prob(length(bestshape.inpoints), length(scoredshapes), pc.size, k=drawN)*subsetN > pt
+                @info "Extraction! best score: $(E(bestshape.score)), length: $(length(bestshape.inpoints))"
+
+                # refit on the whole pointcloud
+                if bestshape.candidate.shape isa FittedPlane
+                    refitplane(bestshape, pc, ϵ, α)
+                elseif bestshape.candidate.shape isa FittedSphere
+                    refitsphere(bestshape, pc, ϵ, α)
+                else
+                    @error "Whatt? panic with $(typeof(bestshape.candidate.shape))"
+                end
+
                 # invalidate points
-                for a in candidates[best.index].inpoints
+                for a in bestshape.inpoints
                     pc.isenabled[a] = false
                 end
-                # extract the shape and delete from candidates
-                push!(extracted, deepcopy(candidates[best.index]))
-                deleteat!(candidates, best.index)
-                # mark candidates that have invalid points
+                # extract the shape and delete from scoredshapes
+                push!(extracted, deepcopy(bestshape))
+                deleteat!(scoredshapes, best.index)
+                # mark scoredshapes that have invalid points
                 toremove = Int[]
-                for i in eachindex(candidates)
-                    for a in candidates[i].inpoints
+                for i in eachindex(scoredshapes)
+                    for a in scoredshapes[i].inpoints
                         if ! pc.isenabled[a]
                             push!(toremove, i)
                             break
                         end
                     end
                 end
-                # extract the shape
-                # TODO: refit
 
-                # remove candidates that have invalid points
-                deleteat!(candidates, toremove)
+                # remove scoredshapes that have invalid points
+                deleteat!(scoredshapes, toremove)
             end # if extract shape
-        end # if length(candidates)
+        end # if length(scoredshapes)
         # update octree levels
         updatelevelweight(pc)
 
         # check exit condition
-        if prob(τ, length(candidates), pc.size, k=drawN) > pt
-            @info "Break out from iteration at: $k"
+        if prob(τ, length(scoredshapes), pc.size, k=drawN) > pt
+            @info "Break, at this point all shapes should be extracted: $k. iteráció."
             break
         end
         if mod(k,itermax/10) == 0
             @info "Iteration: $k"
         end
     end # iterate end
-    @info "Iteration finished."
-    return candidates, extracted
+    @info "Iteration finished with $(length(extracted)) extracted and $(length(scoredshapes)) scored shapes."
+    return scoredshapes, extracted
 end # ransac function
 
 function showcandlength(ck)

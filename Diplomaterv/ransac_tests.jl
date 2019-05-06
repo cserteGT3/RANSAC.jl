@@ -17,10 +17,12 @@ includet("octree.jl")
 includet("utilities.jl")
 includet("fitting.jl")
 includet("parameterspacebitmap.jl")
+includet("ConfidenceIntervals.jl")
 
 using .samples
 using .Octree
 using .Utilities
+using .ConfidenceIntervals: estimatescore, E
 using .Fitting
 using .ParameterspaceBitmap
 
@@ -34,13 +36,13 @@ pcr = PointCloud(vs, ns, 8);
 αα = deg2rad(10);
 ϵϵ = 0.5;
 # number of minimal subsets drawed in one iteration
-tt = 30;
+tt = 15;
 # probability that we found shapes
-ptt = 0.99
+ptt = 0.9
 # minimum shape size
 ττ = 900
 # maximum number of iteration
-itermax = 10
+itermax = 10000
 # size of the minimal set
 draws = 3
 include("ransac.jl")
@@ -78,3 +80,6 @@ sco = scatter(vs2)
 slo = scatter(pcr.vertices[getrest(pcr2)])
 m = hbox(slo, vbox(sco, sc))
 Makie.save("plot.png", m)
+
+
+estimatescore(1100, 16000, 1100)
