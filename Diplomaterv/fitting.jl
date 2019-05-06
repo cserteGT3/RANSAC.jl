@@ -13,6 +13,7 @@ export FittedPlane, isplane
 export FittedSphere, issphere
 export ShapeCandidate, findhighestscore
 export largestshape
+export refit
 
 """
 An abstract type that wraps the fitted shapes.
@@ -31,14 +32,14 @@ end
 
 mutable struct ShapeCandidate{S<:FittedShape, A<:AbstractArray}
     shape::S
-    score::Union{ConfidenceInterval, Nothing}
+    score::ConfidenceInterval
     inpoints::A
     scored::Bool
     octree_lev::Int
 end
 
 ShapeCandidate(shape, score, octlev) = ShapeCandidate(shape, score, [], false, octlev)
-ShapeCandidate(shape, octlev) = ShapeCandidate(shape, nothing, [], false, octlev)
+ShapeCandidate(shape, octlev) = ShapeCandidate(shape, ConfidenceInterval(0,0), [], false, octlev)
 
 """
     findhighestscore(A)
@@ -226,5 +227,38 @@ function issphere(p, n, epsilon, alpharad)
     invnorm_ok == trues(pl) && return setsphereOuterity(sp, false)
     return FittedSphere(false, NaNVec, 0, false)
 end
+
+"""
+    refit(shape::FittedPlane, pc, ϵ, α)
+
+Refit plane.
+
+Only shape.inpoints is updated.
+"""
+function refit(shape::FittedPlane, pc, ϵ, α)
+    # TODO: use octree for that
+    cp, _ = compatiblesPlane(shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
+    shape.inpoints = ((1:pc.size)[pc.isenabled])[cp]
+    shape
+end
+
+"""
+    refit(shape::FittedSphere, pc, ϵ, α)
+
+Refit sphere.
+
+Only shape.inpoints is updated.
+"""
+function refit(shape::FittedSphere, pc, ϵ, α)
+    # TODO: use octree for that
+    cpl, uo, sp = compatiblesSphere(shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
+    # verti: összes pont indexe, ami enabled és kompatibilis
+    verti = (1:pc.size)[pc.isenabled]
+    underEn = uo.under .& cpl
+    overEn = uo.over .& cpl
+    shape.inpoints = count(underEn) >= count(overEn) ? verti[underEn] : verti[overEn]
+    shape
+end
+
 
 end #module
