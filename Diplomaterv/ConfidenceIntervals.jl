@@ -3,6 +3,7 @@ module ConfidenceIntervals
 export ConfidenceInterval, notsoconfident
 export estimatescore
 export smallestdistance
+export E
 
 struct ConfidenceInterval
     min::Float64
@@ -24,7 +25,8 @@ end
 
 Test if the two `ConfidenceInterval`s are overlapping.
 """
-function isoverlap(i1::A, i2::A) where {A<:ConfidenceInterval}
+#function isoverlap(i1::A, i2::A) where {A<:ConfidenceInterval}
+function isoverlap(i1, i2)
     i1.min == i2.min && return true
     if i1.min < i2.min
         return i2.min <= i1.max
@@ -38,7 +40,9 @@ end
 
 Expected value of a [ConfidenceInterval](@ref).
 """
-E(x::ConfidenceInterval) = (x.min+x.max)/2
+#E(x::ConfidenceInterval) = (x.min+x.max)/2
+E(x) = (x.min+x.max)/2
+
 
 """
     hypergeomdev(N, x, n)

@@ -8,13 +8,15 @@ using LinearAlgebra: cross, dot, normalize, normalize!, norm
 using Images: label_components, component_lengths
 using Logging
 
-using .Fitting: FittedPlane, FittedSphere
+# using .Fitting: FittedPlane, FittedSphere
+using .Fitting
 using .Utilities
 
 export project2plane, compatiblesPlane
 export bitmapparameters
 export compatiblesSphere
 export largestconncomp
+export refitsphere, refitplane
 
 """
     project2plane(plane, points)
@@ -202,6 +204,34 @@ function largestconncomp(bimage, indmap, conn_key::Symbol = :default)
     else
         @error("No such key implemented: $conn_key.")
     end
+end
+
+"""
+    refit(s, pc, ϵ, α)
+
+Refit plane. Only s.inpoints is updated.
+"""
+function refitplane(s, pc, ϵ, α)
+    # TODO: use octree for that
+    cp, _ = compatiblesPlane(s.candidate.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
+    s.inpoints = ((1:pc.size)[pc.isenabled])[cp]
+    s
+end
+
+"""
+    refit(s, pc, ϵ, α)
+
+Refit sphere. Only s.inpoints is updated.
+"""
+function refitsphere(s, pc, ϵ, α)
+    # TODO: use octree for that
+    cpl, uo, sp = compatiblesSphere(s.candidate.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
+    # verti: összes pont indexe, ami enabled és kompatibilis
+    verti = (1:pc.size)[pc.isenabled]
+    underEn = uo.under .& cpl
+    overEn = uo.over .& cpl
+    s.inpoints = count(underEn) >= count(overEn) ? verti[underEn] : verti[overEn]
+    s
 end
 
 end # module
