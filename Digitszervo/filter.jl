@@ -2,6 +2,12 @@
 
 using ControlSystems
 using LinearAlgebra
+using Logging
+
+plotq = @isdefined plotyeah
+if !plotq
+	@info "Set `plotyeah=true` if you want to bodeplot()."
+end
 
 """
     cSS(A, B)
@@ -34,6 +40,16 @@ function writeLyrics(lyricsname, lyrics)
     end
 end
 
+function ploti(ss, n)
+	plotq = @isdefined plotyeah
+	if plotq
+		if plotyeah
+			pl = bodeplot(ss)
+			Plots.savefig(pl, n)
+		end
+	end
+end
+
 """
     rad2enc(x)
 
@@ -55,6 +71,8 @@ lpfB = [0, 0, Tc^-3];
 Dlpf, _ = c2d(cSS(lpfA, lpfB), Ts);
 writeLyrics("lpf.txt", makeLyrics(Dlpf));
 
+ploti(Dlpf, "lpf.pdf")
+
 ## Harmad Bessel
 
 b3A = [0 1 0; 0 0 1; -15/Tc^3 -15/Tc^2 -6/Tc]
@@ -63,6 +81,8 @@ b3B = [0, 0, 15/Tc^3];
 Dbessel3, _ = c2d(cSS(b3A, b3B), Ts);
 writeLyrics("bessel3.txt", makeLyrics(Dbessel3));
 
+ploti(Dbessel3, "bessel3.pdf")
+
 ## Otod Bessel
 
 b5A = vcat(hcat(zeros(4), I), [-945/Tc^5 -945/Tc^4 -420/Tc^3 -105/Tc^2 -15/Tc]);
@@ -70,3 +90,5 @@ b5B = [0, 0, 0, 0, 945/Tc^5];
 
 Dbessel5, _ = c2d(cSS(b5A, b5B), Ts);
 writeLyrics("bessel5.txt", makeLyrics(Dbessel5));
+
+ploti(Dbessel5, "bessel5.pdf")
