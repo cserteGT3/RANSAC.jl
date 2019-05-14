@@ -1,18 +1,22 @@
 module Fitting
 
 include("utilities.jl")
+include("ConfidenceIntervals.jl")
 
 using StaticArrays: SVector, MVector
 using LinearAlgebra: cross, ×, dot, normalize, normalize!, norm
 using ZChop: zchop, zchop!
 
 using .Utilities
+using .ConfidenceIntervals: ConfidenceInterval, E, isoverlap
 
 export FittedShape, isshape
 export FittedPlane, isplane
 export FittedSphere, issphere
 export ShapeCandidate, findhighestscore
+export ScoredShape
 export largestshape
+#export refit
 
 """
 An abstract type that wraps the fitted shapes.
@@ -29,21 +33,27 @@ function isshape(shape::FittedPlane)
     return shape.isplane
 end
 
-mutable struct ShapeCandidate{S<:FittedShape, A<:AbstractArray}
+mutable struct ShapeCandidate{S<:FittedShape}
     shape::S
-    score::Union{ConfidenceInterval, Nothing}
-    inpoints::A
-    scored::Bool
     octree_lev::Int
 end
 
-ShapeCandidate(shape, score, octlev) = ShapeCandidate(shape, score, [], false, octlev)
-ShapeCandidate(shape, octlev) = ShapeCandidate(shape, nothing, [], false, octlev)
+# mutable struct ScoredShape{S<:FittedShape, A<:AbstractArray}
+
+mutable struct ScoredShape{A<:AbstractArray}
+    candidate::ShapeCandidate
+    score
+    inpoints::A
+end
+
+# TODO: delete these
+# ShapeCandidate(shape, score, octlev) = ShapeCandidate(shape, score, [], false, octlev)
+# ShapeCandidate(shape, octlev) = ShapeCandidate(shape, ConfidenceInterval(0,0), [], false, octlev)
 
 """
     findhighestscore(A)
 
-Find the largest expected value in an array of `ShapeCandidate`s.
+Find the largest expected value in an array of `ScoredShape`s.
 
 Indicate if there's an overlap.
 """
@@ -59,7 +69,7 @@ function findhighestscore(A)
         end
     end
     overlaps = [isoverlap(A[ind].score, a.score) for a in A]
-    overlap[ind] = false
+    overlaps[ind] = false
     # no overlap:
     overlaps == falses(length(A)) && return (index = ind, overlap = false)
     # overlap:
@@ -69,7 +79,7 @@ end
 """
     largestshape(A)
 
-Find the largest shape in an array of `ShapeCandidate`s.
+Find the largest shape in an array of `ScoredShape`s.
 """
 function largestshape(A)
     length(A) < 1 && return (index = 0, size = 0)
@@ -226,5 +236,35 @@ function issphere(p, n, epsilon, alpharad)
     invnorm_ok == trues(pl) && return setsphereOuterity(sp, false)
     return FittedSphere(false, NaNVec, 0, false)
 end
+
+#=
+"""
+    refit(s, pc, ϵ, α)
+
+Refit plane. Only s.inpoints is updated.
+"""
+function refit(s, pc, ϵ, α)
+    # TODO: use octree for that
+    cp, _ = compatiblesPlane(s.candidate.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
+    s.inpoints = ((1:pc.size)[pc.isenabled])[cp]
+    s
+end
+
+"""
+    refit(s, pc, ϵ, α)
+
+Refit sphere. Only s.inpoints is updated.
+"""
+function refit(s, pc, ϵ, α)
+    # TODO: use octree for that
+    cpl, uo, sp = compatiblesSphere(s.candidate.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
+    # verti: összes pont indexe, ami enabled és kompatibilis
+    verti = (1:pc.size)[pc.isenabled]
+    underEn = uo.under .& cpl
+    overEn = uo.over .& cpl
+    s.inpoints = count(underEn) >= count(overEn) ? verti[underEn] : verti[overEn]
+    s
+end
+=#
 
 end #module
