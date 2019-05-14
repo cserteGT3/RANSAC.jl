@@ -50,6 +50,7 @@ cand, extr = ransac(pcr, αα, ϵϵ, tt, ptt, ττ, itermax, draws, 500, true)
 leftover = getrest(pcr);
 
 sc = showshapes(pcr, extr)
+
 sco = scatter(vs)
 m = vbox(sco, sc)
 # Makie.save("plot.png", m)
@@ -65,17 +66,18 @@ pcr2 = PointCloud(vs2, ns2, 8);
 αα = deg2rad(20);
 ϵϵ = 0.5;
 # number of minimal subsets drawed in one iteration
-tt = 30;
+tt = 15;
 # probability that we found shapes
 ptt = 0.9
 # minimum shape size
-ττ = 500
+ττ = 900
 # maximum number of iteration
-itermax = 13000
+itermax = 10000
 
 cand, extr = ransac(pcr2, αα, ϵϵ, tt, ptt, ττ, itermax, 3, 500, true)
 
-sc = showshapes(pcr2, extr)
+sc2 = showshapes(pcr2, extr)
+vbox(sc, sc2)
 sco = scatter(vs2)
 slo = scatter(pcr.vertices[getrest(pcr2)])
 m = hbox(slo, vbox(sco, sc))

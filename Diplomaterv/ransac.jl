@@ -135,9 +135,11 @@ function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover)
             end
             #TODO: length will be only 1/numberofsubsets
             # if the probability is large enough, extract the shape
-            if prob(length(bestshape.inpoints), length(scoredshapes), pc.size, k=drawN)*subsetN > pt
+            if prob(length(bestshape.inpoints)*subsetN, length(scoredshapes), pc.size, k=drawN) > pt
                 @info "Extraction! best score: $(E(bestshape.score)), length: $(length(bestshape.inpoints))"
 
+                # TODO: proper refit, not only getting the points that fit to that shape
+                # what do you mean by refit?
                 # refit on the whole pointcloud
                 if bestshape.candidate.shape isa FittedPlane
                     refitplane(bestshape, pc, ϵ, α)
@@ -173,7 +175,8 @@ function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover)
         updatelevelweight(pc)
 
         # check exit condition
-        if prob(τ, length(scoredshapes), pc.size, k=drawN) > pt
+        # TODO: τ-t is le kéne osztani a subsestek számával
+        if prob(τ/subsetN, length(scoredshapes), pc.size, k=drawN) > pt
             @info "Break, at this point all shapes should be extracted: $k. iteráció."
             break
         end
