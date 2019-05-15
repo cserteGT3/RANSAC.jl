@@ -152,11 +152,42 @@ isplane(tsP2[ra],tsP2[ra], deg2rad(α))
 
 issphere(tpv2[rk], tpv2[rk], ϵ, deg2rad(α))
 
+# cylinder
+
+n1 = SVector(1,0,0);
+n2 = SVector(0,1,0);
+n3 = SVector(-1,0,0);
+nsc = [n1,n2,n3];
+psc = [SVector(n[1], n[2],3.14) for n in nsc]
+psc = [SVector(nsc[i][1], nsc[i][2], i) for i in eachindex(nsc)]
+psc = [ 2*n for n in nsc]
+
+fcc = iscylinder(psc, nsc, 0.1, deg2rad(15))
+
+n1 = SVector(0,0,-1);
+n2 = SVector(0,1,0);
+n3 = SVector(0,0,1);
+nsc = [n1,n2,n3];
+psc = [SVector(n[1]+5, n[2] +2,3.14) for n in nsc]
+psc = [ 2*n for n in nsc]
+
+iscylinder(psc, nsc, 0.1, deg2rad(15))
+
+n1 = SVector(0,0,-1);
+n2 = SVector(0,1,0);
+n3 = SVector(0,0,1);
+nsc = [n1,n2,n3];
+psc = [SVector(n[1]+5, n[2]+1,n[3]+2) for n in nsc]
+
+iscylinder(psc, nsc, 0.1, deg2rad(15))
+
+
 ## bitmap
 # plane
 
 includet("utilities.jl")
 using .Utilities
+using .RodriguesRotations
 
 includet("fitting.jl")
 using .Fitting
@@ -182,6 +213,18 @@ tp = isplane(pV[ixs], pN[ixs], deg2rad(50))
 pC, pP = compatiblesPlane(tp, pV, pN, 0.1, deg2rad(10));
 sC, sP = compatiblesPlane(tp, tsP, tsN, 0.1, deg2rad(10));
 
+# Cylinder
+a = normalize(SVector(0,5,1.0));
+n2 = SVector(0,1,0.0);
+pcc, ncc = samplecylinder(a, n2, 5,10, (29,47))
+showgeometry(pcc, ncc)
+
+ixs = [15,587, 313]
+ic = iscylinder(pcc[ixs], ncc[ixs], 0.1, deg2rad(10))
+
+ccc, ccp = compatiblesCylinder(ic, pcc, ncc, 0.1, deg2rad(10))
+length(pcc)
+count(ccc)
 # bitmapper
 using ImageView
 

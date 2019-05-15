@@ -4,7 +4,7 @@ include("utilities.jl")
 include("ConfidenceIntervals.jl")
 
 using StaticArrays: SVector, MVector
-using LinearAlgebra: cross, ×, dot, normalize, normalize!, norm
+using LinearAlgebra: cross, ×, dot, normalize, normalize!, norm, det
 using ZChop: zchop, zchop!
 
 using .Utilities
@@ -13,6 +13,7 @@ using .ConfidenceIntervals: ConfidenceInterval, E, isoverlap
 export FittedShape, isshape
 export FittedPlane, isplane
 export FittedSphere, issphere
+export FittedCylinder, iscylinder
 export ShapeCandidate, findhighestscore
 export ScoredShape
 export largestshape
@@ -266,5 +267,191 @@ function refit(s, pc, ϵ, α)
     s
 end
 =#
+
+struct FittedCylinder{A<:AbstractArray, R<:Real} <: FittedShape
+    iscylinder::Bool
+    axis::A
+    center::A
+    radius::R
+    outwards::Bool
+end
+
+function isshape(shape::FittedCylinder)
+    return shape.iscylinder
+end
+
+function setcylinderOuterity(fc, b)
+    FittedCylinder(fc.iscylinder, fc.axis, fc.center, fc.radius, b)
+end
+
+function fitcylinder(p, n, epsilon, alpharad; parallel_threshold_deg = 1)
+    # the normals are too parallel so cannot fit cylinder to it
+    if abs(dot(n[1], n[2])) > cos(deg2rad(parallel_threshold_deg))
+        return FittedCylinder(false, NaNVec, NaNVec, 0, false)
+    end
+
+    an = normalize(n[1] × n[2])
+
+    function lineplaneintersect(n, u, w)
+        # http://geomalgorithms.com/a05-_intersect-1.html
+        # n=plane normal
+        # u= direction of the line
+        # w=
+
+        return dot(-n, w)/dot(n,u)
+    end
+
+    function project2plane(n, w)
+        #n: normal
+        #w: helyvektor
+        return w+n*lineplaneintersect(n,n,w)
+    end
+
+    function projectto2d(xaxis, yaxis, zaxis, p1)
+        # xax: pl a ponban muataó vektor
+        xx = xaxis[1];
+        xy = xaxis[2];
+        xz = xaxis[3];
+
+        yx = yaxis[1];
+        yy = yaxis[2];
+        yz = yaxis[3];
+
+        zx = zaxis[1];
+        zy = zaxis[2];
+        zz = zaxis[3];
+
+        px = p1[1];
+        py = p1[2];
+        pz = p1[3];
+
+
+        r1 = -((-(pz*yy*zx) + py*yz*zx + pz*yx*zy - px*yz*zy - py*yx*zz + px*yy*zz)/(xz*yy*zx - xy*yz*zx - xz*yx*zy + xx*yz*zy + xy*yx*zz - xx*yy*zz))
+        r2 = -((pz*xy*zx - py*xz*zx - pz*xx*zy + px*xz*zy + py*xx*zz - px*xy*zz)/(xz*yy*zx - xy*yz*zx - xz*yx*zy + xx*yz*zy + xy*yx*zz - xx*yy*zz))
+        r3 = -((pz*xy*yx - py*xz*yx - pz*xx*yy + px*xz*yy + py*xx*yz - px*xy*yz)/(-(xz*yy*zx) + xy*yz*zx + xz*yx*zy - xx*yz*zy - xy*yx*zz + xx*yy*zz))
+
+        return SVector(r1, r2)
+    end
+
+    function lineintersectionpoint(l1, l2)
+        # l1 = [[p1x, p1y],[p2x,p2y]]
+        a = l1[1]
+        b = l1[2]
+        c = l2[1]
+        d = l2[2]
+
+        amb_ = a-b
+        cmd_ = c-d
+
+        d1 = det(vcat(a',b'))
+        d2 = det(vcat(c',d'))
+        d3 = det(vcat(amb_',cmd_'))
+        return (d1*cmd_-d2*amb_)/d3
+    end
+
+    xax = normalize(project2plane(an, p[1]))
+    yax = normalize(an × xax)
+
+    p11proj = projectto2d(xax, yax, an, project2plane(an, p[1]))
+    p12proj = projectto2d(xax, yax, an, project2plane(an, p[1]+n[1]))
+
+    p21proj = projectto2d(xax, yax, an, project2plane(an, p[2]))
+    p22proj = projectto2d(xax, yax, an, project2plane(an, p[2]+n[2]))
+
+    interc = lineintersectionpoint([p11proj,p12proj], [p21proj,p22proj])
+
+    c = interc[1]*xax+interc[2]*yax
+
+    nnormies = [norm(pt - c - an*dot( an, pt-c )) for pt in p[1:2]]
+    R = (nnormies[1] + nnormies[2])/2
+    # R = (norm(interc-p11proj) + norm(interc-p21proj))/2
+
+    #p[1] - an*dot( an, p[1]-c )
+
+    outw = dot(p12proj-p11proj, p11proj-interc) > 0
+
+    return FittedCylinder(true, an, c, R, outw)
+
+
+#=
+    p1proj = p[1] - an*dot(p[1], an)
+    p2proj = p[2] - an*dot(p[2], an)
+
+    v = [p1proj, p2proj]
+
+    # first check if they intersect
+    g = v[2]-v[1]
+    h = cross(n[2], g)
+    k = cross(n[2], n[1])
+    nk = norm(k)
+    nh = norm(h)
+
+    if abs(nk) < 0.02 || abs(nh) < 0.02
+        error("That is impossible with p: $p, n: $n and nk=$nk, nh=$nh")
+    else
+        # intersection
+        if dot(h, k) > 0
+            # point the same direction -> +
+            c = v[1] + nh/nk * n[1]
+            #return FittedSphere(true, SVector{3}(zchop!(MVector{3}(M))), norm(M-v[1]), b)
+        else
+            # point in different direction -> -
+            c = v[1] - nh/nk * n[1]
+            #return FittedSphere(true, SVector{3}(zchop!(MVector{3}(M))), norm(M-v[1]), b)
+        end
+
+
+
+        # radius is the average of: center-point
+        R = (norm(p1proj-c) + norm(p2proj-c))/2
+        # outwards?
+        outw = isparallel(n[1], p1proj-c, alpharad)
+
+        return FittedCylinder(true, an, c, R, outw)
+
+    end=#
+end
+
+"""
+    iscylinder(p, n, epsilon, alpharad)
+
+Fit a cylinder to 2 points. Additional points and their normals are used to validate the fit.
+Normals are expected to be normalized.
+
+# Arguments:
+- `epsilon::Real`: maximum distance-difference between the fitted and measured spheres.
+- `alpharad::Real`: maximum difference between the normals (in radians).
+"""
+function iscylinder(p, n, epsilon, alpharad)
+    pl = length(p)
+    @assert pl == length(n) "Size must be the same."
+    @assert pl > 2 "Size must be at least 3."
+
+    # "forcefit" a cylinder
+    fc = fitcylinder(p, n, epsilon, alpharad, )
+
+    fc.iscylinder || return fc
+
+
+    thr = cos(alpharad)
+    vert_ok = falses(pl)
+    norm_ok = falses(pl)
+    invnorm_ok = falses(pl)
+    for i in 1:pl
+        # current normal
+        curr_norm = p[i] - fc.axis*dot( fc.axis, p[i]-fc.center ) - fc.center
+        # vertice check
+        vert_ok[i] = abs(norm(curr_norm)-fc.radius) < epsilon
+        # normal check
+        dotp = dot( normalize(curr_norm), n[i] )
+        norm_ok[i] = dotp > thr
+        invnorm_ok[i] = dotp < -thr
+    end
+    vert_ok == trues(pl) || return FittedCylinder(false, NaNVec, NaNVec, 0, false)
+    norm_ok == trues(pl) && return setcylinderOuterity(fc, true)
+    invnorm_ok == trues(pl) && return setcylinderOuterity(fc, false)
+    return FittedCylinder(false, NaNVec, NaNVec, 0, false)
+end
+
 
 end #module
