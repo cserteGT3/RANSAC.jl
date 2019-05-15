@@ -82,7 +82,7 @@ function samplecylinder(ax, vp, R, h, sizet)
     @assert s1 > 1 && s2 > 1 "Should sample more than 1."
 
     axn = normalize(ax)
-    aort = arbitrary_orthogonal(axn)
+    aort = normalize(arbitrary_orthogonal(axn))
 
     function dontMul(M, v, kit)
         if kit == 0
@@ -93,7 +93,7 @@ function samplecylinder(ax, vp, R, h, sizet)
     end
 
     rotMat = rodriguesrad(axn, 2*π/s1)
-    ps = [vp + R.*dontMul(rotMat, aort, i) + ((j-1)*h/(s2-1)).*axn   for i in 1:s1 for j in 1:s2]
+    ps = [vp + R.*normalize(dontMul(rotMat, aort, i)) + ((j-1)*h/(s2-1)).*axn   for i in 1:s1 for j in 1:s2]
     ns = [normalize(p - vp - axn*dot( axn, p-vp )) for p in ps]
     return (ps, ns)
 end
