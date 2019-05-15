@@ -15,6 +15,7 @@ using .Utilities
 export project2plane, compatiblesPlane
 export bitmapparameters
 export compatiblesSphere
+export compatiblesCylinder
 export largestconncomp
 export refitsphere, refitplane
 
@@ -160,6 +161,41 @@ function compatiblesSphere(sphere, points, normals, eps, alpharad)
     proj_points = [SVector{2}(normalize(a[1:2]-o[1:2])) for a in points]
     param_points = unitdisk2square.(proj_points)
     return c2, (under=under, over=over), param_points
+end
+
+"""
+    compatiblesSphere(plane, points, normals, eps, alpharad)
+
+Create a bool-indexer array for those points that are compatible to the cylinder.
+Give back the projected points too for parameter space magic.
+
+Compatibility is measured with an `eps` distance to the cylinder and an `alpharad` angle to it's normal.
+"""
+function compatiblesCylinder(cylinder, points, normals, eps, alpharad)
+    @assert length(points) == length(normals) "Size must be the same."
+
+    c = cylinder.center
+    R = cylinder.radius
+    a = cylinder.axis
+
+    comp = falses(length(points))
+    pars = fill(SVector(0.0,0.0), length(points))
+
+    for i in 1:length(points)
+        curr_norm = points[i] - a*dot( a, points[i]-c ) - c
+        # if the radius is correct
+        if abs(norm(curr_norm)-R) < eps
+            if cylinder.outwards
+                comp[i] = isparallel(curr_norm, normals[i], alpharad)
+            else
+                comp[i] = isparallel(-curr_norm, normals[i], alpharad)
+            end
+        end
+
+        # playing with parameters:
+        #TODO: implement it
+    end
+    return comp, pars
 end
 
 """
