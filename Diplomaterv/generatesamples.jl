@@ -93,9 +93,8 @@ function samplecylinder(ax, vp, R, h, sizet)
     end
 
     rotMat = rodriguesrad(axn, 2*π/s1)
-    p1 = vp + R.*aort
-    ps = [ dontMul(rotMat, p1, i) + ((j-1)*h/(s2-1)).*axn   for i in 1:s1 for j in 1:s2]
-    ns = [normalize(p - axn*dot( axn, p-vp )) for p in ps]
+    ps = [vp + R.*dontMul(rotMat, aort, i) + ((j-1)*h/(s2-1)).*axn   for i in 1:s1 for j in 1:s2]
+    ns = [normalize(p - vp - axn*dot( axn, p-vp )) for p in ps]
     return (ps, ns)
 end
 
