@@ -2,7 +2,7 @@ module samples
 
 include("utilities.jl")
 
-using LinearAlgebra: normalize, normalize!, cross, norm
+using LinearAlgebra: normalize, normalize!, cross, norm, dot
 using .RodriguesRotations: rodriguesrad, rodriguesdeg
 using .Utilities: arbitrary_orthogonal
 using AbstractPlotting: Point3f0
@@ -94,9 +94,8 @@ function samplecylinder(ax, vp, R, h, sizet)
 
     rotMat = rodriguesrad(axn, 2*π/s1)
     p1 = vp + R.*aort
-    n1 = aort
     ps = [ dontMul(rotMat, p1, i) + ((j-1)*h/(s2-1)).*axn   for i in 1:s1 for j in 1:s2]
-    ns = [ dontMul(rotMat, n1, i) for i in 1:s1 for j in 1:s2]
+    ns = [normalize(p - axn*dot( axn, p-vp )) for p in ps]
     return (ps, ns)
 end
 
