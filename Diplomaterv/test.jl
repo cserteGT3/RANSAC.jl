@@ -219,6 +219,9 @@ n2 = SVector(0,1,0.0);
 pcc, ncc = samplecylinder(a, n2, 5,10, (29,47))
 showgeometry(pcc, ncc)
 
+k1, k2 = samplecylinder(normalize(SVector(2,1.3,-0.5)), SVector(4,16,-3.9), 3.79, 4, (57,29) )
+showgeometry(k1,k2)
+
 ixs = [15,587, 313]
 ic = iscylinder(pcc[ixs], ncc[ixs], 0.1, deg2rad(10))
 

@@ -14,7 +14,9 @@ function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover)
     minV, maxV = findAABB(vs);
     octree = Cell(SVector{3}(minV), SVector{3}(maxV), OctreeNode(pc, collect(1:length(vs)), 1));
     r = OctreeRefinery(8);
+    @info "Building octree."
     adaptivesampling!(octree, r);
+    @info "Octree finished."
     # initialize levelweight vector to 1/d
     # TODO: check if levelweight is not empty
     fill!(pc.levelweight, 1/length(pc.levelweight))
@@ -25,11 +27,11 @@ function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover)
     scoredshapes = ScoredShape[]
     extracted = ScoredShape[]
     # smallest distance in the pointcloud
-    lsd = smallestdistance(pc.vertices)
+    #lsd = smallestdistance(pc.vertices)
     @info "Iteration begins."
     # iterate begin
     for k in 1:itermax
-        if length(findall(pc.isenabled)) < minleftover
+        if count(pc.isenabled) < minleftover
             @info "Break at $k, because left only: $(length(findall(pc.isenabled)))"
             break
         end
@@ -39,7 +41,7 @@ function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover)
             # select a random point
             if length(random_points)<10
                 random_points = randperm(pc.size)
-                @warn "Recomputing randperm."
+                #@warn "Recomputing randperm."
             end
             r1 = popfirst!(random_points)
 
@@ -77,6 +79,8 @@ function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover)
             # fit sphere to the selected points
             sp = issphere(pc.vertices[sd], pc.normals[sd], ϵ, α)
             isshape(sp) && push!(candidates, ShapeCandidate(sp, curr_level))
+            cp = iscylinder(pc.vertices[sd], pc.normals[sd], ϵ, α)
+            isshape(cp) && push!(candidates, ShapeCandidate(cp, curr_level))
         end # for t
 
         # evaluate the compatible points, currently used as score
@@ -113,6 +117,14 @@ function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover)
                 score = estimatescore(length(pc.subsets[which_]), pc.size, length(inpoints))
                 pc.levelscore[c.octree_lev] = pc.levelscore[c.octree_lev] + E(score)
                 push!(scoredshapes, ScoredShape(c, score, inpoints))
+            elseif isa(c.shape, FittedCylinder)
+                cp, pp = compatiblesCylinder(c.shape, ps, ns, ϵ, α)
+                inder = cp.&ens
+                inpoints = (pc.subsets[which_])[inder]
+                #inpoints = ((pc.subsets[1])[ens])[cp]
+                score = estimatescore(length(pc.subsets[which_]), pc.size, length(inpoints))
+                pc.levelscore[c.octree_lev] = pc.levelscore[c.octree_lev] + E(score)
+                push!(scoredshapes, ScoredShape(c, score, inpoints))
             else
                 # currently nothing else is implemented
                 @warn "What the: $c"
@@ -129,13 +141,13 @@ function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover)
             # TODO: refine if best.overlap
             scr = E(bestshape.score)
             lengttt = length(bestshape.inpoints)
-            ppp = prob(length(bestshape.inpoints), length(scoredshapes), pc.size, k=drawN)*subsetN
-            if k%4 == 0
-                @info "$k. iteráció, $lengttt db pont, $scr score, $ppp prob."
+            ppp = prob(lengttt*subsetN, length(scoredshapes), pc.size, k=drawN)
+            if k%50 == 0
+                @info "$k. it, best: $lengttt db, score: $scr, prob: $ppp, scored shapes: $(length(scoredshapes)) db."
             end
             #TODO: length will be only 1/numberofsubsets
             # if the probability is large enough, extract the shape
-            if prob(length(bestshape.inpoints)*subsetN, length(scoredshapes), pc.size, k=drawN) > pt
+            if ppp > pt
                 @info "Extraction! best score: $(E(bestshape.score)), length: $(length(bestshape.inpoints))"
 
                 # TODO: proper refit, not only getting the points that fit to that shape
@@ -145,6 +157,8 @@ function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover)
                     refitplane(bestshape, pc, ϵ, α)
                 elseif bestshape.candidate.shape isa FittedSphere
                     refitsphere(bestshape, pc, ϵ, α)
+                elseif bestshape.candidate.shape isa FittedCylinder
+                    refitcylinder(bestshape, pc, ϵ, α)
                 else
                     @error "Whatt? panic with $(typeof(bestshape.candidate.shape))"
                 end
@@ -180,9 +194,9 @@ function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover)
             @info "Break, at this point all shapes should be extracted: $k. iteráció."
             break
         end
-        if mod(k,itermax/10) == 0
-            @info "Iteration: $k"
-        end
+        #if mod(k,itermax/10) == 0
+        #    @info "Iteration: $k"
+        #end
     end # iterate end
     @info "Iteration finished with $(length(extracted)) extracted and $(length(scoredshapes)) scored shapes."
     return scoredshapes, extracted

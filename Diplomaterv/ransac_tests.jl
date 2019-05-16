@@ -30,11 +30,11 @@ include("ransac.jl")
 
 ## Test1
 # inputs
-vs, ns, norms4Plot, shape_s = examplepc2();
+vs, ns, norms4Plot, shape_s = examplepc3(true, all = true, vertscale = 0.1);
 # (normalize surface normals if needed)
 pcr = PointCloud(vs, ns, 8);
-αα = deg2rad(10);
-ϵϵ = 0.5;
+αα = deg2rad(20);
+ϵϵ = 0.3;
 # number of minimal subsets drawed in one iteration
 tt = 15;
 # probability that we found shapes
@@ -42,23 +42,24 @@ ptt = 0.9
 # minimum shape size
 ττ = 900
 # maximum number of iteration
-itermax = 10000
+itermax = 20000
 # size of the minimal set
 draws = 3
 include("ransac.jl")
 cand, extr = ransac(pcr, αα, ϵϵ, tt, ptt, ττ, itermax, draws, 500, true)
 leftover = getrest(pcr);
-
+showtype(extr)
 sc = showshapes(pcr, extr)
 
 sco = scatter(vs)
-m = vbox(sco, sc)
+scon = showgeometry(vs, ns)
+m = vbox(scon, sc)
 # Makie.save("plot.png", m)
 
 scatter(pcr.vertices[leftover])
 linesegments!(norms4Plot[leftover], color = :blue)
 
-
+showgeometry(vs, ns)
 ## Test2
 # noised
 vs2, ns2, norms4Plot2, shape_s2 = examplepc2(true, all = true, mrotdeg = 10, vertscale = 0.1);

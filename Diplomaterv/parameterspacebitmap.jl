@@ -17,7 +17,7 @@ export bitmapparameters
 export compatiblesSphere
 export compatiblesCylinder
 export largestconncomp
-export refitsphere, refitplane
+export refitsphere, refitplane, refitcylinder
 
 """
     project2plane(plane, points)
@@ -164,7 +164,7 @@ function compatiblesSphere(sphere, points, normals, eps, alpharad)
 end
 
 """
-    compatiblesSphere(plane, points, normals, eps, alpharad)
+    compatiblesCylinder(cylinder, points, normals, eps, alpharad)
 
 Create a bool-indexer array for those points that are compatible to the cylinder.
 Give back the projected points too for parameter space magic.
@@ -186,9 +186,9 @@ function compatiblesCylinder(cylinder, points, normals, eps, alpharad)
         # if the radius is correct
         if abs(norm(curr_norm)-R) < eps
             if cylinder.outwards
-                comp[i] = isparallel(curr_norm, normals[i], alpharad)
+                comp[i] = isparallel(normalize(curr_norm), normals[i], alpharad)
             else
-                comp[i] = isparallel(-curr_norm, normals[i], alpharad)
+                comp[i] = isparallel(-normalize(curr_norm), normals[i], alpharad)
             end
         end
 
@@ -267,6 +267,18 @@ function refitsphere(s, pc, ϵ, α)
     underEn = uo.under .& cpl
     overEn = uo.over .& cpl
     s.inpoints = count(underEn) >= count(overEn) ? verti[underEn] : verti[overEn]
+    s
+end
+
+"""
+    refit(s, pc, ϵ, α)
+
+Refit cylinder. Only s.inpoints is updated.
+"""
+function refitcylinder(s, pc, ϵ, α)
+    # TODO: use octree for that
+    cp, _ = compatiblesCylinder(s.candidate.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
+    s.inpoints = ((1:pc.size)[pc.isenabled])[cp]
     s
 end
 

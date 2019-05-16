@@ -428,7 +428,7 @@ function iscylinder(p, n, epsilon, alpharad)
     @assert pl > 2 "Size must be at least 3."
 
     # "forcefit" a cylinder
-    fc = fitcylinder(p, n, epsilon, alpharad, )
+    fc = fitcylinder(p, n, epsilon, alpharad, parallel_threshold_deg=3)
 
     fc.iscylinder || return fc
 

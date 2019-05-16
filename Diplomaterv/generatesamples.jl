@@ -15,6 +15,9 @@ export normalsforplot
 export noisifyvertices, noisifynormals
 export makemeanexample
 export examplepc2
+export examplepc3
+export examplepc4
+export examplepc5
 export showgeometry
 
 """
@@ -229,6 +232,74 @@ function examplepc2(nois = false; all = false, mrotdeg = 10, vertscale = 0.5)
     shape_sizes = [96*70, 30*42, 72*85, 45*57]
     vs = vcat(vp1, vc1, vc2, vp3)
     ns = vcat(np1, nc1, nc2, np3)
+    if nois
+        vs_n = noisifyvertices(vs, all, vertscale)
+        ns_n = noisifynormals(ns, mrotdeg)
+        nsfp2_ = normalsforplot(vs_n, ns_n)
+        return vs_n, ns_n, nsfp2_, shape_sizes
+    end
+    nsfp_ = normalsforplot(vs, ns)
+    return vs, ns, nsfp_, shape_sizes
+end
+
+
+"""
+    examplepc3(nois = false; all = false, mrotdeg = 10, vertscale = 0.5)
+
+Generate a definitely not random example consisting planes and spheres.
+"""
+function examplepc3(nois = false; all = false, mrotdeg = 10, vertscale = 0.5)
+    vp1, np1 = sampleplane(SVector(0,0,0), SVector(0,0,1), SVector(1,3,0), (13.7, 9.58), (96, 70))
+    # vp2, np2 = sampleplane(SVector(7,2,1), SVector(1.9,2,0), SVector(0,1.2,1), (9.7, 15), (50, 75))
+    vp3, np3 = sampleplane(SVector(15,-5,-10), SVector(.98,.02,0), SVector(0,1,0), (17.2, 11.1), (30, 42))
+
+    cp1, cn1 = samplecylinder(SVector(0,0,1), SVector(2,3.8,7.3), 7.8, 9, (37,49) )
+    cp2, cn2 = samplecylinder(normalize(SVector(2,1.3,-0.5)), SVector(4,16,-3.9), 3.79, 4, (57,29) )
+
+    vc1, nc1 = samplesphere(SVector(5.0,5,-1), 10, (72,85))
+    vc2, nc2 = samplesphere(SVector(1.0,-7,8), 5, (45,57))
+    shape_sizes = [96*70, 30*42, 72*85, 45*57, 37*49, 57*29]
+
+    vs = vcat(vp1, vc1, vc2, vp3, cp1, cp2)
+    ns = vcat(np1, nc1, nc2, np3, cn1, cn2)
+    if nois
+        vs_n = noisifyvertices(vs, all, vertscale)
+        ns_n = noisifynormals(ns, mrotdeg)
+        nsfp2_ = normalsforplot(vs_n, ns_n)
+        return vs_n, ns_n, nsfp2_, shape_sizes
+    end
+    nsfp_ = normalsforplot(vs, ns)
+    return vs, ns, nsfp_, shape_sizes
+end
+
+function examplepc4(nois = false; all = false, mrotdeg = 10, vertscale = 0.5)
+    cp1, cn1 = samplecylinder(SVector(0,0,1), SVector(2,3.8,7.3), 7.8, 9, (37,49) )
+    cp2, cn2 = samplecylinder(normalize(SVector(2,1.3,-0.5)), SVector(4,16,-3.9), 3.79, 4, (57,29) )
+
+    vc1, nc1 = samplesphere(SVector(5.0,5,-1), 10, (72,85))
+    vc2, nc2 = samplesphere(SVector(1.0,-7,8), 5, (45,57))
+    shape_sizes = [96*70, 30*42, 72*85, 45*57, 37*49, 57*29]
+
+    vs = vcat(vc2, vc1, cp1, cp2)
+    ns = vcat(nc2, nc1, cn1, cn2)
+    if nois
+        vs_n = noisifyvertices(vs, all, vertscale)
+        ns_n = noisifynormals(ns, mrotdeg)
+        nsfp2_ = normalsforplot(vs_n, ns_n)
+        return vs_n, ns_n, nsfp2_, shape_sizes
+    end
+    nsfp_ = normalsforplot(vs, ns)
+    return vs, ns, nsfp_, shape_sizes
+end
+
+function examplepc5(nois = false; all = false, mrotdeg = 10, vertscale = 0.5)
+    cp1, cn1 = samplecylinder(SVector(0,0,1), SVector(2,3.8,7.3), 7.8, 9, (78,49) )
+    cp2, cn2 = samplecylinder(normalize(SVector(2,1.3,-0.5)), SVector(4,16,-3.9), 3.79, 4, (57,78) )
+
+    shape_sizes = [96*70, 30*42, 72*85, 45*57, 37*49, 57*29]
+
+    vs = vcat(cp1, cp2)
+    ns = vcat(cn1, cn2)
     if nois
         vs_n = noisifyvertices(vs, all, vertscale)
         ns_n = noisifynormals(ns, mrotdeg)
