@@ -226,3 +226,30 @@ end
 function getrest(pc)
     return findall(pc.isenabled)
 end
+
+
+function showtype(l)
+    for t in l
+        println(t.candidate.shape)
+    end
+end
+
+function showbytype(s, pointcloud, candidateA)
+    for c in candidateA
+        ind = c.inpoints
+        if c.candidate.shape isa FittedCylinder
+            colour = :red
+        elseif c.candidate.shape isa FittedSphere
+            colour = :green
+        elseif c.candidate.shape isa FittedPlane
+            colour = :orange
+        end
+        scatter!(s, pointcloud.vertices[ind], color = colour)
+    end
+    s
+end
+
+function showbytype(pointcloud, candidateA)
+    sc = Scene()
+    showbytype(sc, pointcloud, candidateA)
+end
