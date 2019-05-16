@@ -1,13 +1,22 @@
 # Outline of the algorithm
 
-function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover, setenabled)
+function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover, setenabled)
     if setenabled
         pc.isenabled = trues(pc.size)
     end
-    ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover)
+    ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover)
 end
 
-function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover)
+function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover)
+    sp_ϵ = αϵ.ϵ_sphere
+    sp_α = αϵ.α_sphere
+
+    p_ϵ = αϵ.ϵ_plane
+    p_α = αϵ.α_plane
+
+    cy_ϵ = αϵ.ϵ_cylinder
+    cy_α = αϵ.α_cylinder
+
     # build an octree
     @assert drawN > 2
     subsetN = length(pc.subsets)
@@ -74,12 +83,12 @@ function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover)
 
             #TODO: this should be something more general
             # fit plane to the selected points
-            fp = isplane(pc.vertices[sd], pc.normals[sd], α)
+            fp = isplane(pc.vertices[sd], pc.normals[sd], p_α)
             isshape(fp) && push!(candidates, ShapeCandidate(fp, curr_level))
             # fit sphere to the selected points
-            sp = issphere(pc.vertices[sd], pc.normals[sd], ϵ, α)
+            sp = issphere(pc.vertices[sd], pc.normals[sd], sp_ϵ, sp_α)
             isshape(sp) && push!(candidates, ShapeCandidate(sp, curr_level))
-            cp = iscylinder(pc.vertices[sd], pc.normals[sd], ϵ, α)
+            cp = iscylinder(pc.vertices[sd], pc.normals[sd], cy_ϵ, cy_α)
             isshape(cp) && push!(candidates, ShapeCandidate(cp, curr_level))
         end # for t
 
@@ -96,7 +105,7 @@ function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover)
             if isa(c.shape, FittedPlane)
                 # plane
                 # cp, pp = compatiblesPlane(c.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
-                cp, pp = compatiblesPlane(c.shape, ps, ns, ϵ, α)
+                cp, pp = compatiblesPlane(c.shape, ps, ns, p_ϵ, p_α)
                 inder = cp.&ens
                 inpoints = (pc.subsets[which_])[inder]
                 #inpoints = ((pc.subsets[1])[ens])[cp]
@@ -106,7 +115,7 @@ function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover)
             elseif isa(c.shape, FittedSphere)
                 # sphere
                 # cpl, uo, sp = compatiblesSphere(c.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
-                cpl, uo, sp = compatiblesSphere(c.shape, ps, ns, ϵ, α)
+                cpl, uo, sp = compatiblesSphere(c.shape, ps, ns, sp_ϵ, sp_α)
                 # verti: összes pont indexe, ami enabled és kompatibilis
                 # lenne, ha működne, de inkább a boolean indexelést machináljuk
                 verti = pc.subsets[1]
@@ -118,7 +127,7 @@ function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover)
                 pc.levelscore[c.octree_lev] = pc.levelscore[c.octree_lev] + E(score)
                 push!(scoredshapes, ScoredShape(c, score, inpoints))
             elseif isa(c.shape, FittedCylinder)
-                cp, pp = compatiblesCylinder(c.shape, ps, ns, ϵ, α)
+                cp, pp = compatiblesCylinder(c.shape, ps, ns, cy_ϵ, cy_α)
                 inder = cp.&ens
                 inpoints = (pc.subsets[which_])[inder]
                 #inpoints = ((pc.subsets[1])[ens])[cp]
@@ -154,11 +163,11 @@ function ransac(pc, α, ϵ, t, pt, τ, itmax, drawN, minleftover)
                 # what do you mean by refit?
                 # refit on the whole pointcloud
                 if bestshape.candidate.shape isa FittedPlane
-                    refitplane(bestshape, pc, ϵ, α)
+                    refitplane(bestshape, pc, p_ϵ, p_α)
                 elseif bestshape.candidate.shape isa FittedSphere
-                    refitsphere(bestshape, pc, ϵ, α)
+                    refitsphere(bestshape, pc, sp_ϵ, sp_α)
                 elseif bestshape.candidate.shape isa FittedCylinder
-                    refitcylinder(bestshape, pc, ϵ, α)
+                    refitcylinder(bestshape, pc, cy_ϵ, cy_α)
                 else
                     @error "Whatt? panic with $(typeof(bestshape.candidate.shape))"
                 end
@@ -209,7 +218,7 @@ function showcandlength(ck)
 end
 
 function showshapes(s, pointcloud, candidateA)
-    colA = [:blue, :black, :darkred, :green, :brown, :yellow, :orange, :lighsalmon1, :goldenrod4, :olivedrab2, :indigo]
+    colA = [:blue, :black, :darkred, :green, :brown, :yellow, :orange, :lightsalmon1, :goldenrod4, :olivedrab2, :indigo]
     @assert length(candidateA) <= length(colA) "Not enough color in colorarray. Fix it manually. :/"
     for i in 1:length(candidateA)
         ind = candidateA[i].inpoints

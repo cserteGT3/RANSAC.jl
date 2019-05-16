@@ -67,6 +67,7 @@ export unitdisk2square
 export prob
 export smallestdistance
 export havesameelement
+export AlphSilon
 
 """
     arbitrary_orthogonal(vec)
@@ -204,6 +205,32 @@ function havesameelement(A, B)
         end
     end
     false
+end
+
+struct AlphSilon
+    ϵ_sphere::Float64
+    α_sphere::Float64
+    ϵ_plane::Float64
+    α_plane::Float64
+    ϵ_cylinder::Float64
+    α_cylinder::Float64
+end
+
+"""
+    AlphSilon(sphere_as, plane_as, cylinder_as)
+
+Create an AlphSilon from 3 named tuples with ϵ and α fields.
+"""
+function AlphSilon(sphere_as, plane_as, cylinder_as)
+    ϵ1 = sphere_as.ϵ
+    α1 = sphere_as.α
+
+    ϵ2 = plane_as.ϵ
+    α2 = plane_as.α
+
+    ϵ3 = cylinder_as.ϵ
+    α3 = cylinder_as.α
+    return AlphSilon(ϵ1, α1, ϵ2, α2, ϵ3, α3)
 end
 
 end # module

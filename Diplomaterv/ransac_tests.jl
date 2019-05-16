@@ -33,8 +33,13 @@ include("ransac.jl")
 vs, ns, norms4Plot, shape_s = examplepc3(true, all = true, vertscale = 0.1);
 # (normalize surface normals if needed)
 pcr = PointCloud(vs, ns, 8);
-αα = deg2rad(20);
-ϵϵ = 0.3;
+# plane
+p_ae = (ϵ = 0.3, α=deg2rad(20));
+# cylidner
+cy_ae = (ϵ = 0.3, α=deg2rad(20));
+# sphere
+sp_ae = (ϵ = 0.3, α=deg2rad(20));
+one_ae = AlphSilon(sp_ae, p_ae, cy_ae);
 # number of minimal subsets drawed in one iteration
 tt = 15;
 # probability that we found shapes
@@ -42,11 +47,11 @@ ptt = 0.9
 # minimum shape size
 ττ = 900
 # maximum number of iteration
-itermax = 20000
+itermax = 20
 # size of the minimal set
 draws = 3
 include("ransac.jl")
-cand, extr = ransac(pcr, αα, ϵϵ, tt, ptt, ττ, itermax, draws, 500, true)
+cand, extr = ransac(pcr, one_ae, tt, ptt, ττ, itermax, draws, 500, true)
 leftover = getrest(pcr);
 showtype(extr)
 sc = showshapes(pcr, extr)
@@ -64,8 +69,13 @@ showgeometry(vs, ns)
 # noised
 vs2, ns2, norms4Plot2, shape_s2 = examplepc2(true, all = true, mrotdeg = 10, vertscale = 0.1);
 pcr2 = PointCloud(vs2, ns2, 8);
-αα = deg2rad(20);
-ϵϵ = 0.5;
+# plane
+p_ae = (ϵ = 0.3, α=deg2rad(20));
+# cylidner
+cy_ae = (ϵ = 0.3, α=deg2rad(20));
+# sphere
+sp_ae = (ϵ = 0.3, α=deg2rad(20));
+two_ae = AlphSilon(sp_ae, p_ae, cy_ae);
 # number of minimal subsets drawed in one iteration
 tt = 15;
 # probability that we found shapes
@@ -75,7 +85,7 @@ ptt = 0.9
 # maximum number of iteration
 itermax = 10000
 
-cand, extr = ransac(pcr2, αα, ϵϵ, tt, ptt, ττ, itermax, 3, 500, true)
+cand, extr = ransac(pcr2, two_ae, tt, ptt, ττ, itermax, 3, 500, true)
 
 sc2 = showshapes(pcr2, extr)
 vbox(sc, sc2)
