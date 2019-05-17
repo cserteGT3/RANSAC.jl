@@ -218,7 +218,7 @@ function showcandlength(ck)
 end
 
 function showshapes(s, pointcloud, candidateA)
-    colA = [:blue, :black, :darkred, :green, :brown, :yellow, :orange, :lightsalmon1, :goldenrod4, :olivedrab2, :indigo]
+    colA = [:blue, :black, :darkred, :green, :brown, :yellow, :orange, :lightsalmon1, :goldenrod4, :olivedrab2, :indigo, :lightgreen, :darkorange1, :green2]
     @assert length(candidateA) <= length(colA) "Not enough color in colorarray. Fix it manually. :/"
     for i in 1:length(candidateA)
         ind = candidateA[i].inpoints
