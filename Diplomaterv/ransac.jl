@@ -20,10 +20,10 @@ function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover)
     # build an octree
     @assert drawN > 2
     subsetN = length(pc.subsets)
-    minV, maxV = findAABB(vs);
-    octree = Cell(SVector{3}(minV), SVector{3}(maxV), OctreeNode(pc, collect(1:length(vs)), 1));
-    r = OctreeRefinery(8);
     @info "Building octree."
+    minV, maxV = findAABB(pc.vertices);
+    octree = Cell(SVector{3}(minV), SVector{3}(maxV), OctreeNode(pc, collect(1:pc.size), 1));
+    r = OctreeRefinery(8);
     adaptivesampling!(octree, r);
     @info "Octree finished."
     # initialize levelweight vector to 1/d
@@ -39,7 +39,7 @@ function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover)
     #lsd = smallestdistance(pc.vertices)
     @info "Iteration begins."
     # iterate begin
-    for k in 1:itermax
+    for k in 1:itmax
         if count(pc.isenabled) < minleftover
             @info "Break at $k, because left only: $(length(findall(pc.isenabled)))"
             break
