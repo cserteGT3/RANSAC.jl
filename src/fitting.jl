@@ -1,15 +1,3 @@
-using StaticArrays: SVector, MVector
-using LinearAlgebra: cross, ×, dot, normalize, normalize!, norm, det
-using ZChop: zchop, zchop!
-
-export FittedShape, isshape
-export FittedPlane, isplane
-export FittedSphere, issphere
-export FittedCylinder, iscylinder
-export ShapeCandidate, findhighestscore
-export ScoredShape
-export largestshape
-
 """
 An abstract type that wraps the fitted shapes.
 """
@@ -30,17 +18,11 @@ mutable struct ShapeCandidate{S<:FittedShape}
     octree_lev::Int
 end
 
-# mutable struct ScoredShape{S<:FittedShape, A<:AbstractArray}
-
 mutable struct ScoredShape{A<:AbstractArray}
     candidate::ShapeCandidate
     score
     inpoints::A
 end
-
-# TODO: delete these
-# ShapeCandidate(shape, score, octlev) = ShapeCandidate(shape, score, [], false, octlev)
-# ShapeCandidate(shape, octlev) = ShapeCandidate(shape, ConfidenceInterval(0,0), [], false, octlev)
 
 """
     findhighestscore(A)
@@ -228,36 +210,6 @@ function issphere(p, n, epsilon, alpharad)
     invnorm_ok == trues(pl) && return setsphereOuterity(sp, false)
     return FittedSphere(false, NaNVec, 0, false)
 end
-
-#=
-"""
-    refit(s, pc, ϵ, α)
-
-Refit plane. Only s.inpoints is updated.
-"""
-function refit(s, pc, ϵ, α)
-    # TODO: use octree for that
-    cp, _ = compatiblesPlane(s.candidate.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
-    s.inpoints = ((1:pc.size)[pc.isenabled])[cp]
-    s
-end
-
-"""
-    refit(s, pc, ϵ, α)
-
-Refit sphere. Only s.inpoints is updated.
-"""
-function refit(s, pc, ϵ, α)
-    # TODO: use octree for that
-    cpl, uo, sp = compatiblesSphere(s.candidate.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
-    # verti: összes pont indexe, ami enabled és kompatibilis
-    verti = (1:pc.size)[pc.isenabled]
-    underEn = uo.under .& cpl
-    overEn = uo.over .& cpl
-    s.inpoints = count(underEn) >= count(overEn) ? verti[underEn] : verti[overEn]
-    s
-end
-=#
 
 struct FittedCylinder{A<:AbstractArray, R<:Real} <: FittedShape
     iscylinder::Bool

@@ -1,11 +1,11 @@
 # Visualization of shirley1997 - A low distortion map between disk and square
-include("../utilities.jl")
 
 using LinearAlgebra
 using StaticArrays: SVector
 using Makie
 
-using .Utilities
+include("../RANSAC.jl")
+using .RANSAC
 
 struct Circ{T<:Real}
     R::T

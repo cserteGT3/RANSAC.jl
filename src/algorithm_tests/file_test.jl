@@ -1,3 +1,17 @@
+using Pkg
+Pkg.activate()
+
+# every include
+using LinearAlgebra
+using StaticArrays
+using Random
+using Revise
+using Colors
+using Makie
+
+includet("../RANSAC.jl")
+using .RANSAC
+
 using DelimitedFiles
 
 pwdata = joinpath(pwd(),"data")
@@ -27,7 +41,6 @@ indi = rndr[1:4:length(p_vs)]
 pcr = PointCloud(p_vs[indi], p_ns[indi], 20);
 pcr = PointCloud(p_vs, p_ns, 20);
 
-
 # plane
 p_ae = (ϵ = 2, α=deg2rad(10));
 # cylidner
@@ -45,23 +58,17 @@ ptt = 0.9
 itermax = 50000
 # size of the minimal set
 draws = 3
-include("ransac.jl")
 cand, extr = ransac(pcr, one_ae, tt, ptt, ττ, itermax, draws, 500, true)
 showtype(extr)
 showshapes(pcr, extr)
 
 showbytype(pcr, extr)
 
-# gömb nélküli felismerés?
-# kivenni a közepét
-
-
 # Darmstadt
 rndr2 = randperm(length(d_vs))
 indi2 = rndr2[1:4:length(d_vs)]
 pcr2 = PointCloud(d_vs[indi2], d_ns[indi2], 20);
 pcr2 = PointCloud(d_vs, d_ns, 20);
-
 
 # plane
 p_ae = (ϵ = 0.3, α=deg2rad(20));
@@ -80,7 +87,6 @@ ptt = 0.9
 itermax = 100000
 # size of the minimal set
 draws = 3
-include("ransac.jl")
 cand, extr = ransac(pcr2, two_ae, tt, ptt, ττ, itermax, draws, 500, true)
 showtype(extr)
 showshapes(pcr2, extr)

@@ -1,14 +1,18 @@
-## Octree visualization
-
 using Pkg
-pkg"activate"
-include("../octree.jl")
+Pkg.activate()
 
+# every include
+using LinearAlgebra
+using StaticArrays
+using Random
+using Revise
+using Colors
 using Makie
 using RegionTrees: adaptivesampling!, Cell, allleaves
-using .Octree
-using StaticArrays: SVector
 import GeometryTypes
+
+includet("../RANSAC.jl")
+using .RANSAC
 
 ## Construct an example pointcloud
 
@@ -50,7 +54,7 @@ function testvisoctree()
 
     # build octree
 
-    pc = PointCloud(cloud, cloud, rand(length(cloud)))
+    pc = PointCloud(cloud, cloud, 1)
     root = Cell(SVector{3}(pcd.minP), SVector{3}(pcd.maxP), OctreeNode(pc, collect(1:length(cloud)), 1))
 
     r = OctreeRefinery(8)

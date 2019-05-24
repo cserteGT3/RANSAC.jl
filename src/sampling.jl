@@ -1,19 +1,3 @@
-using LinearAlgebra: normalize, normalize!, cross, norm, dot
-using AbstractPlotting: Point3f0
-using StaticArrays: SVector
-using ZChop: zchop!
-using Makie: scatter, linesegments!
-
-export sampleplane, samplecylinder, samplesphere
-export normalsforplot
-export noisifyvertices, noisifynormals
-export makemeanexample
-export examplepc2
-export examplepc3
-export examplepc4
-export examplepc5
-export showgeometry
-
 """
     sampleplane(vp, v1, v2, lengtht, sizet)
 

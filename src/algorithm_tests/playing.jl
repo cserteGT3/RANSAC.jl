@@ -7,9 +7,8 @@ using StaticArrays
 using Makie
 AbstractPlotting.__init__()
 
-include("generatesamples.jl")
-
-using .samples
+includet("../RANSAC.jl")
+using .RANSAC
 
 ## Easy examples
 
@@ -69,10 +68,6 @@ linesegments!(normsP, color = :blue)
 
 ## Regiontree tests
 
-includet("octree.jl")
-
-using .Octree
-
 using StaticArrays
 using RegionTrees
 
@@ -98,6 +93,7 @@ v4 = SVector(0,0);
 v5 = SVector(-1,1);
 
 using GeometryTypes: Point3f0
+
 r = Cell(SVector(0.0,0,0),SVector(1.0,1,1))
 d = OctreeNode(rand(Point3f0, 10), collect(1:10), 1.0, 0)
 octref = OctreeRefinery(1)
@@ -107,9 +103,6 @@ iswithinrectangle(r2.boundary, rand(Point3f0))
 map(x -> iswithinrectangle(r2.boundary, x), rand(Point3f0,10))
 
 ## Fitting tests
-
-includet("fitting.jl")
-using .Fitting
 
 # plane
 
@@ -181,19 +174,8 @@ psc = [SVector(n[1]+5, n[2]+1,n[3]+2) for n in nsc]
 
 iscylinder(psc, nsc, 0.1, deg2rad(15))
 
-
 ## bitmap
 # plane
-
-includet("utilities.jl")
-using .Utilities
-using .RodriguesRotations
-
-includet("fitting.jl")
-using .Fitting
-
-includet("parameterspacebitmap.jl")
-using .ParameterspaceBitmap
 
 v1 = [0,1,0];
 degg = 45;
@@ -263,26 +245,13 @@ Pkg.activate()
 # every include
 using LinearAlgebra
 using StaticArrays
-using RegionTrees
 using Random
-using Logging
 using Revise
 using Colors
+using Makie
 
-
-include("generatesamples.jl")
-includet("octree.jl")
-includet("utilities.jl")
-includet("fitting.jl")
-includet("parameterspacebitmap.jl")
-
-using .samples
-using .Octree
-using .Utilities
-using .Fitting
-using .ParameterspaceBitmap
-
-include("ransac.jl")
+includet("RANSAC.jl")
+using .RANSAC
 
 # inputs
 vs, ns, norms4Plot, shape_s = examplepc2();
@@ -300,7 +269,6 @@ ptt = 0.9
 itermax = 10000
 # size of the minimal set
 draws = 3
-include("ransac.jl")
 cand, extr = ransac(pcr, αα, ϵϵ, tt, ptt, ττ, itermax, draws, true)
 
 using Makie

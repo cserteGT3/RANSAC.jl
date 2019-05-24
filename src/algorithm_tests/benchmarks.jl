@@ -4,28 +4,13 @@ Pkg.activate()
 # every include
 using LinearAlgebra
 using StaticArrays
-using RegionTrees
 using Random
-using Logging
 using Revise
 using Colors
 using Makie
 
-includet("generatesamples.jl")
-includet("octree.jl")
-includet("utilities.jl")
-includet("fitting.jl")
-includet("parameterspacebitmap.jl")
-includet("ConfidenceIntervals.jl")
-
-using .samples
-using .Octree
-using .Utilities
-using .ConfidenceIntervals: estimatescore, E
-using .Fitting
-using .ParameterspaceBitmap
-
-include("ransac.jl")
+includet("../RANSAC.jl")
+using .RANSAC
 
 function just_time(ss, itlength)
     # ss = [1,4,8,16]
@@ -106,7 +91,7 @@ function just_time1(ss, itlength)
     resu
 end
 
-subst = range(1,step=4,length=20)
+subst = range(1,step=4,length=2)
 substt = just_time1(subst, 20)
 
 lsc = lines(subst,substt)

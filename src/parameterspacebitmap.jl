@@ -1,15 +1,3 @@
-using StaticArrays: SVector, MVector
-using LinearAlgebra: cross, dot, normalize, normalize!, norm
-using Images: label_components, component_lengths
-using Logging
-
-export project2plane, compatiblesPlane
-export bitmapparameters
-export compatiblesSphere
-export compatiblesCylinder
-export largestconncomp
-export refitsphere, refitplane, refitcylinder
-
 """
     project2plane(plane, points)
 

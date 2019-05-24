@@ -1,8 +1,3 @@
-export ConfidenceInterval, notsoconfident
-export estimatescore
-export smallestdistance
-export E
-
 struct ConfidenceInterval
     min::Float64
     max::Float64

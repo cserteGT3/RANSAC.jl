@@ -1,8 +1,3 @@
-using LinearAlgebra
-using ZChop: zchop
-
-export rodriguesdeg, rodriguesrad
-
 """
     rodrigues(nv, Θ)
 
@@ -49,18 +44,6 @@ end
 
 ## Collection of useful functions.
 
-using LinearAlgebra: normalize, normalize!, cross, dot, norm
-using StaticArrays: SVector
-
-export arbitrary_orthogonal
-export isparallel
-export findAABB
-export chopzaxis
-export unitdisk2square
-export prob
-export smallestdistance
-export havesameelement
-export AlphSilon
 
 """
     arbitrary_orthogonal(vec)

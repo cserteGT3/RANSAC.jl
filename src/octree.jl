@@ -1,16 +1,3 @@
-import RegionTrees: AbstractRefinery, needs_refinement, refine_data
-
-using RegionTrees: child_boundary, Cell
-using RegionTrees: HyperRectangle, vertices
-using Random: randperm
-
-export OctreeNode
-export iswithinrectangle, OctreeRefinery
-export PointCloud
-export getcellandparents
-export allparents
-export updatelevelweight
-
 ## extend RegionTrees
 """
     cellandparents(cell::Cell)
