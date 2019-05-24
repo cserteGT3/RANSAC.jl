@@ -1,5 +1,3 @@
-module RodriguesRotations
-
 using LinearAlgebra
 using ZChop: zchop
 
@@ -49,12 +47,7 @@ function rodriguesdeg(nv, ϑ)
     return rodrigues(nvn, deg2rad(ϑ))
 end
 
-end
-
-"""
-Collection of useful functions.
-"""
-module Utilities
+## Collection of useful functions.
 
 using LinearAlgebra: normalize, normalize!, cross, dot, norm
 using StaticArrays: SVector
@@ -220,6 +213,8 @@ end
     AlphSilon(sphere_as, plane_as, cylinder_as)
 
 Create an AlphSilon from 3 named tuples with ϵ and α fields.
+
+Possibly it Will be replaced by Parameters.jl
 """
 function AlphSilon(sphere_as, plane_as, cylinder_as)
     ϵ1 = sphere_as.ϵ
@@ -232,5 +227,3 @@ function AlphSilon(sphere_as, plane_as, cylinder_as)
     α3 = cylinder_as.α
     return AlphSilon(ϵ1, α1, ϵ2, α2, ϵ3, α3)
 end
-
-end # module

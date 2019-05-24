@@ -1,16 +1,7 @@
-module ParameterspaceBitmap
-
-include("utilities.jl")
-include("fitting.jl")
-
 using StaticArrays: SVector, MVector
 using LinearAlgebra: cross, dot, normalize, normalize!, norm
 using Images: label_components, component_lengths
 using Logging
-
-# using .Fitting: FittedPlane, FittedSphere
-using .Fitting
-using .Utilities
 
 export project2plane, compatiblesPlane
 export bitmapparameters
@@ -281,5 +272,3 @@ function refitcylinder(s, pc, ϵ, α)
     s.inpoints = ((1:pc.size)[pc.isenabled])[cp]
     s
 end
-
-end # module

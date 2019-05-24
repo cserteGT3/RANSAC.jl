@@ -1,14 +1,6 @@
-module Fitting
-
-include("utilities.jl")
-include("ConfidenceIntervals.jl")
-
 using StaticArrays: SVector, MVector
 using LinearAlgebra: cross, ×, dot, normalize, normalize!, norm, det
 using ZChop: zchop, zchop!
-
-using .Utilities
-using .ConfidenceIntervals: ConfidenceInterval, E, isoverlap
 
 export FittedShape, isshape
 export FittedPlane, isplane
@@ -17,7 +9,6 @@ export FittedCylinder, iscylinder
 export ShapeCandidate, findhighestscore
 export ScoredShape
 export largestshape
-#export refit
 
 """
 An abstract type that wraps the fitted shapes.
@@ -452,6 +443,3 @@ function iscylinder(p, n, epsilon, alpharad)
     invnorm_ok == trues(pl) && return setcylinderOuterity(fc, false)
     return FittedCylinder(false, NaNVec, NaNVec, 0, false)
 end
-
-
-end #module

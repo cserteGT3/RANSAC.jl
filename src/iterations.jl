@@ -1,5 +1,3 @@
-# Outline of the algorithm
-
 function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover, setenabled)
     if setenabled
         pc.isenabled = trues(pc.size)

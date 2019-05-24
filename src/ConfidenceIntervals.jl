@@ -1,5 +1,3 @@
-module ConfidenceIntervals
-
 export ConfidenceInterval, notsoconfident
 export estimatescore
 export smallestdistance
@@ -64,6 +62,4 @@ Give an estimate score for the whole pointcloud.
 function estimatescore(S1length, Plength, σS1)
     gd = hypergeomdev(-2-S1length, -2-Plength, -1-σS1)
     return notsoconfident(-1-gd.min, -1-gd.max)
-end
-
 end

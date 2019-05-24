@@ -1,10 +1,4 @@
-module samples
-
-include("utilities.jl")
-
 using LinearAlgebra: normalize, normalize!, cross, norm, dot
-using .RodriguesRotations: rodriguesrad, rodriguesdeg
-using .Utilities: arbitrary_orthogonal
 using AbstractPlotting: Point3f0
 using StaticArrays: SVector
 using ZChop: zchop!
@@ -320,5 +314,3 @@ function showgeometry(vs, ns; arrow = 0.5)
         scene = scatter(vs)
         linesegments!(scene, plns, color = :blue)
 end
-
-end #module
