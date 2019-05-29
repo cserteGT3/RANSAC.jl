@@ -1,10 +1,6 @@
 # Test functions from the Utilities module
 
-include("../utilities.jl")
-
-using .Utilities: findAABB
-using StaticArrays: SVector
-using Test
+using .RANSAC: findAABB, smallestdistance
 
 @testset "rand 3D points" begin
     rs3 = [SVector{3}(rand(3)) for _ in 1:30]

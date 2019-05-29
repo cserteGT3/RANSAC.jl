@@ -1,10 +1,7 @@
 # Dummy test of sphere fitting
 
-include("../fitting.jl")
-
-using .Fitting
-using StaticArrays: SVector
-using Test
+using .RANSAC: issphere, isplane
+using .RANSAC: FittedPlane, FittedSphere
 
 const EPSI = 0.1
 const ALFI = deg2rad(10)

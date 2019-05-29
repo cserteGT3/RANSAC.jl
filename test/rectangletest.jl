@@ -1,14 +1,10 @@
 # Test iswithinrectangle function
 
-include("../octree.jl")
+using .RANSAC: iswithinrectangle
 
-using .Octree: iswithinrectangle
 using RegionTrees: HyperRectangle, vertices
-using StaticArrays: SVector
-using Test
 
 rectangle = HyperRectangle(SVector(0.0,0,0), SVector(1.0,1,1))
-
 
 @testset "corner points" begin
     # false
