@@ -1,0 +1,1 @@
+julia -i --color=yes benchmarking.jl
