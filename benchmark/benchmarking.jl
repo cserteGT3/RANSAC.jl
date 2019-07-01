@@ -62,8 +62,10 @@ function getpc()
         username = ENV["UserName"]
         if username == "cstamas"
             return "WorkLaptop"
-        elseif username == "Istvan"
+        elseif username == "Ipse"
             return "HomeLaptop"
+		elseif username == "Laci"
+            return "HomePC"
         else
             return "unknownWin"
         end
