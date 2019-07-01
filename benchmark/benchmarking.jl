@@ -13,10 +13,10 @@ using PrettyTables
 include(joinpath(dirname(pwd()), "src", "RANSAC.jl"))
 using .RANSAC
 
-const table_header = ["date" "commit sha" "minimum time" "median time" "mean time" "maximum time" "allocs" "memory"; "" "" "[s]" "[s]" "[s]" "[s]" "" "[MiB]"]
-const md_table_header = ["date" "commit sha" "minimum time [s]" "median time [s]" "mean time [s]" "maximum time [s]" "allocs" "memory [MiB]"]
+const table_header = ["date" "commit sha" "minimum time" "median time" "mean time" "maximum time" "allocs" "memory" "system"; "" "" "[s]" "[s]" "[s]" "[s]" "" "[MiB]" ""]
+const md_table_header = ["date" "commit sha" "minimum time [s]" "median time [s]" "mean time [s]" "maximum time [s]" "allocs" "memory [MiB]" "system"]
 const nums = :r
-const table_align = [:l, :l, nums, nums, nums, nums, nums, nums]
+const table_align = [:l, :l, nums, nums, nums, nums, nums, nums, :l]
 
 function setupme(iterations)
     vs, ns, norms4Plot, shape_s = examplepc3()
@@ -43,13 +43,29 @@ end
 
 function makenamedtuple(bmresult)
     comsha = read(`git log -n 1 --pretty=format:"%H"`, String)
+    pc = getpc()
     mint = BenchmarkTools.minimum(bmresult).time
     maxt = BenchmarkTools.maximum(bmresult).time
     meant = BenchmarkTools.mean(bmresult).time
     mediant = BenchmarkTools.median(bmresult).time
     alld = allocs(bmresult)
     mmm = memory(bmresult)/1024
-    (date=Dates.now(), commitsha=comsha, minimumtime=mint, mediantime=mediant, meantime=meant, maximumtime=maxt, allocated=alld, memory=mmm)
+    (date=Dates.now(), commitsha=comsha, minimumtime=mint, mediantime=mediant, meantime=meant, maximumtime=maxt, allocated=alld, memory=mmm, system = pc)
+end
+
+function getpc()
+    if Sys.iswindows()
+        username = ENV["UserName"]
+        if username == "cstamas"
+            return "WorkLaptop"
+        elseif username == "Istvan"
+            return "HomeLaptop"
+        else
+            return "unknownWin"
+        end
+    else
+        return "notWin"
+    end
 end
 
 function runbenchmark(show = true; savetocsv = false, printlog = false)
@@ -86,7 +102,8 @@ function nicifyone(onel::Array{T}, divisor) where T<:NamedTuple
     meant = getproperty(onel, :meantime)/divisor
     mediant = getproperty(onel, :mediantime)/divisor
     mem = getproperty(onel, :memory)/1024 # KiB to MiB
-    [getproperty(onel, :date) shas mint mediant meant maxt getproperty(onel, :allocated) mem]
+    sys = getproperty(onel, :system)
+    [getproperty(onel, :date) shas mint mediant meant maxt getproperty(onel, :allocated) mem sys]
 end
 
 function nicifyone(onel, divisor)
@@ -96,7 +113,8 @@ function nicifyone(onel, divisor)
     meant = getproperty(onel, :meantime)[1]/divisor
     mediant = getproperty(onel, :mediantime)[1]/divisor
     mem = getproperty(onel, :memory)[1]/1024 # KiB to MiB
-    [getproperty(onel, :date)[1] shas mint mediant meant maxt getproperty(onel, :allocated)[1] mem]
+    sys = getproperty(onel, :system)
+    [getproperty(onel, :date)[1] shas mint mediant meant maxt getproperty(onel, :allocated)[1] mem sys]
 end
 
 function nicify(tb)
@@ -110,7 +128,8 @@ function nicify(tb)
     meant = [ m/divisor for m in getproperty(tb, :meantime)]
     mediant = [ m/divisor for m in getproperty(tb, :mediantime)]
     mem = [ m/1024 for m in getproperty(tb, :memory)] # KiB to MiB
-    [getproperty(tb, :date) shas mint mediant meant maxt getproperty(tb, :allocated) mem]
+    sys = getproperty(tb, :system)
+    [getproperty(tb, :date) shas mint mediant meant maxt getproperty(tb, :allocated) mem sys]
 end
 
 function printresult(tb)
