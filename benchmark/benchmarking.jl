@@ -89,7 +89,7 @@ function runbenchmark(show = true; savetocsv = false, printlog = false)
     @info "Benchmark finished."
     benchedtuple = makenamedtuple(benched)
     bmi = Tables.rowtable([benchedtuple])
-    show && printresult(bmi)
+    show && @show benched
     savetocsv && savebenchmark(bmi)
     bmi, benched
 end
@@ -145,7 +145,7 @@ function saveresult(tb)
     open(fname, "w") do io
         pretty_table(io, hmnice, md_table_header, tf, alignment = table_align, formatter=ft_round(3, [3,4,5,6,8]))
     end
-    @info "Saved file."
+    @info "File saved."
 end
 
 function savebenchmark(bm)
@@ -155,7 +155,7 @@ function savebenchmark(bm)
     else
         CSV.write(fname, bm, append = true)
     end
-    @info "Saved file."
+    @info "File saved."
 end
 
 function loadbenchmarks()
@@ -164,12 +164,12 @@ function loadbenchmarks()
 end
 
 function info()
-    @info "Runnnig one benchmark takes around 2-3 minutes."
-    @info "`bmark, benched = runbenchmark(true)` to run the benchmark (and also display it)."
+    @info "Runnnig one benchmark takes around 5 minutes."
+    @info "`bmark, benched = runbenchmark()` to run the benchmark (and also display it)."
     @info "`savebenchmark(bmark)` to append the last benchmark to the CSV file."
-    @info "`loadbenchmarks()` to load the saved benchmarks."
+    @info "`bm = loadbenchmarks();` to load the saved benchmarks."
     @info "`printresult(bmark)` to show the result of one or more benchmarks."
-    @info "`saveresult(bmark)` to save the prettyprint to markdown."
+    @info "`saveresult(bmark)` to save the prettyprint to markdown. This will overwrite the file."
 end
 
 info()
