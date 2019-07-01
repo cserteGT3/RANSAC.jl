@@ -1,5 +1,4 @@
-using Pkg
-#Pkg.activate(".")
+module BenchmarkRANSAC
 
 using Dates
 using Logging
@@ -12,6 +11,11 @@ using PrettyTables
 
 include(joinpath(dirname(pwd()), "src", "RANSAC.jl"))
 using .RANSAC
+
+export runbenchmark, savebenchmark
+export loadbenchmarks
+export printresult, saveresult
+export info
 
 const table_header = ["date" "commit sha" "minimum time" "median time" "mean time" "maximum time" "allocs" "memory" "system"; "" "" "[s]" "[s]" "[s]" "[s]" "" "[MiB]" ""]
 const md_table_header = ["date" "commit sha" "minimum time [s]" "median time [s]" "mean time [s]" "maximum time [s]" "allocs" "memory [MiB]" "system"]
@@ -172,4 +176,7 @@ function info()
     @info "`saveresult(bmark)` to save the prettyprint to markdown. This will overwrite the file."
 end
 
+end # module
+
+using .BenchmarkRANSAC
 info()
