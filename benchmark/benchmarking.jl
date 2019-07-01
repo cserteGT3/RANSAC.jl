@@ -89,7 +89,7 @@ function runbenchmark(show = true; savetocsv = false, printlog = false)
     @info "Benchmark finished."
     benchedtuple = makenamedtuple(benched)
     bmi = Tables.rowtable([benchedtuple])
-    show && @show benched
+    show && display(benched)
     savetocsv && savebenchmark(bmi)
     bmi, benched
 end
