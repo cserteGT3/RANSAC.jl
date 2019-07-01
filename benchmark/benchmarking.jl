@@ -14,6 +14,7 @@ include(joinpath(dirname(pwd()), "src", "RANSAC.jl"))
 using .RANSAC
 
 const table_header = ["date" "commit sha" "minimum time" "median time" "mean time" "maximum time" "allocs" "memory"; "" "" "[s]" "[s]" "[s]" "[s]" "" "[MiB]"]
+const md_table_header = ["date" "commit sha" "minimum time [s]" "median time [s]" "mean time [s]" "maximum time [s]" "allocs" "memory [MiB]"]
 const nums = :r
 const table_align = [:l, :l, nums, nums, nums, nums, nums, nums]
 
@@ -123,7 +124,7 @@ function saveresult(tb)
     tf = PrettyTableFormat(markdown)
     fname = "benchmark_results.md"
     open(fname, "w") do io
-        pretty_table(io, hmnice, table_header, tf, alignment = table_align, formatter=ft_round(3, [3,4,5,6,8]))
+        pretty_table(io, hmnice, md_table_header, tf, alignment = table_align, formatter=ft_round(3, [3,4,5,6,8]))
     end
     @info "Saved file."
 end
