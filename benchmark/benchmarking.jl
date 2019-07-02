@@ -76,7 +76,7 @@ end
 
 function runbenchmark(show = true; savetocsv = false, showdebug = false)
     glb = global_logger()
-    showdebug ? global_logger(ransacdebuglogger()) : global_logger(ransacinfologger())
+    showdebug ? global_logger(nosource_debuglogger()) : global_logger(nosource_infologger())
     prept = setupme(20)
     @info "Precompiling benchmark..."
     @benchmark ransac($prept...)

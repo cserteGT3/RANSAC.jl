@@ -3,7 +3,7 @@ module RANSAC
 using LinearAlgebra
 using Random: randperm, shuffle
 using Logging
-using Logging: Info, Warn
+using Logging: default_logcolor
 using StaticArrays: SVector, MVector
 using RegionTrees
 using ZChop: zchop, zchop!
@@ -84,9 +84,10 @@ export  ransac,
         showtype,
         showbytype
 
-export  RANSACLogger,
-        ransacdebuglogger,
-        ransacinfologger
+export  nosource_debuglogger,
+        nosource_infologger,
+        sourced_debuglogger,
+        sourced_infologger
 
 include("utilities.jl")
 include("ConfidenceIntervals.jl")
