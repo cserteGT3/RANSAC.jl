@@ -74,29 +74,24 @@ function getpc()
     end
 end
 
-function runbenchmark(show = true; savetocsv = false, printlog = false)
-    globlog = global_logger()
-
+function runbenchmark(show = true; savetocsv = false, showdebug = false)
+    glb = global_logger()
+    showdebug ? global_logger(ransacdebuglogger()) : global_logger(ransacinfologger())
     prept = setupme(20)
     @info "Precompiling benchmark..."
-
-    printlog && global_logger(NullLogger())
     @benchmark ransac($prept...)
-    printlog && global_logger(globlog)
 
     Random.seed!(1234);
     sharp = setupme(100_000)
     @info "Running real benchmark..."
-
-    printlog && global_logger(NullLogger())
     benched = @benchmark ransac($sharp...)
-    printlog && global_logger(globlog)
-
     @info "Benchmark finished."
+
     benchedtuple = makenamedtuple(benched)
     bmi = Tables.rowtable([benchedtuple])
     show && display(benched)
     savetocsv && savebenchmark(bmi)
+    global_logger(glb)
     bmi, benched
 end
 

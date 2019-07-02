@@ -3,6 +3,7 @@ module RANSAC
 using LinearAlgebra
 using Random: randperm, shuffle
 using Logging
+using Logging: Info, Warn
 using StaticArrays: SVector, MVector
 using RegionTrees
 using ZChop: zchop, zchop!
@@ -11,6 +12,7 @@ using Makie: scatter, linesegments!, Scene
 using Images: label_components, component_lengths
 
 import RegionTrees: AbstractRefinery, needs_refinement, refine_data
+import Logging: shouldlog, min_enabled_level, catch_exceptions, handle_message
 
 export  rodriguesdeg,
         rodriguesrad
@@ -82,6 +84,10 @@ export  ransac,
         showtype,
         showbytype
 
+export  RANSACLogger,
+        ransacdebuglogger,
+        ransacinfologger
+
 include("utilities.jl")
 include("ConfidenceIntervals.jl")
 include("octree.jl")
@@ -89,5 +95,6 @@ include("fitting.jl")
 include("sampling.jl")
 include("parameterspacebitmap.jl")
 include("iterations.jl")
+include("logging.jl")
 
 end #module

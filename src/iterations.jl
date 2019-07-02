@@ -18,12 +18,12 @@ function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover)
     # build an octree
     @assert drawN > 2
     subsetN = length(pc.subsets)
-    @info "Building octree."
+    @debug "Building octree."
     minV, maxV = findAABB(pc.vertices);
     octree = Cell(SVector{3}(minV), SVector{3}(maxV), OctreeNode(pc, collect(1:pc.size), 1));
     r = OctreeRefinery(8);
     adaptivesampling!(octree, r);
-    @info "Octree finished."
+    @debug "Octree finished."
     # initialize levelweight vector to 1/d
     # TODO: check if levelweight is not empty
     fill!(pc.levelweight, 1/length(pc.levelweight))
@@ -35,11 +35,11 @@ function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover)
     extracted = ScoredShape[]
     # smallest distance in the pointcloud
     #lsd = smallestdistance(pc.vertices)
-    @info "Iteration begins."
+    @debug "Iteration begins."
     # iterate begin
     for k in 1:itmax
         if count(pc.isenabled) < minleftover
-            @info "Break at $k, because left only: $(length(findall(pc.isenabled)))"
+            @debug "Break at $k, because left only: $(length(findall(pc.isenabled)))"
             break
         end
         # generate t candidate
@@ -150,12 +150,12 @@ function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover)
             lengttt = length(bestshape.inpoints)
             ppp = prob(lengttt*subsetN, length(scoredshapes), pc.size, k=drawN)
             if k%50 == 0
-                @info "$k. it, best: $lengttt db, score: $scr, prob: $ppp, scored shapes: $(length(scoredshapes)) db."
+                @debug "$k. it, best: $lengttt db, score: $scr, prob: $ppp, scored shapes: $(length(scoredshapes)) db."
             end
             #TODO: length will be only 1/numberofsubsets
             # if the probability is large enough, extract the shape
             if ppp > pt
-                @info "Extraction! best score: $(E(bestshape.score)), length: $(length(bestshape.inpoints))"
+                @debug "Extraction! best score: $(E(bestshape.score)), length: $(length(bestshape.inpoints))"
 
                 # TODO: proper refit, not only getting the points that fit to that shape
                 # what do you mean by refit?
@@ -198,14 +198,14 @@ function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover)
         # check exit condition
         # TODO: τ-t is le kéne osztani a subsestek számával
         if prob(τ/subsetN, length(scoredshapes), pc.size, k=drawN) > pt
-            @info "Break, at this point all shapes should be extracted: $k. iteráció."
+            @debug "Break, at this point all shapes should be extracted: $k. iteráció."
             break
         end
         #if mod(k,itermax/10) == 0
-        #    @info "Iteration: $k"
+        #    @debug "Iteration: $k"
         #end
     end # iterate end
-    @info "Iteration finished with $(length(extracted)) extracted and $(length(scoredshapes)) scored shapes."
+    @debug "Iteration finished with $(length(extracted)) extracted and $(length(scoredshapes)) scored shapes."
     return scoredshapes, extracted
 end # ransac function
 
