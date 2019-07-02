@@ -1,7 +1,7 @@
 module RANSAC
 
 using LinearAlgebra
-using Random: randperm, shuffle
+using Random
 using Logging
 using Logging: default_logcolor
 using StaticArrays: SVector, MVector

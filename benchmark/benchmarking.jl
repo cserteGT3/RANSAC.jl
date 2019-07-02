@@ -77,14 +77,14 @@ end
 function runbenchmark(show = true; savetocsv = false, showdebug = false)
     glb = global_logger()
     showdebug ? global_logger(nosource_debuglogger()) : global_logger(nosource_infologger())
-    prept = setupme(20)
+    prept = setupme(5)
     @info "Precompiling benchmark..."
-    @benchmark ransac($prept...)
+    @benchmark ransac($prept..., reset_rand=true)
 
     Random.seed!(1234);
     sharp = setupme(100_000)
     @info "Running real benchmark..."
-    benched = @benchmark ransac($sharp...)
+    benched = @benchmark ransac($sharp..., reset_rand=true)
     @info "Benchmark finished."
 
     benchedtuple = makenamedtuple(benched)

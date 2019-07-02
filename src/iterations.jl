@@ -1,11 +1,12 @@
-function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover, setenabled)
+function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover, setenabled; reset_rand = false)
     if setenabled
         pc.isenabled = trues(pc.size)
     end
-    ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover)
+    ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover, reset_rand=reset_rand)
 end
 
-function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover)
+function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover; reset_rand = false)
+    reset_rand && Random.seed!(1234)
     sp_ϵ = αϵ.ϵ_sphere
     sp_α = αϵ.α_sphere
 
