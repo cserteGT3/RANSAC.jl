@@ -8,11 +8,10 @@ using StaticArrays: SVector, MVector
 using RegionTrees
 using ZChop: zchop, zchop!
 using AbstractPlotting: Point3f0
-using Makie: scatter, linesegments!, Scene
+using Makie: scatter, linesegments!, Scene, scatter!
 using Images: label_components, component_lengths
 
 import RegionTrees: AbstractRefinery, needs_refinement, refine_data
-import Logging: shouldlog, min_enabled_level, catch_exceptions, handle_message
 
 export  rodriguesdeg,
         rodriguesrad
@@ -87,7 +86,8 @@ export  ransac,
 export  nosource_debuglogger,
         nosource_infologger,
         sourced_debuglogger,
-        sourced_infologger
+        sourced_infologger,
+        nosource_metafmt
 
 include("utilities.jl")
 include("ConfidenceIntervals.jl")
