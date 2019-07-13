@@ -10,15 +10,15 @@ using Revise
 using Colors
 using Makie
 
-includet("RANSAC.jl")
+includet("../RANSAC.jl")
 using .RANSAC
 
 ## Test1
 # inputs
 vs, ns, norms4Plot, shape_s = examplepc3();
 sc = showgeometry(vs, ns)
-sc.center = false
-#Makie.save("pure3-normals.png", sc)
+# sc.center = false
+# Makie.save("pure3-normals.png", sc)
 # (normalize surface normals if needed)
 pcr = PointCloud(vs, ns, 32);
 # plane
