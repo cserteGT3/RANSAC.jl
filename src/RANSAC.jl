@@ -90,7 +90,7 @@ export  nosource_debuglogger,
         nosource_metafmt
 
 include("utilities.jl")
-include("ConfidenceIntervals.jl")
+include("confidenceintervals.jl")
 include("octree.jl")
 include("fitting.jl")
 include("sampling.jl")
