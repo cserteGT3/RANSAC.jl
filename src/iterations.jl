@@ -49,7 +49,7 @@ function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover; reset_rand = fal
             # select a random point
             if length(random_points)<10
                 random_points = randperm(pc.size)
-                #@warn "Recomputing randperm."
+                @debug "Recomputing randperm."
             end
             r1 = popfirst!(random_points)
 
@@ -66,8 +66,24 @@ function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover; reset_rand = fal
             # if multiple maximum, the first=largest cell will be used
             curr_level = argmax(pc.levelweight[1:length(cs)])
             # choose 3 more from cs[curr_level].data.incellpoints
-            sdf = shuffle(cs[curr_level].data.incellpoints)
+            #sdf = shuffle(cs[curr_level].data.incellpoints)
+            #an indexer array for random indexing
+            cell_ind = cs[curr_level].data.incellpoints
+            bool_cell_ind = pc.isenabled[cell_ind]
+            randomized_inds = cell_ind[bool_cell_ind]
+            #shuffle!(randomized_inds)
+            println("cell_ind: $(size(cell_ind,1)), randomized_inds: $(size(randomized_inds,1))")
             sd = [r1]
+            for n in eachindex(randomized_inds)
+                #ezen mindig végigiterálok, ki kell belőle szedni azt, ami nem enabled
+                # don't use the same point twice
+                n == r1 && continue
+                # use only the enabled points
+                @show pc.isenabled[n]
+                push!(sd, n)
+                length(sd) == drawN && break
+            end
+            #=
             while length(sd) < drawN && length(sdf) > 0
                 n = popfirst!(sdf)
                 # don't use the same point twice
@@ -75,6 +91,7 @@ function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover; reset_rand = fal
                 # use only the enabled points
                 pc.isenabled[n] && push!(sd, n)
             end
+            =#
             # sd: 3 indexes of the actually selected points
 
             # if there's no 3 points, continue to the next draw
