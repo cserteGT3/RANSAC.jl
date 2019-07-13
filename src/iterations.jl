@@ -53,6 +53,9 @@ function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover; reset_rand = fal
             end
             r1 = popfirst!(random_points)
 
+            #TODO: helyettesíteni valami okosabbal,
+            # pl mindig az első enabled - ha már nagyon sok ki van véve,
+            # akkor az gyorsabb lesz
             while ! pc.isenabled[r1]
                 r1 = rand(1:pc.size)
             end
@@ -70,16 +73,20 @@ function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover; reset_rand = fal
             #an indexer array for random indexing
             cell_ind = cs[curr_level].data.incellpoints
             bool_cell_ind = pc.isenabled[cell_ind]
+            # alábbi lehet view
             randomized_inds = cell_ind[bool_cell_ind]
-            #shuffle!(randomized_inds)
-            println("cell_ind: $(size(cell_ind,1)), randomized_inds: $(size(randomized_inds,1))")
+            # nem shuffle hanem randperm kéne, mert itt már csak néhány random szám kell, mert mindegyik enabled
+            shuffle!(randomized_inds)
+            #println("cell_ind: $(size(cell_ind,1)), randomized_inds: $(size(randomized_inds,1))")
             sd = [r1]
-            for n in eachindex(randomized_inds)
+            #kell egy ellenőrzés, hogy van-e drawN-1 db enabled pont
+            #elég lehetne egy for ciklus
+            for n in randomized_inds
                 #ezen mindig végigiterálok, ki kell belőle szedni azt, ami nem enabled
                 # don't use the same point twice
                 n == r1 && continue
                 # use only the enabled points
-                @show pc.isenabled[n]
+                #@show pc.isenabled[n]
                 push!(sd, n)
                 length(sd) == drawN && break
             end
