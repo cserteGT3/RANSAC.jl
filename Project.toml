@@ -1,0 +1,24 @@
+name = "RANSAC"
+uuid = "d6bc97e0-a563-11e9-1861-c573f65f3bc3"
+authors = ["Tamás Cserteg <csertegt@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+AbstractPlotting = "537997a7-5e4e-5d89-9595-2241ea00577e"
+Images = "916415d5-f1e6-5110-898d-aaa5f9f070e0"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
+Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+RegionTrees = "dee08c22-ab7f-5625-9660-a9af2021b33f"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+ZChop = "8603256b-76ad-53fe-b511-38a38e6437cd"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
+
+[compat]
+julia = "^1"
