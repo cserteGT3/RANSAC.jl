@@ -9,8 +9,7 @@ using CSV
 using Tables
 using PrettyTables
 
-include(joinpath(dirname(pwd()), "src", "RANSAC.jl"))
-using .RANSAC
+using RANSAC
 
 export runbenchmark, savebenchmark
 export loadbenchmarks
@@ -74,6 +73,11 @@ function getpc()
     end
 end
 
+"""
+    runbenchmark(show = true; savetocsv = false, showdebug = false)
+
+Run benchmark.
+"""
 function runbenchmark(show = true; savetocsv = false, showdebug = false)
     glb = global_logger()
     showdebug ? global_logger(nosource_debuglogger()) : global_logger(nosource_infologger())
@@ -166,7 +170,7 @@ end
 
 function info()
     @info "Runnnig one benchmark takes around 5 minutes."
-    @info "`bmark, benched = runbenchmark()` to run the benchmark (and also display it)."
+    @info "`bmark, benched = runbenchmark();` to run the benchmark (and also display it)."
     @info "`savebenchmark(bmark)` to append the last benchmark to the CSV file."
     @info "`bm = loadbenchmarks();` to load the saved benchmarks."
     @info "`printresult(bmark)` to show the result of one or more benchmarks."
