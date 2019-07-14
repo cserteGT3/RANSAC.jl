@@ -210,3 +210,21 @@ function AlphSilon(sphere_as, plane_as, cylinder_as)
     α3 = cylinder_as.α
     return AlphSilon(ϵ1, α1, ϵ2, α2, ϵ3, α3)
 end
+
+"""
+    allisdifferent(a::AbstractArray{T, 1}) where {T}
+
+Check if all the elements of an array are different.
+Supports only one dimensional arrays.
+"""
+function allisdifferent(a::AbstractArray{T, 1}) where {T}
+    #TODO: make it more abstract with:
+    #https://docs.julialang.org/en/v1/base/iterators/
+    size(a, 1) < 2 && return true
+    for i in 2:size(a, 1)
+        for j in 1:i-1
+            a[i] == a[j] && return false
+        end
+    end
+    return true
+end
