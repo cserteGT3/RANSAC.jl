@@ -15,6 +15,7 @@ export runbenchmark, savebenchmark
 export loadbenchmarks
 export printresult, saveresult
 export info
+export printload
 
 const table_header = ["date" "commit sha" "minimum time" "median time" "mean time" "maximum time" "allocs" "memory" "system"; "" "" "[s]" "[s]" "[s]" "[s]" "" "[MiB]" ""]
 const md_table_header = ["date" "commit sha" "minimum time [s]" "median time [s]" "mean time [s]" "maximum time [s]" "allocs" "memory [MiB]" "system"]
@@ -166,6 +167,10 @@ end
 function loadbenchmarks()
     fname = "benchmark_results.csv"
     return CSV.read(fname)
+end
+
+function printload()
+	printresult(loadbenchmarks())
 end
 
 function info()
