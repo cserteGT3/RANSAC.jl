@@ -36,6 +36,8 @@ function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover; reset_rand = fal
     extracted = ScoredShape[]
     # smallest distance in the pointcloud
     #lsd = smallestdistance(pc.vertices)
+    # allocate for the random selected points
+    sd = Vector{Int}(undef, drawN)
     @debug "Iteration begins."
     # iterate begin
     for k in 1:itmax
@@ -49,10 +51,13 @@ function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover; reset_rand = fal
             # select a random point
             if length(random_points)<10
                 random_points = randperm(pc.size)
-                #@warn "Recomputing randperm."
+                @debug "Recomputing randperm."
             end
             r1 = popfirst!(random_points)
 
+            #TODO: helyettesíteni valami okosabbal,
+            # pl mindig az első enabled - ha már nagyon sok ki van véve,
+            # akkor az gyorsabb lesz
             while ! pc.isenabled[r1]
                 r1 = rand(1:pc.size)
             end
@@ -65,21 +70,52 @@ function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover; reset_rand = fal
             # chosse the level with the highest score
             # if multiple maximum, the first=largest cell will be used
             curr_level = argmax(pc.levelweight[1:length(cs)])
-            # choose 3 more from cs[curr_level].data.incellpoints
-            sdf = shuffle(cs[curr_level].data.incellpoints)
-            sd = [r1]
-            while length(sd) < drawN && length(sdf) > 0
-                n = popfirst!(sdf)
-                # don't use the same point twice
-                n == r1 && continue
-                # use only the enabled points
-                pc.isenabled[n] && push!(sd, n)
+            #an indexer array for random indexing
+            cell_ind = cs[curr_level].data.incellpoints
+            # frome the above, those that are enabled
+            bool_cell_ind = @view pc.isenabled[cell_ind]
+            enabled_inds = cell_ind[bool_cell_ind]
+            # if there's less enabled vertice than needed, skip the rest
+            size(enabled_inds, 1) < drawN && continue
+            sd[1] = r1
+
+            # made up heuristic
+            if size(enabled_inds, 1) < 20*drawN
+                # if there's few randoms, then just choose the first ones
+                # random index
+                sel = 0
+                # sd index
+                seli = 2
+                while true
+                    sel += 1
+                    # don't choose the first one
+                    enabled_inds[sel] == sd[1] && continue
+                    sd[seli] = enabled_inds[sel]
+                    seli += 1
+                    seli == drawN+1 && break
+                end
+                route = 1
+            else
+                # if there's enough random, randomly select
+                for idk in 2:drawN
+                    nexti = rand(1:size(enabled_inds, 1))
+                    if sd[1] == enabled_inds[nexti]
+                        # try oncemore
+                        nexti = rand(1:size(enabled_inds, 1))
+                    end
+                    #TODO: check if the same
+                    #TODO: do something with it
+                    sd[idk] = enabled_inds[nexti]
+                end
+                route = 2
             end
-            # sd: 3 indexes of the actually selected points
 
-            # if there's no 3 points, continue to the next draw
-            length(sd) < drawN && continue
+            if !allisdifferent(sd)
+                @debug "Selected indexes have same element: $sd; route $route was taken."
+                continue
+            end
 
+            # sd: indexes of the actually selected points
             #TODO: this should be something more general
             # fit plane to the selected points
             fp = isplane(pc.vertices[sd], pc.normals[sd], p_α)
