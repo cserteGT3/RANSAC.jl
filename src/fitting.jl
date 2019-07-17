@@ -13,16 +13,18 @@ function isshape(shape::FittedPlane)
     return shape.isplane
 end
 
-mutable struct ShapeCandidate{S<:FittedShape}
+struct ShapeCandidate{S<:FittedShape}
     shape::S
     octree_lev::Int
 end
 
 mutable struct ScoredShape{A<:AbstractArray}
     candidate::ShapeCandidate
-    score
+    score::ConfidenceInterval
     inpoints::A
 end
+
+getscore(scoredshape::ScoredShape) = scoredshape.score
 
 """
     findhighestscore(A)
@@ -34,20 +36,20 @@ Indicate if there's an overlap.
 function findhighestscore(A)
     (length(A) > 0) || return (index = 0, overlap = false)
     ind = 1
-    highest = E(A[1].score)
+    highest = E(getscore(A[1]))
     for i in eachindex(A)
-        esc = E(A[i].score)
+        esc = E(getscore(A[i]))
         if esc > highest
             highest = esc
             ind = i
         end
     end
-    overlaps = [isoverlap(A[ind].score, a.score) for a in A]
-    overlaps[ind] = false
-    # no overlap:
-    overlaps == falses(length(A)) && return (index = ind, overlap = false)
-    # overlap:
-    return (index = ind, overlap = true)
+
+    for i in eachindex(A)
+        i == ind && continue
+        isoverlap(getscore(A[i]), getscore(A[ind])) && return (index = ind, overlap = true)
+    end
+    return (index = ind, overlap = false)
 end
 
 """
