@@ -14,12 +14,11 @@ function notsoconfident(x, y)
 end
 
 """
-    isoverlap(i1::A, i2::B) where {A<:ConfidenceInterval, B<:ConfidenceInterval}
+    isoverlap(i1::A, i2::A) where {A<:ConfidenceInterval}
 
-Test if the two `ConfidenceInterval`s are overlapping.
+Test if the two [ConfidenceInterval](@ref)s are overlapping.
 """
-#function isoverlap(i1::A, i2::A) where {A<:ConfidenceInterval}
-function isoverlap(i1, i2)
+function isoverlap(i1::A, i2::A) where {A<:ConfidenceInterval}
     i1.min == i2.min && return true
     if i1.min < i2.min
         return i2.min <= i1.max
@@ -33,8 +32,7 @@ end
 
 Expected value of a [ConfidenceInterval](@ref).
 """
-#E(x::ConfidenceInterval) = (x.min+x.max)/2
-E(x) = (x.min+x.max)/2
+E(x::ConfidenceInterval) = (x.min+x.max)/2
 
 
 """
