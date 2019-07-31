@@ -88,8 +88,7 @@ function isplane(p, n, alpharad, collin_threshold = 0.2)
     lp = length(p)
     @assert length(p) > 2 "At least 3 point is needed."
     @assert lp == length(n) "Size must be the same."
-    crossv = MVector{3}(normalize(cross(p[2]-p[1], p[3]-p[1])))
-    zchop!(crossv)
+    crossv = normalize(cross(p[2]-p[1], p[3]-p[1]))
     # how many point's normal must be checked
     if norm(crossv) < collin_threshold
         # The points are collinear
@@ -110,7 +109,7 @@ function isplane(p, n, alpharad, collin_threshold = 0.2)
 
     thr = cos(alpharad)
     for i in 1:lp
-        dotp = dot(crossv, zchop!(MVector{3}(normalize(n[i]))))
+        dotp = dot(crossv, normalize(n[i]))
         norm_ok[i] = dotp > thr
         invnorm_ok[i] = dotp < -thr
     end
@@ -164,11 +163,11 @@ function fitsphere(v, n)
             if dot(h, k) > 0
                 # point the same direction -> +
                 M = v[1] + nh/nk * n1n
-                return FittedSphere(true, SVector{3}(zchop!(MVector{3}(M))), norm(M-v[1]), b)
+                return FittedSphere(true, M, norm(M-v[1]), b)
             else
                 # point in different direction -> -
                 M = v[1] - nh/nk * n1n
-                return FittedSphere(true, SVector{3}(zchop!(MVector{3}(M))), norm(M-v[1]), b)
+                return FittedSphere(true, M, norm(M-v[1]), b)
             end
         end
     end

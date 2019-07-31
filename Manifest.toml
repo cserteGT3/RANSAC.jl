@@ -789,9 +789,3 @@ deps = ["LinearAlgebra", "Random", "SparseArrays", "Test"]
 git-tree-sha1 = "21772c33b447757ec7d3e61fcdfb9ea5c47eedcf"
 uuid = "efce3f68-66dc-5838-9240-27a6d6f5f9b6"
 version = "0.4.1"
-
-[[ZChop]]
-deps = ["Test"]
-git-tree-sha1 = "24b82345d3794c8a6eee13e955e81f7576ebfe48"
-uuid = "8603256b-76ad-53fe-b511-38a38e6437cd"
-version = "0.3.3"
