@@ -37,7 +37,6 @@ export  OctreeNode,
         OctreeRefinery,
         PointCloud,
         getcellandparents,
-        allparents,
         updatelevelweight
 
 export  FittedShape,
