@@ -1,23 +1,4 @@
 ## extend RegionTrees
-"""
-    cellandparents(cell::Cell)
-
-Returns all parents of a cell.
-"""
-function allparents(cell::Cell)
-    Channel() do c
-        queue = [cell]
-        while !isempty(queue)
-            current = pop!(queue)
-            p = parent(current)
-            if ! (p === nothing)
-                put!(c, p)
-                push!(queue, p)
-            end
-
-        end
-    end
-end
 
 """
     getcellandparents(cell::Cell)
