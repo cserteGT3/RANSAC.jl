@@ -6,7 +6,6 @@ using Logging
 using Logging: default_logcolor
 using StaticArrays: SVector, MVector
 using RegionTrees
-using ZChop: zchop, zchop!
 using AbstractPlotting: Point3f0
 using Makie: scatter, linesegments!, Scene, scatter!
 using Images: label_components, component_lengths

@@ -12,7 +12,6 @@ Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 RegionTrees = "dee08c22-ab7f-5625-9660-a9af2021b33f"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
-ZChop = "8603256b-76ad-53fe-b511-38a38e6437cd"
 
 [compat]
 julia = "^1"
