@@ -1,6 +1,6 @@
-# Diplomaterv
+# RANSAC.jl
 
-This directory contains code for my final project.
+**THIS PACKAGE IS NOT YET READY FOR PUBLIC USE.**
 
 ## Julia packages
 
