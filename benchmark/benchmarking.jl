@@ -5,7 +5,6 @@ using Logging
 using Random
 
 using BenchmarkTools
-using CSV
 using Tables
 using PrettyTables
 
@@ -82,9 +81,6 @@ Run benchmark.
 function runbenchmark(show = true; savetocsv = false, showdebug = false)
     glb = global_logger()
     showdebug ? global_logger(nosource_debuglogger()) : global_logger(nosource_infologger())
-    prept = setupme(5)
-    @info "Precompiling benchmark..."
-    @benchmark ransac($prept..., reset_rand=true)
 
     Random.seed!(1234);
     sharp = setupme(100_000)
@@ -144,42 +140,10 @@ function printresult(tb)
     pretty_table(hmnice, table_header, tf, alignment = table_align, formatter=ft_round(3, [3,4,5,6,8]))
 end
 
-function saveresult(tb)
-    hmnice = nicify(tb)
-    tf = PrettyTableFormat(markdown)
-    fname = "benchmark_results.md"
-    open(fname, "w") do io
-        pretty_table(io, hmnice, md_table_header, tf, alignment = table_align, formatter=ft_round(3, [3,4,5,6,8]))
-    end
-    @info "File saved."
-end
-
-function savebenchmark(bm)
-    fname = "benchmark_results.csv"
-    if !isfile(fname)
-        CSV.write(fname, bm )
-    else
-        CSV.write(fname, bm, append = true)
-    end
-    @info "File saved."
-end
-
-function loadbenchmarks()
-    fname = "benchmark_results.csv"
-    return CSV.read(fname)
-end
-
-function printload()
-	printresult(loadbenchmarks())
-end
-
 function info()
     @info "Runnnig one benchmark takes around 5 minutes."
     @info "`bmark, benched = runbenchmark();` to run the benchmark (and also display it)."
-    @info "`savebenchmark(bmark)` to append the last benchmark to the CSV file."
-    @info "`bm = loadbenchmarks();` to load the saved benchmarks."
     @info "`printresult(bmark)` to show the result of one or more benchmarks."
-    @info "`saveresult(bmark)` to save the prettyprint to markdown. This will overwrite the file."
 end
 
 end # module
