@@ -13,17 +13,17 @@ function ransac(pc, params; reset_rand = false)
     # build an octree
     subsetN = length(pc.subsets)
     @debug "Building octree."
-    minV, maxV = findAABB(pc.vertices);
-    octree = Cell(SVector{3}(minV), SVector{3}(maxV), OctreeNode(pc, collect(1:pc.size), 1));
-    r = OctreeRefinery(8);
-    adaptivesampling!(octree, r);
+    minV, maxV = findAABB(pc.vertices)
+    octree = Cell(SVector{3}(minV), SVector{3}(maxV), OctreeNode(pc, collect(1:pc.size), 1))
+    r = OctreeRefinery(8)
+    adaptivesampling!(octree, r)
     @debug "Octree finished."
     # initialize levelweight vector to 1/d
     # TODO: check if levelweight is not empty
     fill!(pc.levelweight, 1/length(pc.levelweight))
     fill!(pc.levelscore, zero(eltype(pc.levelscore)))
 
-    random_points = randperm(pc.size);
+    random_points = randperm(pc.size)
     candidates = ShapeCandidate[]
     scoredshapes = ScoredShape[]
     extracted = ScoredShape[]

@@ -155,7 +155,7 @@ function smallestdistance(points)
 end
 
 """
-    prob(n, s, N; k = 4)
+    prob(n, s, N, k)
 
 The probability of successful detection of a shape sized `n`,
 from a point cloud size of `N`, with `k` size of minimal sets and `s` draws.
