@@ -16,7 +16,7 @@ function setcylinderOuterity(fc, b)
     FittedCylinder(fc.iscylinder, fc.axis, fc.center, fc.radius, b)
 end
 
-function fitcylinder(p, n, params)
+function fit2pointcylinder(p, n, params)
     @unpack α_cylinder, ϵ_cylinder, parallelthrdeg = params
     # the normals are too parallel so cannot fit cylinder to it
     if abs(dot(n[1], n[2])) > cosd(parallelthrdeg)
@@ -146,7 +146,7 @@ function fitcylinder(p, n, params)
 end
 
 """
-    iscylinder(p, n, epsilon, alpharad)
+    fitcylinder(p, n, params)
 
 Fit a cylinder to 2 points. Additional points and their normals are used to validate the fit.
 Normals are expected to be normalized.
@@ -155,14 +155,14 @@ Normals are expected to be normalized.
 - `epsilon::Real`: maximum distance-difference between the fitted and measured spheres.
 - `alpharad::Real`: maximum difference between the normals (in radians).
 """
-function iscylinder(p, n, params)
+function fitcylinder(p, n, params)
     @unpack ϵ_cylinder, α_cylinder, parallelthrdeg = params
     pl = length(p)
     @assert pl == length(n) "Size must be the same."
     @assert pl > 2 "Size must be at least 3."
 
     # "forcefit" a cylinder
-    fc = fitcylinder(p, n, params)
+    fc = fit2pointcylinder(p, n, params)
 
     fc.iscylinder || return fc
 

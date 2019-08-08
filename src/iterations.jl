@@ -111,13 +111,10 @@ function ransac(pc, params; reset_rand = false)
             # sd: indexes of the actually selected points
             #TODO: this should be something more general
             # fit plane to the selected points
-            fp = isplane(pc.vertices[sd], pc.normals[sd], params)
-            isshape(fp) && push!(candidates, ShapeCandidate(fp, curr_level))
-            # fit sphere to the selected points
-            sp = issphere(pc.vertices[sd], pc.normals[sd], params)
-            isshape(sp) && push!(candidates, ShapeCandidate(sp, curr_level))
-            cp = iscylinder(pc.vertices[sd], pc.normals[sd], params)
-            isshape(cp) && push!(candidates, ShapeCandidate(cp, curr_level))
+            f_v = @view pc.vertices[sd]
+            f_n = @view pc.normals[sd]
+
+            forcefitshapes(f_v, f_n, params, candidates, curr_level)
         end # for t
 
         # evaluate the compatible points, currently used as score

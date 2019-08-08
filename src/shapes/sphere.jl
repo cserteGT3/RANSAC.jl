@@ -11,7 +11,7 @@ function isshape(shape::FittedSphere)
     return shape.issphere
 end
 
-function fitsphere(v, n, params)
+function fit2pointsphere(v, n, params)
     @unpack parallelthrdeg, sphere_par = params
     n1n = normalize(n[1])
     n2n = normalize(n[2])
@@ -61,7 +61,7 @@ function setsphereOuterity(sp, b)
 end
 
 """
-    issphere(p, n, epsilon, alpharad)
+    fitsphere(p, n, params)
 
 Fit a sphere to 2 points. Additional points and their normals are used to validate the fit.
 
@@ -69,13 +69,13 @@ Fit a sphere to 2 points. Additional points and their normals are used to valida
 - `epsilon::Real`: maximum distance-difference between the fitted and measured spheres.
 - `alpharad::Real`: maximum difference between the normals (in radians).
 """
-function issphere(p, n, params)
+function fitsphere(p, n, params)
     @unpack ϵ_sphere, α_sphere = params
     pl = length(p)
     @assert pl == length(n) "Size must be the same."
     @assert pl > 2 "Size must be at least 3."
     # "forcefit" a sphere
-    sp = fitsphere(p, n, params)
+    sp = fit2pointsphere(p, n, params)
     # check if real sphere
     sp.issphere || return sp
     thr = cos(α_sphere)

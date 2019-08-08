@@ -221,6 +221,9 @@ end
     β = 1
     # parameter in sphere fitting
     sphere_par = 0.02
+
+    # shapes that are fitted to the point cloud
+    shape_types::Array{Symbol,1} = [:sphere, :plane, :cylinder]
 end
 
 """

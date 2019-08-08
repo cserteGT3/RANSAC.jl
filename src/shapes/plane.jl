@@ -11,7 +11,7 @@ function isshape(shape::FittedPlane)
 end
 
 """
-    isplane(p, n, alpharad, collin_threshold = 0.2)
+    fitplane(p, n, params)
 
 Fit a plane to 3 points. Their and additional point's normals are used to validate the fit.
 
@@ -20,7 +20,7 @@ A collinearity check is used to not filter out points on one line.
 - `alpharad::Real`: maximum difference between the normals (in radians).
 - `collin_threshold::Real=0.2`: threshold for the collinearity check (lower is stricter).
 """
-function isplane(p, n, params)
+function fitplane(p, n, params)
     @unpack α_plane, collin_threshold = params
     lp = length(p)
     @assert length(p) > 2 "At least 3 point is needed."

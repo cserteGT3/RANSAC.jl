@@ -40,17 +40,14 @@ export  OctreeNode,
         updatelevelweight
 
 export  FittedShape,
-        isshape,
         FittedPlane,
-        isplane,
         FittedSphere,
-        issphere,
         FittedCylinder,
-        iscylinder,
         ShapeCandidate,
         findhighestscore,
         ScoredShape,
-        largestshape
+        largestshape,
+        forcefitshapes
 
 export  sampleplane,
         samplecylinder,

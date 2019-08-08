@@ -63,3 +63,19 @@ end
 This is "dummy" vector for type stability.
 """
 const NaNVec = SVector(0.0,0.0,0.0)
+
+function forcefitshapes(points, normals, parameters, candidates, octree_lev)
+    @unpack shape_types = parameters
+    for s in shape_types
+        if s == :plane
+            fitted = fitplane(points, normals, parameters)
+        elseif s == :sphere
+            fitted = fitsphere(points, normals, parameters)
+        elseif s == :cylinder
+            fitted = fitcylinder(points, normals, parameters)
+        else
+            error("$s is not recognized as valid shape type.")
+        end
+        isshape(fitted) && push!(candidates, ShapeCandidate(fitted, octree_lev))
+    end
+end
