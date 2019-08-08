@@ -1,7 +1,7 @@
 using Test
 using StaticArrays: SVector
 
-include("../src/RANSAC.jl")
+#include("../src/RANSAC.jl")
 
 @testset "iswithinrectangle test" begin
     include("rectangletest.jl")

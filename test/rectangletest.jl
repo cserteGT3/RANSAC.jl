@@ -1,6 +1,6 @@
 # Test iswithinrectangle function
 
-using .RANSAC: iswithinrectangle
+using RANSAC: iswithinrectangle
 
 using RegionTrees: HyperRectangle, vertices
 

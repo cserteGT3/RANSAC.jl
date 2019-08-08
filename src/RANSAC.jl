@@ -9,6 +9,7 @@ using RegionTrees
 using AbstractPlotting: Point3f0
 using Makie: scatter, linesegments!, Scene, scatter!
 using Images: label_components, component_lengths
+using Parameters
 
 import RegionTrees: AbstractRefinery, needs_refinement, refine_data
 
@@ -23,7 +24,7 @@ export  arbitrary_orthogonal,
         prob,
         smallestdistance,
         havesameelement,
-        AlphSilon
+        RANSACParameters
 
 export  ConfidenceInterval,
         notsoconfident,

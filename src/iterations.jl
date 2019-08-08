@@ -1,23 +1,16 @@
-function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover, setenabled; reset_rand = false)
+function ransac(pc, params, setenabled; reset_rand = false)
     if setenabled
         pc.isenabled = trues(pc.size)
     end
-    ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover, reset_rand=reset_rand)
+    ransac(pc, params, reset_rand=reset_rand)
 end
 
-function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover; reset_rand = false)
+function ransac(pc, params; reset_rand = false)
     reset_rand && Random.seed!(1234)
-    sp_ϵ = αϵ.ϵ_sphere
-    sp_α = αϵ.α_sphere
 
-    p_ϵ = αϵ.ϵ_plane
-    p_α = αϵ.α_plane
-
-    cy_ϵ = αϵ.ϵ_cylinder
-    cy_α = αϵ.α_cylinder
+    @unpack drawN, minsubsetN, prob_det, τ, itermax, leftovers = params
 
     # build an octree
-    @assert drawN > 2
     subsetN = length(pc.subsets)
     @debug "Building octree."
     minV, maxV = findAABB(pc.vertices);
@@ -40,13 +33,13 @@ function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover; reset_rand = fal
     sd = Vector{Int}(undef, drawN)
     @debug "Iteration begins."
     # iterate begin
-    for k in 1:itmax
-        if count(pc.isenabled) < minleftover
+    for k in 1:itermax
+        if count(pc.isenabled) < leftovers
             @debug "Break at $k, because left only: $(length(findall(pc.isenabled)))"
             break
         end
-        # generate t candidate
-        for i in 1:t
+        # generate minsubsetN candidate
+        for i in 1:minsubsetN
             #TODO: that is unsafe, but probably won't interate over the whole pc
             # select a random point
             if length(random_points)<10
@@ -118,12 +111,12 @@ function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover; reset_rand = fal
             # sd: indexes of the actually selected points
             #TODO: this should be something more general
             # fit plane to the selected points
-            fp = isplane(pc.vertices[sd], pc.normals[sd], p_α)
+            fp = isplane(pc.vertices[sd], pc.normals[sd], params)
             isshape(fp) && push!(candidates, ShapeCandidate(fp, curr_level))
             # fit sphere to the selected points
-            sp = issphere(pc.vertices[sd], pc.normals[sd], sp_ϵ, sp_α)
+            sp = issphere(pc.vertices[sd], pc.normals[sd], params)
             isshape(sp) && push!(candidates, ShapeCandidate(sp, curr_level))
-            cp = iscylinder(pc.vertices[sd], pc.normals[sd], cy_ϵ, cy_α)
+            cp = iscylinder(pc.vertices[sd], pc.normals[sd], params)
             isshape(cp) && push!(candidates, ShapeCandidate(cp, curr_level))
         end # for t
 
@@ -140,7 +133,7 @@ function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover; reset_rand = fal
             if isa(c.shape, FittedPlane)
                 # plane
                 # cp, pp = compatiblesPlane(c.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
-                cp, pp = compatiblesPlane(c.shape, ps, ns, p_ϵ, p_α)
+                cp, pp = compatiblesPlane(c.shape, ps, ns, params)
                 inder = cp.&ens
                 inpoints = (pc.subsets[which_])[inder]
                 #inpoints = ((pc.subsets[1])[ens])[cp]
@@ -150,7 +143,7 @@ function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover; reset_rand = fal
             elseif isa(c.shape, FittedSphere)
                 # sphere
                 # cpl, uo, sp = compatiblesSphere(c.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
-                cpl, uo, sp = compatiblesSphere(c.shape, ps, ns, sp_ϵ, sp_α)
+                cpl, uo, sp = compatiblesSphere(c.shape, ps, ns, params)
                 # verti: összes pont indexe, ami enabled és kompatibilis
                 # lenne, ha működne, de inkább a boolean indexelést machináljuk
                 verti = pc.subsets[1]
@@ -162,7 +155,7 @@ function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover; reset_rand = fal
                 pc.levelscore[c.octree_lev] = pc.levelscore[c.octree_lev] + E(score)
                 push!(scoredshapes, ScoredShape(c, score, inpoints))
             elseif isa(c.shape, FittedCylinder)
-                cp, pp = compatiblesCylinder(c.shape, ps, ns, cy_ϵ, cy_α)
+                cp, pp = compatiblesCylinder(c.shape, ps, ns, params)
                 inder = cp.&ens
                 inpoints = (pc.subsets[which_])[inder]
                 #inpoints = ((pc.subsets[1])[ens])[cp]
@@ -185,24 +178,24 @@ function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover; reset_rand = fal
             # TODO: refine if best.overlap
             scr = E(bestshape.score)
             lengttt = length(bestshape.inpoints)
-            ppp = prob(lengttt*subsetN, length(scoredshapes), pc.size, k=drawN)
+            ppp = prob(lengttt*subsetN, length(scoredshapes), pc.size, drawN)
             if k%50 == 0
                 @debug "$k. it, best: $lengttt db, score: $scr, prob: $ppp, scored shapes: $(length(scoredshapes)) db."
             end
             #TODO: length will be only 1/numberofsubsets
             # if the probability is large enough, extract the shape
-            if ppp > pt
+            if ppp > prob_det
                 @debug "Extraction! best score: $(E(bestshape.score)), length: $(length(bestshape.inpoints))"
 
                 # TODO: proper refit, not only getting the points that fit to that shape
                 # what do you mean by refit?
                 # refit on the whole pointcloud
                 if bestshape.candidate.shape isa FittedPlane
-                    refitplane(bestshape, pc, p_ϵ, p_α)
+                    refitplane(bestshape, pc, params)
                 elseif bestshape.candidate.shape isa FittedSphere
-                    refitsphere(bestshape, pc, sp_ϵ, sp_α)
+                    refitsphere(bestshape, pc, params)
                 elseif bestshape.candidate.shape isa FittedCylinder
-                    refitcylinder(bestshape, pc, cy_ϵ, cy_α)
+                    refitcylinder(bestshape, pc, params)
                 else
                     @error "Whatt? panic with $(typeof(bestshape.candidate.shape))"
                 end
@@ -234,7 +227,7 @@ function ransac(pc, αϵ, t, pt, τ, itmax, drawN, minleftover; reset_rand = fal
 
         # check exit condition
         # TODO: τ-t is le kéne osztani a subsestek számával
-        if prob(τ/subsetN, length(scoredshapes), pc.size, k=drawN) > pt
+        if prob(τ/subsetN, length(scoredshapes), pc.size, drawN) > prob_det
             @debug "Break, at this point all shapes should be extracted: $k. iteráció."
             break
         end

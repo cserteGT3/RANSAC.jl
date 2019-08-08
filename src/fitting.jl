@@ -84,7 +84,8 @@ A collinearity check is used to not filter out points on one line.
 - `alpharad::Real`: maximum difference between the normals (in radians).
 - `collin_threshold::Real=0.2`: threshold for the collinearity check (lower is stricter).
 """
-function isplane(p, n, alpharad, collin_threshold = 0.2)
+function isplane(p, n, params)
+    @unpack α_plane, collin_threshold = params
     lp = length(p)
     @assert length(p) > 2 "At least 3 point is needed."
     @assert lp == length(n) "Size must be the same."
@@ -107,7 +108,7 @@ function isplane(p, n, alpharad, collin_threshold = 0.2)
     norm_ok = falses(lp)
     invnorm_ok = falses(lp)
 
-    thr = cos(alpharad)
+    thr = cos(α_plane)
     for i in 1:lp
         dotp = dot(crossv, normalize(n[i]))
         norm_ok[i] = dotp > thr
@@ -129,12 +130,13 @@ function isshape(shape::FittedSphere)
     return shape.issphere
 end
 
-function fitsphere(v, n)
+function fitsphere(v, n, params)
+    @unpack parallelthrdeg, sphere_par = params
     n1n = normalize(n[1])
     n2n = normalize(n[2])
 
     b = false
-    if abs(dot(n1n, n2n)) > 0.98
+    if abs(dot(n1n, n2n)) > cosd(parallelthrdeg)
         # parallel normals
         # fit it, if bad, will fall out later
         centerp = (v[1]+v[2])/2
@@ -148,7 +150,7 @@ function fitsphere(v, n)
         nk = norm(k)
         nh = norm(h)
 
-        if nk < 0.02 || nh < 0.02
+        if nk < sphere_par || nh < sphere_par
             # if nk == 0 || nh == 0, but it's numeric
             # no intersection
             n2 = n2n × (n1n × n2n)
@@ -186,21 +188,22 @@ Fit a sphere to 2 points. Additional points and their normals are used to valida
 - `epsilon::Real`: maximum distance-difference between the fitted and measured spheres.
 - `alpharad::Real`: maximum difference between the normals (in radians).
 """
-function issphere(p, n, epsilon, alpharad)
+function issphere(p, n, params)
+    @unpack ϵ_sphere, α_sphere = params
     pl = length(p)
     @assert pl == length(n) "Size must be the same."
     @assert pl > 2 "Size must be at least 3."
     # "forcefit" a sphere
-    sp = fitsphere(p, n)
+    sp = fitsphere(p, n, params)
     # check if real sphere
     sp.issphere || return sp
-    thr = cos(alpharad)
+    thr = cos(α_sphere)
     vert_ok = falses(pl)
     norm_ok = falses(pl)
     invnorm_ok = falses(pl)
     for i in 1:pl
         # vertice check
-        vert_ok[i] = abs(norm(p[i]-sp.center)-sp.radius) < epsilon
+        vert_ok[i] = abs(norm(p[i]-sp.center)-sp.radius) < ϵ_sphere
         # normal check
         dotp = dot( normalize(p[i]-sp.center), normalize(n[i]) )
         norm_ok[i] = dotp > thr
@@ -228,9 +231,10 @@ function setcylinderOuterity(fc, b)
     FittedCylinder(fc.iscylinder, fc.axis, fc.center, fc.radius, b)
 end
 
-function fitcylinder(p, n, epsilon, alpharad; parallel_threshold_deg = 1)
+function fitcylinder(p, n, params)
+    @unpack α_cylinder, ϵ_cylinder, parallelthrdeg = params
     # the normals are too parallel so cannot fit cylinder to it
-    if abs(dot(n[1], n[2])) > cos(deg2rad(parallel_threshold_deg))
+    if abs(dot(n[1], n[2])) > cosd(parallelthrdeg)
         return FittedCylinder(false, NaNVec, NaNVec, 0, false)
     end
 
@@ -366,18 +370,19 @@ Normals are expected to be normalized.
 - `epsilon::Real`: maximum distance-difference between the fitted and measured spheres.
 - `alpharad::Real`: maximum difference between the normals (in radians).
 """
-function iscylinder(p, n, epsilon, alpharad)
+function iscylinder(p, n, params)
+    @unpack ϵ_cylinder, α_cylinder, parallelthrdeg = params
     pl = length(p)
     @assert pl == length(n) "Size must be the same."
     @assert pl > 2 "Size must be at least 3."
 
     # "forcefit" a cylinder
-    fc = fitcylinder(p, n, epsilon, alpharad, parallel_threshold_deg=3)
+    fc = fitcylinder(p, n, params)
 
     fc.iscylinder || return fc
 
 
-    thr = cos(alpharad)
+    thr = cos(α_cylinder)
     vert_ok = falses(pl)
     norm_ok = falses(pl)
     invnorm_ok = falses(pl)
@@ -385,7 +390,7 @@ function iscylinder(p, n, epsilon, alpharad)
         # current normal
         curr_norm = p[i] - fc.axis*dot( fc.axis, p[i]-fc.center ) - fc.center
         # vertice check
-        vert_ok[i] = abs(norm(curr_norm)-fc.radius) < epsilon
+        vert_ok[i] = abs(norm(curr_norm)-fc.radius) < ϵ_cylinder
         # normal check
         dotp = dot( normalize(curr_norm), n[i] )
         norm_ok[i] = dotp > thr

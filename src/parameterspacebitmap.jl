@@ -32,13 +32,14 @@ Give back the projected points too for parameter space magic.
 
 Compatibility is measured with an `eps` distance to the plane and an `alpharad` angle to it's normal.
 """
-function compatiblesPlane(plane, points, normals, eps, alpharad)
+function compatiblesPlane(plane, points, normals, params)
+    @unpack ϵ_plane, α_plane = params
     @assert length(points) == length(normals) "Size must be the same."
     projecteds = project2plane(plane, points)
     # eps check
-    c1 = [abs(a[3]) < eps for a in projecteds]
+    c1 = [abs(a[3]) < ϵ_plane for a in projecteds]
     # alpha check
-    c2 = [isparallel(plane.normal, normals[i], alpharad) && c1[i] for i in eachindex(normals)]
+    c2 = [isparallel(plane.normal, normals[i], α_plane) && c1[i] for i in eachindex(normals)]
     # projecteds[c2] are the compatible points
     return c2, projecteds
 end
@@ -54,15 +55,16 @@ Bitmap the compatible parameters. An `idsource` is used to create the indexer ma
 - `beta<:Real`: resolution of the bitmap.
 - `idsource::AbstractArray`: source of the indexer map.
 """
-function bitmapparameters(parameters, compatibility, beta, idsource)
+function bitmapparameters(parameters, compatibility, params, idsource)
+    @unpack β = params
     @assert length(parameters) == length(compatibility) == length(idsource) "Everything must have the same length."
     miv, mav = findAABB(parameters)
     # perturbe minv and maxv
     pert = convert(typeof(miv), fill(0.1, length(miv)))
     minv = miv-pert
     maxv = mav+pert
-    xs = round(Int, (maxv[1]-minv[1])/beta)
-    ys = round(Int, (maxv[2]-minv[2])/beta)
+    xs = round(Int, (maxv[1]-minv[1])/β)
+    ys = round(Int, (maxv[2]-minv[2])/β)
     # TODO: ransac(pcr, αα, ϵϵ, tt, usegloββ, connekeyy, ptt, ττ, itermax)
     @assert xs > 0 && ys > 0 "max-min should be positive. Check the code! xs: $xs, ys:$ys"
     βx = (maxv[1]-minv[1])/xs
@@ -99,8 +101,8 @@ Bitmap the compatible parameters. The `idsource` is: `1:length(parameters)`.
 - `compatibility::AbstractArray`: indicates if the i-th parameter-pair is compatible.
 - `beta<:Real`: resolution of the bitmap.
 """
-function bitmapparameters(parameters, compatibility, beta)
-    return bitmapparameters(parameters, compatibility, beta, 1:length(parameters))
+function bitmapparameters(parameters, compatibility, params)
+    return bitmapparameters(parameters, compatibility, params, 1:length(parameters))
 end
 
 """
@@ -112,14 +114,16 @@ Return a bool indexer for (under,over) too.
 
 Compatibility is measured with an `eps` distance to the sphere and an `alpharad` angle to it's normal.
 """
-function compatiblesSphere(sphere, points, normals, eps, alpharad)
+function compatiblesSphere(sphere, points, normals, params)
+    @unpack ϵ_sphere, α_sphere = params
     @assert length(points) == length(normals) "Size must be the same."
     # eps check
     o = sphere.center
     R = sphere.radius
-    c1 = [abs(norm(a-o)-R) < eps for a in points]
+    c1 = [abs(norm(a-o)-R) < ϵ_sphere for a in points]
     # alpha check
-    α = cos(alpharad)
+    α = cos(α_sphere)
+    #TODO: check this
     if sphere.outwards
         c2 = [isparallel(normalize(points[i]-o), normals[i], α) && c1[i] for i in eachindex(points)]
     else
@@ -150,7 +154,8 @@ Give back the projected points too for parameter space magic.
 
 Compatibility is measured with an `eps` distance to the cylinder and an `alpharad` angle to it's normal.
 """
-function compatiblesCylinder(cylinder, points, normals, eps, alpharad)
+function compatiblesCylinder(cylinder, points, normals, params)
+    @unpack ϵ_cylinder, α_cylinder = params
     @assert length(points) == length(normals) "Size must be the same."
 
     c = cylinder.center
@@ -163,11 +168,11 @@ function compatiblesCylinder(cylinder, points, normals, eps, alpharad)
     for i in 1:length(points)
         curr_norm = points[i] - a*dot( a, points[i]-c ) - c
         # if the radius is correct
-        if abs(norm(curr_norm)-R) < eps
+        if abs(norm(curr_norm)-R) < ϵ_cylinder
             if cylinder.outwards
-                comp[i] = isparallel(normalize(curr_norm), normals[i], alpharad)
+                comp[i] = isparallel(normalize(curr_norm), normals[i], α_cylinder)
             else
-                comp[i] = isparallel(-normalize(curr_norm), normals[i], alpharad)
+                comp[i] = isparallel(-normalize(curr_norm), normals[i], α_cylinder)
             end
         end
 
@@ -226,9 +231,9 @@ end
 
 Refit plane. Only s.inpoints is updated.
 """
-function refitplane(s, pc, ϵ, α)
+function refitplane(s, pc, params)
     # TODO: use octree for that
-    cp, _ = compatiblesPlane(s.candidate.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
+    cp, _ = compatiblesPlane(s.candidate.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], params)
     s.inpoints = ((1:pc.size)[pc.isenabled])[cp]
     s
 end
@@ -238,9 +243,9 @@ end
 
 Refit sphere. Only s.inpoints is updated.
 """
-function refitsphere(s, pc, ϵ, α)
+function refitsphere(s, pc, params)
     # TODO: use octree for that
-    cpl, uo, sp = compatiblesSphere(s.candidate.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
+    cpl, uo, sp = compatiblesSphere(s.candidate.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], params)
     # verti: összes pont indexe, ami enabled és kompatibilis
     verti = (1:pc.size)[pc.isenabled]
     underEn = uo.under .& cpl
@@ -254,9 +259,9 @@ end
 
 Refit cylinder. Only s.inpoints is updated.
 """
-function refitcylinder(s, pc, ϵ, α)
+function refitcylinder(s, pc, params)
     # TODO: use octree for that
-    cp, _ = compatiblesCylinder(s.candidate.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
+    cp, _ = compatiblesCylinder(s.candidate.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], params)
     s.inpoints = ((1:pc.size)[pc.isenabled])[cp]
     s
 end

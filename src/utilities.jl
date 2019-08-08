@@ -99,7 +99,7 @@ Chop the 3rd element of every point.
 """
 function chopzaxis(points)
     @assert length(points[1]) == 3 "Implemented only for 3 long vectors."
-    [ SVector(a[1], a[2]) for a in points]
+    [SVector(a[1], a[2]) for a in points]
 end
 
 
@@ -166,7 +166,7 @@ from a point cloud size of `N`, with `k` size of minimal sets and `s` draws.
 - `N`: size of the point cloud.
 - `k`: size of the minimal set required to define a shape candidate.
 """
-prob(n, s, N; k = 4) = 1-(1-(n/N)^k)^s
+prob(n, s, N, k) = 1-(1-(n/N)^k)^s
 
 
 """
@@ -183,32 +183,44 @@ function havesameelement(A, B)
     false
 end
 
-struct AlphSilon
-    ϵ_sphere::Float64
-    α_sphere::Float64
-    ϵ_plane::Float64
-    α_plane::Float64
-    ϵ_cylinder::Float64
-    α_cylinder::Float64
-end
+@with_kw struct RANSACParameters{R<:Real} @deftype R
+    ϵ_plane = 0.3
+    α_plane = deg2rad(5)
 
-"""
-    AlphSilon(sphere_as, plane_as, cylinder_as)
+    ϵ_sphere = 0.3
+    α_sphere = deg2rad(5)
 
-Create an AlphSilon from 3 named tuples with ϵ and α fields.
+    ϵ_cylinder = 0.3
+    α_cylinder = deg2rad(5)
 
-Possibly it Will be replaced by Parameters.jl
-"""
-function AlphSilon(sphere_as, plane_as, cylinder_as)
-    ϵ1 = sphere_as.ϵ
-    α1 = sphere_as.α
+    ϵ_cone = 0.3
+    α_cone = deg2rad(5)
 
-    ϵ2 = plane_as.ϵ
-    α2 = plane_as.α
+    ϵ_torus = 0.3
+    α_torus = deg2rad(5)
 
-    ϵ3 = cylinder_as.ϵ
-    α3 = cylinder_as.α
-    return AlphSilon(ϵ1, α1, ϵ2, α2, ϵ3, α3)
+    # number of points to be sampled (length of a minimal subset)
+    drawN::Int = 3; @assert drawN>2
+    # number of minimal subsets sampled in one iteration
+    minsubsetN::Int = 15; @assert minsubsetN>0
+    # probability of detection
+    prob_det = 0.9
+    # minimal shape size
+    τ::Int = 900
+    # maximum number of iteration
+    itermax::Int = 20
+    # if the number of enabled points fall under `leftover`,
+    # the iteration terminates
+    leftovers::Int = 500
+
+    # threshold of two vectors being parallel (in degrees)
+    parallelthrdeg = 1
+    # threshold of points being collinear
+    collin_threshold = 0.2
+    # bitmap resolution
+    β = 1
+    # parameter in sphere fitting
+    sphere_par = 0.02
 end
 
 """

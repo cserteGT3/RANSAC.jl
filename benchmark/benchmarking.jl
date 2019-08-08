@@ -24,24 +24,20 @@ const table_align = [:l, :l, nums, nums, nums, nums, nums, nums, :l]
 function setupme(iterations)
     vs, ns, norms4Plot, shape_s = examplepc3()
     pcr = PointCloud(vs, ns, 32)
+    p = RANSACParameters{Float64}()
     # plane
-    p_ae = (ϵ = 0.3, α=deg2rad(5))
+	p = RANSACParameters(p, ϵ_plane=0.3, α_plane=deg2rad(5))
     # cylidner
-    cy_ae = (ϵ = 0.3, α=deg2rad(5))
+	p = RANSACParameters(p, ϵ_cylinder=0.3, α_cylinder=deg2rad(5))
     # sphere
-    sp_ae = (ϵ = 0.3, α=deg2rad(5))
-    one_ae = AlphSilon(sp_ae, p_ae, cy_ae)
+	p = RANSACParameters(p, ϵ_sphere=0.3, α_sphere=deg2rad(5))
     # number of minimal subsets drawed in one iteration
-    tt = 15
-    # probability that we found shapes
-    ptt = 0.9
-    # minimum shape size
-    ττ = 900
-    # maximum number of iteration
-    itermax = iterations
-    # size of the minimal set
-    draws = 3
-    return (pcr, one_ae, tt, ptt, ττ, itermax, draws, 500, true)
+	# probability that we found shapes
+	# minimum shape size
+	# maximum number of iteration
+	p = RANSACParameters(p, minsubsetN=15, prob_det=0.9, τ=900)
+	p = RANSACParameters(p, itermax=iterations, drawN=3)
+    return (pcr, p, true)
 end
 
 function makenamedtuple(bmresult)
