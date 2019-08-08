@@ -139,8 +139,7 @@ function compatiblesSphere(sphere, points, normals, params)
     end
     # TODO
     # normalize by it's own length or maximum length??? r+3ϵ
-    proj_points = [SVector{2}(normalize(a[1:2]-o[1:2])) for a in points]
-    param_points = unitdisk2square.(proj_points)
+    param_points = [unitdisk2square(normalize(a[1:2]-o[1:2])) for a in points]
     return c2, (under=under, over=over), param_points
 end
 
