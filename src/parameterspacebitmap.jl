@@ -122,12 +122,10 @@ function compatiblesSphere(sphere, points, normals, params)
     R = sphere.radius
     c1 = [abs(norm(a-o)-R) < ϵ_sphere for a in points]
     # alpha check
-    α = cos(α_sphere)
-    #TODO: check this
     if sphere.outwards
-        c2 = [isparallel(normalize(points[i]-o), normals[i], α) && c1[i] for i in eachindex(points)]
+        c2 = [isparallel(normalize(points[i]-o), normals[i], α_sphere) && c1[i] for i in eachindex(points)]
     else
-        c2 = [isparallel(normalize(o-points[i]), normals[i], α) && c1[i] for i in eachindex(points)]
+        c2 = [isparallel(normalize(o-points[i]), normals[i], α_sphere) && c1[i] for i in eachindex(points)]
     end
 
     under = falses(length(points))
