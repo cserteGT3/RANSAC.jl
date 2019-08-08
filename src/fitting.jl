@@ -98,7 +98,7 @@ function isplane(p, n, params)
             # return with false, cause no more points can be used
             return FittedPlane(false, NaNVec, NaNVec)
         end
-        crossv = MVector{3}(normalize(cross(p[2]-p[4], p[3]-p[1])))
+        crossv = normalize(cross(p[2]-p[4], p[3]-p[1]))
         if norm(crossv) < collin_threshold
             # return false, cause these are definitely on one line
             return FittedPlane(false, NaNVec, NaNVec)
@@ -114,8 +114,8 @@ function isplane(p, n, params)
         norm_ok[i] = dotp > thr
         invnorm_ok[i] = dotp < -thr
     end
-    norm_ok == trues(lp) && return FittedPlane(true, p[1], SVector{3}(crossv))
-    invnorm_ok == trues(lp) && return FittedPlane(true, p[1], SVector{3}(-1*crossv))
+    norm_ok == trues(lp) && return FittedPlane(true, p[1], crossv)
+    invnorm_ok == trues(lp) && return FittedPlane(true, p[1], -1*crossv)
     return FittedPlane(false, NaNVec, NaNVec)
 end
 
