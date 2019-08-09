@@ -98,6 +98,24 @@ end
 
 # bitmapping
 
+function scorecandidate(pc, candidate::ShapeCandidate{T}, subsetID, params) where {T<:FittedSphere}
+    ps = @view pc.vertices[pc.subsets[subsetID]]
+    ns = @view pc.normals[pc.subsets[subsetID]]
+    ens = @view pc.isenabled[pc.subsets[subsetID]]
+
+    cpl, uo, sp = compatiblesSphere(candidate.shape, ps, ns, params)
+    # verti: összes pont indexe, ami enabled és kompatibilis
+    # lenne, ha működne, de inkább a boolean indexelést machináljuk
+    verti = pc.subsets[subsetID]
+    underEn = uo.under .& cpl
+    overEn = uo.over .& cpl
+
+    inpoints = count(underEn) >= count(overEn) ? verti[underEn] : verti[overEn]
+    score = estimatescore(length(pc.subsets[subsetID]), pc.size, length(inpoints))
+    pc.levelscore[candidate.octree_lev] += E(score)
+    return ScoredShape(candidate, score, inpoints)
+end
+
 """
     compatiblesSphere(plane, points, normals, eps, alpharad)
 

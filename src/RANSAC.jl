@@ -63,13 +63,13 @@ export  sampleplane,
         showgeometry
 
 export  project2plane,
-        compatiblesPlane,
-        bitmapparameters,
-        compatiblesSphere,
-        compatiblesCylinder,
-        largestconncomp,
-        refitsphere,
-        refitplane,
+        #compatiblesPlane,
+        #bitmapparameters,
+        #compatiblesSphere,
+        #compatiblesCylinder,
+        #largestconncomp,
+        #refitsphere,
+        #refitplane,
         refitcylinder
 
 export  ransac,

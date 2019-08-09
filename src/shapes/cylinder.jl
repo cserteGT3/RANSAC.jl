@@ -189,6 +189,20 @@ end
 
 # bitmapping
 
+function scorecandidate(pc, candidate::ShapeCandidate{T}, subsetID, params) where {T<:FittedCylinder}
+    ps = @view pc.vertices[pc.subsets[subsetID]]
+    ns = @view pc.normals[pc.subsets[subsetID]]
+    ens = @view pc.isenabled[pc.subsets[subsetID]]
+
+    cp, pp = compatiblesCylinder(candidate.shape, ps, ns, params)
+    inder = cp.&ens
+    inpoints = (pc.subsets[subsetID])[inder]
+    #inpoints = ((pc.subsets[1])[ens])[cp]
+    score = estimatescore(length(pc.subsets[subsetID]), pc.size, length(inpoints))
+    pc.levelscore[candidate.octree_lev] += E(score)
+    return ScoredShape(candidate, score, inpoints)
+end
+
 """
     compatiblesCylinder(cylinder, points, normals, eps, alpharad)
 

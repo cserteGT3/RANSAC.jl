@@ -8,7 +8,8 @@ end
 function ransac(pc, params; reset_rand = false)
     reset_rand && Random.seed!(1234)
 
-    @unpack drawN, minsubsetN, prob_det, τ, itermax, leftovers = params
+    @unpack drawN, minsubsetN, prob_det, τ = params
+    @unpack itermax, leftovers, shape_types = params
 
     # build an octree
     subsetN = length(pc.subsets)
@@ -119,50 +120,11 @@ function ransac(pc, params; reset_rand = false)
 
         # evaluate the compatible points, currently used as score
         # TODO: do something with octree levels and scores
+        which_ = 1
 
         for c in candidates
             #TODO: save the bitmmaped parameters for debug
-            which_ = 1
-            ps = @view pc.vertices[pc.subsets[which_]]
-            ns = @view pc.normals[pc.subsets[which_]]
-            ens = @view pc.isenabled[pc.subsets[which_]]
-
-            if isa(c.shape, FittedPlane)
-                # plane
-                # cp, pp = compatiblesPlane(c.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
-                cp, pp = compatiblesPlane(c.shape, ps, ns, params)
-                inder = cp.&ens
-                inpoints = (pc.subsets[which_])[inder]
-                #inpoints = ((pc.subsets[1])[ens])[cp]
-                score = estimatescore(length(pc.subsets[which_]), pc.size, length(inpoints))
-                pc.levelscore[c.octree_lev] = pc.levelscore[c.octree_lev] + E(score)
-                push!(scoredshapes, ScoredShape(c, score, inpoints))
-            elseif isa(c.shape, FittedSphere)
-                # sphere
-                # cpl, uo, sp = compatiblesSphere(c.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], ϵ, α)
-                cpl, uo, sp = compatiblesSphere(c.shape, ps, ns, params)
-                # verti: összes pont indexe, ami enabled és kompatibilis
-                # lenne, ha működne, de inkább a boolean indexelést machináljuk
-                verti = pc.subsets[1]
-                underEn = uo.under .& cpl
-                overEn = uo.over .& cpl
-
-                inpoints = count(underEn) >= count(overEn) ? verti[underEn] : verti[overEn]
-                score = estimatescore(length(pc.subsets[which_]), pc.size, length(inpoints))
-                pc.levelscore[c.octree_lev] = pc.levelscore[c.octree_lev] + E(score)
-                push!(scoredshapes, ScoredShape(c, score, inpoints))
-            elseif isa(c.shape, FittedCylinder)
-                cp, pp = compatiblesCylinder(c.shape, ps, ns, params)
-                inder = cp.&ens
-                inpoints = (pc.subsets[which_])[inder]
-                #inpoints = ((pc.subsets[1])[ens])[cp]
-                score = estimatescore(length(pc.subsets[which_]), pc.size, length(inpoints))
-                pc.levelscore[c.octree_lev] = pc.levelscore[c.octree_lev] + E(score)
-                push!(scoredshapes, ScoredShape(c, score, inpoints))
-            else
-                # currently nothing else is implemented
-                @warn "What the: $c"
-            end # if
+            push!(scoredshapes, scorecandidate(pc, c, which_, params))
         end # for c
         # by now every candidate is scored into scoredshapes
         empty!(candidates)
