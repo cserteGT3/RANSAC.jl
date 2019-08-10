@@ -136,10 +136,10 @@ function ransac(pc, params; reset_rand = false)
             bestshape = scoredshapes[best.index]
             # TODO: refine if best.overlap
             scr = E(bestshape.score)
-            lengttt = length(bestshape.inpoints)
-            ppp = prob(lengttt*subsetN, length(scoredshapes), pc.size, drawN)
+            best_length = length(bestshape.inpoints)
+            ppp = prob(best_length*subsetN, length(scoredshapes), pc.size, drawN)
             if k%50 == 0
-                @debug "$k. it, best: $lengttt db, score: $scr, prob: $ppp, scored shapes: $(length(scoredshapes)) db."
+                @debug "$k. it, best: $best_length db, score: $scr, prob: $ppp, scored shapes: $(length(scoredshapes)) db."
             end
             #TODO: length will be only 1/numberofsubsets
             # if the probability is large enough, extract the shape
@@ -164,7 +164,7 @@ function ransac(pc, params; reset_rand = false)
                     pc.isenabled[a] = false
                 end
                 # extract the shape and delete from scoredshapes
-                push!(extracted, deepcopy(bestshape))
+                push!(extracted, bestshape)
                 deleteat!(scoredshapes, best.index)
                 # mark scoredshapes that have invalid points
                 toremove = Int[]
