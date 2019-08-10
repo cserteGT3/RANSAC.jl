@@ -19,17 +19,15 @@ export  rodriguesdeg,
 export  arbitrary_orthogonal,
         isparallel,
         findAABB,
-        chopzaxis,
         unitdisk2square,
-        prob,
         smallestdistance,
+        prob,
         havesameelement,
         RANSACParameters
 
 export  ConfidenceInterval,
         notsoconfident,
-        estimatescore,
-        smallestdistance,
+        isoverlap,
         E
 
 export  OctreeNode,
@@ -68,22 +66,24 @@ export  project2plane,
         #compatiblesSphere,
         #compatiblesCylinder,
         #largestconncomp,
-        #refitsphere,
-        #refitplane,
+        refitsphere,
+        refitplane,
         refitcylinder
 
-export  ransac,
-        showcandlength,
-        showshapes,
-        getrest,
-        showtype,
-        showbytype
+export  ransac
 
 export  nosource_debuglogger,
         nosource_infologger,
         sourced_debuglogger,
         sourced_infologger,
         nosource_metafmt
+
+export  showgeometry,
+        showcandlength,
+        showshapes,
+        getrest,
+        showtype,
+        showbytype
 
 include("utilities.jl")
 include("confidenceintervals.jl")
@@ -96,5 +96,6 @@ include("sampling.jl")
 include("parameterspacebitmap.jl")
 include("iterations.jl")
 include("logging.jl")
+include("visualizations.jl")
 
 end #module

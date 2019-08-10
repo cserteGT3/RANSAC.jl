@@ -287,14 +287,3 @@ function examplepc5(nois = false; all = false, mrotdeg = 10, vertscale = 0.5)
     nsfp_ = normalsforplot(vs, ns)
     return vs, ns, nsfp_, shape_sizes
 end
-
-"""
-    showgeometry(scene, vs, ns; arrow = 0.5)
-
-Show pointcloud with normals.
-"""
-function showgeometry(vs, ns; arrow = 0.5)
-        plns = normalsforplot(vs, ns, arrow)
-        scene = scatter(vs)
-        linesegments!(scene, plns, color = :blue)
-end
