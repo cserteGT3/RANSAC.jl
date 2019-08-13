@@ -4,7 +4,7 @@ using LinearAlgebra
 using Random
 using Logging
 using Logging: default_logcolor
-using StaticArrays: SVector, MVector
+using StaticArrays: SVector
 using RegionTrees
 using AbstractPlotting: Point3f0
 using Makie: scatter, linesegments!, Scene, scatter!
