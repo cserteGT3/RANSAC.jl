@@ -8,6 +8,8 @@ using StaticArrays: SVector
 using RegionTrees
 using AbstractPlotting: Point3f0
 using Makie: scatter, linesegments!, Scene, scatter!
+using Makie: mesh!, cam3d!, Sphere, Point
+using GeometryTypes: Cylinder
 using Images: label_components, component_lengths
 using Parameters
 
@@ -83,7 +85,9 @@ export  showgeometry,
         showshapes,
         getrest,
         showtype,
-        showbytype
+        showbytype,
+        plotshape,
+        plotshape!
 
 include("utilities.jl")
 include("confidenceintervals.jl")

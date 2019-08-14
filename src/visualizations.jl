@@ -60,3 +60,33 @@ function showbytype(pointcloud, candidateA)
     sc = Scene()
     showbytype(sc, pointcloud, candidateA)
 end
+
+function plotshape(shape::FittedShape; kwargs...)
+    plotshape!(Scene(), shape; kwargs...)
+end
+
+function plotshape!(sc, shape::FittedPlane; scale=(1.,1.), color=(:blue, 0.1))
+    # see project2plane
+    o_z = normalize(shape.normal)
+    o_x = normalize(arbitrary_orthogonal(o_z))
+    o_y = normalize(cross(o_z, o_x))
+
+    p1 = shape.point
+    p2 = p1 + scale[1]*o_x
+    p3 = p1 + scale[1]*o_x + scale[2]*o_y
+    p4 = p1 + scale[2]*o_y
+
+    mesh!(sc, [p1,p2,p3], color=color, transparency=true)
+    mesh!(sc, [p1,p4,p3], color=color, transparency=true)
+    sc
+end
+
+function plotshape!(sc, shape::FittedSphere; scale=(1.,), color=(:blue, 0.1))
+    mesh!(sc, Sphere(Point(shape.center), scale[1]*shape.radius), color=color, transparency=true)
+end
+
+function plotshape!(sc, shape::FittedCylinder; scale=(1.,), color=(:blue, 0.1))
+    o = Point(shape.center)
+    extr = o+scale[1]*Point(normalize(shape.axis))
+    mesh!(sc, Cylinder(o, extr, shape.radius), color=color, transparency=true)
+end
