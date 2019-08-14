@@ -77,7 +77,7 @@ function plotshape!(sc, shape::FittedPlane; scale=(1.,1.), color=(:blue, 0.1))
     p4 = p1 + scale[2]*o_y
 
     mesh!(sc, [p1,p2,p3], color=color, transparency=true)
-    mesh!(sc, [p1,p4,p3], color=color, transparency=true)
+    mesh!(sc, [p1,p3,p4], color=color, transparency=true)
     sc
 end
 
