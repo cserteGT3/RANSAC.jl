@@ -22,6 +22,12 @@ mutable struct PointCloud{A<:AbstractArray, B<:AbstractArray, C<:AbstractArray}
     levelscore::C
 end
 
+Base.show(io::IO, x::PointCloud{A,B,C}) where {A,B,C} =
+    print(io, "PointCloud of size $(x.size)")
+
+Base.show(io::IO, ::MIME"text/plain", x::PointCloud{A,B,C}) where {A,B,C} =
+    print(io, "PointCloud{$A,$B,$C}\n", x)
+
 """
     PointCloud(vertices, normals, subsets, isenabled)
 
@@ -68,6 +74,12 @@ struct OctreeNode{B<:AbstractArray}
     incellpoints::B
     depth::Int64
 end
+
+Base.show(io::IO, x::OctreeNode{A}) where {A} =
+    print(io, "OctreeNode: $(length(x.incellpoints)) ps, $(x.depth) d")
+
+Base.show(io::IO, ::MIME"text/plain", x::OctreeNode{A}) where {A} =
+    print(io, """OctreeNode{$A}\n$(x.pointcloud.size) pointcloud, $(x.depth) deep, $(length(x.incellpoints)) ps""")
 
 struct OctreeRefinery <: AbstractRefinery
     count::Int64

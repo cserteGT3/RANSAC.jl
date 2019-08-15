@@ -4,6 +4,13 @@ struct ConfidenceInterval
     ConfidenceInterval(x, y) = x > y ? error("out of order") : new(x, y)
 end
 
+Base.show(io::IO, x::ConfidenceInterval) =
+    print(io, "CI: [$(x.min), $(x.max)]")
+
+Base.show(io::IO, ::MIME"text/plain", x::ConfidenceInterval) =
+    print(io, "ConfidenceInterval: [$(x.min), $(x.max)]")
+
+
 """
     notsoconfident(x, y)
 

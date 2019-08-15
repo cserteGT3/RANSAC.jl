@@ -14,6 +14,7 @@ using Images: label_components, component_lengths
 using Parameters
 
 import RegionTrees: AbstractRefinery, needs_refinement, refine_data
+import Base: show
 
 export  rodriguesdeg,
         rodriguesrad

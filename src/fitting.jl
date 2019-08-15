@@ -8,11 +8,23 @@ struct ShapeCandidate{S<:FittedShape}
     octree_lev::Int
 end
 
+Base.show(io::IO, x::ShapeCandidate{S}) where {S} =
+    print(io, "Cand: (", x.shape, ")")
+
+Base.show(io::IO, ::MIME"text/plain", x::ShapeCandidate{S}) where {S} =
+    print(io, "ShapeCandidate{$S}\n", x, ", octree: $(x.octree_lev)")
+
 mutable struct ScoredShape{A<:AbstractArray}
     candidate::ShapeCandidate
     score::ConfidenceInterval
     inpoints::A
 end
+
+Base.show(io::IO, x::ScoredShape{A}) where {A} =
+    print(io, "Scored: (", x.candidate, "), $(length(x.inpoints)) ps")
+
+Base.show(io::IO, ::MIME"text/plain", x::ScoredShape{A}) where {A} =
+    print(io, "ScoredShape{$A}\n", x, ", score: ($(x.score))")
 
 getscore(scoredshape::ScoredShape) = scoredshape.score
 

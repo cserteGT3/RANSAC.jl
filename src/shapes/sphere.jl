@@ -7,6 +7,12 @@ struct FittedSphere{A<:AbstractArray, R<:Real} <: FittedShape
     outwards::Bool
 end
 
+Base.show(io::IO, x::FittedSphere) =
+    print(io, """$(x.issphere ? "o" : "x") sphere, R: $(x.radius)""")
+
+Base.show(io::IO, ::MIME"text/plain", x::FittedSphere{A, R}) where {A, R} =
+    print(io, "FittedSphere{$A, $R}\n", """$(x.issphere ? "o" : "x") sphere, center: $(x.center), R: $(x.radius), $(x.outwards ? "outwards" : "inwards" )""")
+
 function isshape(shape::FittedSphere)
     return shape.issphere
 end

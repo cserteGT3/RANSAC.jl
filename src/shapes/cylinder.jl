@@ -8,6 +8,12 @@ struct FittedCylinder{A<:AbstractArray, R<:Real} <: FittedShape
     outwards::Bool
 end
 
+Base.show(io::IO, x::FittedCylinder) =
+    print(io, """$(x.iscylinder ? "o" : "x") cylinder, R: $(x.radius)""")
+
+Base.show(io::IO, ::MIME"text/plain", x::FittedCylinder{A, R}) where {A, R} =
+    print(io, """FittedCylinder{$A, $R}\n$(x.iscylinder ? "o" : "x") cylinder, center: $(x.center), axis: $(x.axis), R: $(x.radius), $(x.outwards ? "outwards" : "inwards" )""")
+
 function isshape(shape::FittedCylinder)
     return shape.iscylinder
 end
