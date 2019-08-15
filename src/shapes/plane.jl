@@ -12,6 +12,8 @@ Base.show(io::IO, x::FittedPlane) =
 Base.show(io::IO, ::MIME"text/plain", x::FittedPlane{A}) where {A} =
     print(io, """FittedPlane{$A}\n$(x.isplane ? "o" : "x") plane, normal: $(x.normal), point: $(x.point) """)
 
+strt(x::FittedPlane) = "plane"
+
 function isshape(shape::FittedPlane)
     return shape.isplane
 end

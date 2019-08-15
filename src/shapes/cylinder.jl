@@ -14,6 +14,8 @@ Base.show(io::IO, x::FittedCylinder) =
 Base.show(io::IO, ::MIME"text/plain", x::FittedCylinder{A, R}) where {A, R} =
     print(io, """FittedCylinder{$A, $R}\n$(x.iscylinder ? "o" : "x") cylinder, center: $(x.center), axis: $(x.axis), R: $(x.radius), $(x.outwards ? "outwards" : "inwards" )""")
 
+strt(x::FittedCylinder) = "cylinder"
+
 function isshape(shape::FittedCylinder)
     return shape.iscylinder
 end

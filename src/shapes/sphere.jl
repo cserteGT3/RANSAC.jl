@@ -17,6 +17,8 @@ function isshape(shape::FittedSphere)
     return shape.issphere
 end
 
+strt(x::FittedSphere) = "sphere"
+
 function fit2pointsphere(v, n, params)
     @unpack parallelthrdeg, sphere_par = params
     n1n = normalize(n[1])

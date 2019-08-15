@@ -23,7 +23,7 @@ mutable struct PointCloud{A<:AbstractArray, B<:AbstractArray, C<:AbstractArray}
 end
 
 Base.show(io::IO, x::PointCloud{A,B,C}) where {A,B,C} =
-    print(io, "PointCloud of size $(x.size)")
+    print(io, "PointCloud of size $(x.size) & $(length(x.subsets)) subsets")
 
 Base.show(io::IO, ::MIME"text/plain", x::PointCloud{A,B,C}) where {A,B,C} =
     print(io, "PointCloud{$A,$B,$C}\n", x)
