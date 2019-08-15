@@ -76,17 +76,23 @@ function plotshape!(sc, shape::FittedPlane; scale=(1.,1.), color=(:blue, 0.1))
     p3 = p1 + scale[1]*o_x + scale[2]*o_y
     p4 = p1 + scale[2]*o_y
 
-    mesh!(sc, [p1,p2,p3], color=color, transparency=true)
-    mesh!(sc, [p1,p3,p4], color=color, transparency=true)
+    mesh!(sc, [p1,p2,p3], color=color, transparency=true, camera = cam3d!)
+    mesh!(sc, [p1,p3,p4], color=color, transparency=true, camera = cam3d!)
     sc
 end
 
 function plotshape!(sc, shape::FittedSphere; scale=(1.,), color=(:blue, 0.1))
-    mesh!(sc, Sphere(Point(shape.center), scale[1]*shape.radius), color=color, transparency=true)
+    mesh!(sc, Sphere(Point(shape.center), scale[1]*shape.radius), color=color, transparency=true, camera = cam3d!)
 end
 
 function plotshape!(sc, shape::FittedCylinder; scale=(1.,), color=(:blue, 0.1))
     o = Point(shape.center)
     extr = o+scale[1]*Point(normalize(shape.axis))
-    mesh!(sc, Cylinder(o, extr, shape.radius), color=color, transparency=true)
+    mesh!(sc, Cylinder(o, extr, shape.radius), color=color, transparency=true, camera = cam3d!)
+end
+
+function shiftplane!(sc, p::FittedPlane, dist; kwargs...)
+    newo = p.point+dist*normalize(p.normal)
+    newp = FittedPlane(true, newo, p.normal)
+    plotshape!(sc, newp; kwargs...)
 end
