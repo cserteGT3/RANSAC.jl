@@ -144,7 +144,7 @@ function ransac(pc, params; reset_rand = false)
             #TODO: length will be only 1/numberofsubsets
             # if the probability is large enough, extract the shape
             if ppp > prob_det
-                @debug "Extraction! best score: $(E(bestshape.score)), length: $(length(bestshape.inpoints))"
+                @debug "Extracting best: $(strt(bestshape.candidate.shape)) score: $scr, length: $best_length"
 
                 # TODO: proper refit, not only getting the points that fit to that shape
                 # what do you mean by refit?

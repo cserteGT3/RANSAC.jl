@@ -143,6 +143,26 @@ function noisifyvertices(verts, allvs, scalef = 1)
 end
 
 """
+    noisifyv_fixed(verts, allvs, scalef = 1)
+
+Fixed version of `noisifyvertices`.
+
+# Arguments:
+- `allvs::Bool`: adds noise to every vertice if true.
+- `scalef::Real`: scale the noise from the [-1,1] interval.
+"""
+function noisifyv_fixed(verts, allvs, scalef = 1)
+    randis = similar(verts)
+    for i in eachindex(randis)
+        randis[i] = (2*scalef) .*eltype(verts)(rand(3)) .- scalef
+    end
+    allvs && return verts+randis
+    bools = rand(Bool, size(verts))
+    verts[bools] += randis[bools]
+    return verts
+end
+
+"""
     noisifynormals(norms, maxrot)
 
 Add gaussian noise to normals.
