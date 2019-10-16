@@ -6,10 +6,10 @@ using Logging
 using Logging: default_logcolor
 using StaticArrays: SVector
 using RegionTrees
-using AbstractPlotting: Point3f0
-using Makie: scatter, linesegments!, Scene, scatter!
-using Makie: mesh!, cam3d!, Sphere, Point
-using GeometryTypes: Cylinder
+#using AbstractPlotting: Point3f0
+#using Makie: scatter, linesegments!, Scene, scatter!
+#using Makie: mesh!, cam3d!, Sphere, Point
+#using GeometryTypes: Cylinder
 using Images: label_components, component_lengths
 using Parameters
 
@@ -81,15 +81,6 @@ export  nosource_debuglogger,
         sourced_infologger,
         nosource_metafmt
 
-export  showgeometry,
-        showcandlength,
-        showshapes,
-        getrest,
-        showtype,
-        showbytype,
-        plotshape,
-        plotshape!
-
 include("utilities.jl")
 include("confidenceintervals.jl")
 include("octree.jl")
@@ -101,6 +92,5 @@ include("sampling.jl")
 include("parameterspacebitmap.jl")
 include("iterations.jl")
 include("logging.jl")
-include("visualizations.jl")
 
 end #module
