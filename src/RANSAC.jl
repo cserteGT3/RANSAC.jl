@@ -51,6 +51,7 @@ export  FittedShape,
         forcefitshapes
 
 export  sampleplane,
+        sampleplanefromcorner,
         samplecylinder,
         samplesphere,
         normalsforplot,

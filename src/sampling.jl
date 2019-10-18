@@ -25,6 +25,20 @@ function sampleplane(vp, v1, v2, lengtht, sizet)
     return (ps, pn)
 end
 
+function sampleplanefromcorner(vp, v1, v2, lengtht, sizet)
+    @assert size(v1) == size(v2) == size(vp) "Vector's size must be the same!"
+    v1n = normalize(v1)
+    v2n = normalize(v2)
+    n = cross(v1n, v2n)
+    @assert norm(n) != 0 "Vectors can't be collinear!"
+    s1, s2 = sizet
+    @assert s1 > 0 && s2 > 0 "Should sample more than 0."
+    s1l, s2l = lengtht
+    pn = [n for i in 1:(s1+1)*(s2+1)]
+    ps = [vp + v1n*s1l*u/s1 + v2n*s2l*v/s2 for u in 0:s1 for v in 0:s2]
+    return (ps, pn)
+end
+
 """
     sampleplane(vp, n, lengtht, sizet)
 
