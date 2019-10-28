@@ -20,6 +20,7 @@ export  rodriguesdeg,
         rodriguesrad
 
 export  arbitrary_orthogonal,
+        arbitrary_orthogonal2,
         isparallel,
         findAABB,
         unitdisk2square,

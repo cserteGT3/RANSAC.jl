@@ -60,6 +60,18 @@ function arbitrary_orthogonal(vec)
     return convert(typeof(vec), cross(v, rv))
 end
 
+"""
+    arbitrary_orthogonal2(vec)
+
+Create an arbitrary orthogonal vector to `vec`.
+"""
+function arbitrary_orthogonal2(vec)
+    @assert size(vec,1) == 3 "Implemented only for 3 dimensional."
+    v = normalize(vec)
+    rv = normalize(rand(3))
+    return convert(typeof(vec), cross(v, rv))
+end
+
 
 """
     isparallel(v1, v2, alpharad)
