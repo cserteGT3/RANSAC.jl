@@ -33,10 +33,14 @@ function ransac(pc, params; reset_rand = false)
     # allocate for the random selected points
     sd = Vector{Int}(undef, drawN)
     @debug "Iteration begins."
+
+    # for logging
+    notifit = itermax > 10 ? div(itermax,10) : 1
+
     # iterate begin
     for k in 1:itermax
-        if count(pc.isenabled) < leftovers
-            @debug "Break at $k, because left only: $(length(findall(pc.isenabled)))"
+        if count(pc.isenabled) < τ
+            @debug "Break at $k, because left only: $(count(pc.isenabled))"
             break
         end
         # generate minsubsetN candidate
@@ -129,64 +133,80 @@ function ransac(pc, params; reset_rand = false)
         # by now every candidate is scored into scoredshapes
         empty!(candidates)
 
-        if length(scoredshapes) > 0
-            # search for the largest score == length(inpoints) (for now)
-            # best = largestshape(scoredshapes)
-            best = findhighestscore(scoredshapes)
-            bestshape = scoredshapes[best.index]
-            # TODO: refine if best.overlap
-            scr = E(bestshape.score)
-            best_length = length(bestshape.inpoints)
-            ppp = prob(best_length*subsetN, length(scoredshapes), pc.size, drawN)
-            if k%50 == 0
-                @debug "$k. it, best: $best_length db, score: $scr, prob: $ppp, scored shapes: $(length(scoredshapes)) db."
+        # considered so far k*minsubsetN db. minimal sets
+        sofar = k*minsubsetN
+
+        size(scoredshapes, 1) < 1 && @goto endofscoring
+        # search for the largest score == length(inpoints) (for now)
+        # best = largestshape(scoredshapes)
+        best = findhighestscore(scoredshapes)
+        bestshape = scoredshapes[best.index]
+        # TODO: refine if best.overlap
+        scr = E(bestshape.score)
+        best_length = length(bestshape.inpoints)
+
+        #ppp = prob(best_length*subsetN, length(scoredshapes), pc.size, drawN)
+        ppp = prob(best_length*subsetN, sofar, pc.size, drawN)
+
+        #info printing
+        if k%notifit == 0
+            @debug "$k. it, best: $best_length db, score: $scr, prob: $ppp, scored shapes: $(length(scoredshapes)) db."
+        end
+
+
+        #TODO: length will be only 1/numberofsubsets
+        # if the probability is large enough, extract the shape
+        if ppp > prob_det
+
+            # TODO: proper refit, not only getting the points that fit to that shape
+            # what do you mean by refit?
+            # refit on the whole pointcloud
+            if bestshape.candidate.shape isa FittedPlane
+                sp = refitplane(bestshape, pc, params)
+                sps = size(sp.inpoints,1)
+                @debug "Extracting best: $(strt(bestshape.candidate.shape)) score: $scr, refit length: $sps"
+            elseif bestshape.candidate.shape isa FittedSphere
+                ss = refitsphere(bestshape, pc, params)
+                sss = size(ss.inpoints,1)
+                @debug "Extracting best: $(strt(bestshape.candidate.shape)) score: $scr, refit length: $sss"
+            elseif bestshape.candidate.shape isa FittedCylinder
+                sc = refitcylinder(bestshape, pc, params)
+                scs = size(sc.inpoints,1)
+                @debug "Extracting best: $(strt(bestshape.candidate.shape)) score: $scr, refit length: $scs"
+            else
+                @error "Whatt? panic with $(typeof(bestshape.candidate.shape))"
             end
-            #TODO: length will be only 1/numberofsubsets
-            # if the probability is large enough, extract the shape
-            if ppp > prob_det
-                @debug "Extracting best: $(strt(bestshape.candidate.shape)) score: $scr, length: $best_length"
 
-                # TODO: proper refit, not only getting the points that fit to that shape
-                # what do you mean by refit?
-                # refit on the whole pointcloud
-                if bestshape.candidate.shape isa FittedPlane
-                    refitplane(bestshape, pc, params)
-                elseif bestshape.candidate.shape isa FittedSphere
-                    refitsphere(bestshape, pc, params)
-                elseif bestshape.candidate.shape isa FittedCylinder
-                    refitcylinder(bestshape, pc, params)
-                else
-                    @error "Whatt? panic with $(typeof(bestshape.candidate.shape))"
-                end
-
-                # invalidate points
-                for a in bestshape.inpoints
-                    pc.isenabled[a] = false
-                end
-                # extract the shape and delete from scoredshapes
-                push!(extracted, bestshape)
-                deleteat!(scoredshapes, best.index)
-                # mark scoredshapes that have invalid points
-                toremove = Int[]
-                for i in eachindex(scoredshapes)
-                    for a in scoredshapes[i].inpoints
-                        if ! pc.isenabled[a]
-                            push!(toremove, i)
-                            break
-                        end
+            # invalidate points
+            for a in bestshape.inpoints
+                pc.isenabled[a] = false
+            end
+            # extract the shape and delete from scoredshapes
+            push!(extracted, bestshape)
+            deleteat!(scoredshapes, best.index)
+            # mark scoredshapes that have invalid points
+            toremove = Int[]
+            for i in eachindex(scoredshapes)
+                for a in scoredshapes[i].inpoints
+                    if ! pc.isenabled[a]
+                        push!(toremove, i)
+                        break
                     end
                 end
+            end
 
-                # remove scoredshapes that have invalid points
-                deleteat!(scoredshapes, toremove)
-            end # if extract shape
-        end # if length(scoredshapes)
+            # remove scoredshapes that have invalid points
+            deleteat!(scoredshapes, toremove)
+        end # if extract shape
+
+        @label endofscoring
         # update octree levels
         updatelevelweight(pc)
 
         # check exit condition
         # TODO: τ-t is le kéne osztani a subsestek számával
-        if prob(τ/subsetN, length(scoredshapes), pc.size, drawN) > prob_det
+        #if prob(τ/subsetN, length(scoredshapes), pc.size, drawN) > prob_det
+        if prob(τ/subsetN, sofar, pc.size, drawN) > prob_det
             @debug "Break, at this point all shapes should be extracted: $k. iteráció."
             break
         end
