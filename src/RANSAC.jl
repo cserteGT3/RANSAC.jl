@@ -45,6 +45,7 @@ export  FittedShape,
         FittedPlane,
         FittedSphere,
         FittedCylinder,
+        FittedCone,
         ShapeCandidate,
         findhighestscore,
         ScoredShape,
@@ -90,6 +91,7 @@ include("fitting.jl")
 include("shapes/plane.jl")
 include("shapes/sphere.jl")
 include("shapes/cylinder.jl")
+include("shapes/cone.jl")
 include("sampling.jl")
 include("parameterspacebitmap.jl")
 include("iterations.jl")
