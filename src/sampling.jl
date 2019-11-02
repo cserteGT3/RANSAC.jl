@@ -127,18 +127,21 @@ function samplecone(ap, ax, opangr, h, sizet)
 
     surfl = h/cos(opangr/2)
     axn = normalize(ax)
-    v1s = range(0, stop=surfl, length=s1)
+    v1s = collect(range(0, stop=surfl, length=s1+1))
+    popfirst!(v1s)
     # points along the axis
     alongax = [axn*i for i in v1s]
     aort = normalize(arbitrary_orthogonal2(axn))
+    ns = cross(aort, axn)
     rM = rodriguesrad(aort, opangr)
 
     # one line along the surface of the cone
     alongsurf = [rM*s for s in alongax]
-
+    alongsurfn = fill!(similar(alongsurf), rM*ns)
     rotMat = rodriguesrad(axn, 2*π/s2)
     ps = [rotMat^j*s for s in alongsurf for j in 1:s2]
-    return ps
+    final_ns = [rotMat^j*s for s in alongsurfn for j in 1:s2]
+    return ps, final_ns
 end
 
 """
