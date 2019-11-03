@@ -10,10 +10,10 @@ struct FittedCone{A<:AbstractArray, R<:Real} <: FittedShape
 end
 
 Base.show(io::IO, x::FittedCone) =
-    print(io, """$(x.iscylinder ? "o" : "x") cone, ω: $(x.opang)""")
+    print(io, """$(x.iscone ? "o" : "x") cone, ω: $(x.opang)""")
 
 Base.show(io::IO, ::MIME"text/plain", x::FittedCone{A, R}) where {A, R} =
-    print(io, """FittedCone{$A, $R}\n$(x.iscone ? "o" : "x") cone, center: $(x.apex), axis: $(x.axis), ω: $(x.opang), $(x.outwards ? "outwards" : "inwards" )""")
+    print(io, """FittedCone{$A, $R}\n$(x.iscone ? "o" : "x") cone, apex: $(x.apex), axis: $(x.axis), ω: $(x.opang), $(x.outwards ? "outwards" : "inwards" )""")
 
 strt(x::FittedCone) = "cone"
 
@@ -40,6 +40,9 @@ function fit3pointcone(psok, nsok, params)
         # axis
         axis3p = [ap+((v-ap)/norm(v-ap)) for v in p]
         ax = normalize(cross(axis3p[2]-axis3p[1], axis3p[3]-axis3p[1]))
+        midp = sum(axis3p)/3
+        dirv = normalize(midp-ap)
+        ax = dot(ax, dirv) < 0 ? -1*ax : ax
         # opening angle
         angles = [acos(dot(normalize(p[i]-ap), ax)) for i in 1:3]
         opangle = sum(angles)/3
