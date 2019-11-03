@@ -132,14 +132,15 @@ function samplecone(ap, ax, opangr, h, sizet)
     # points along the axis
     alongax = [axn*i for i in v1s]
     aort = normalize(arbitrary_orthogonal2(axn))
-    ns = cross(aort, axn)
+    ns = normalize(cross(aort, axn))
     rM = rodriguesrad(aort, opangr)
 
     # one line along the surface of the cone
     alongsurf = [rM*s for s in alongax]
     alongsurfn = fill!(similar(alongsurf), rM*ns)
     rotMat = rodriguesrad(axn, 2*π/s2)
-    ps = [rotMat^j*s for s in alongsurf for j in 1:s2]
+    # translate with the apex too
+    ps = [rotMat^j*s + ap for s in alongsurf for j in 1:s2]
     final_ns = [rotMat^j*s for s in alongsurfn for j in 1:s2]
     return ps, final_ns
 end
