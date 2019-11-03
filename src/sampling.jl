@@ -133,7 +133,7 @@ function samplecone(ap, ax, opangr, h, sizet)
     alongax = [axn*i for i in v1s]
     aort = normalize(arbitrary_orthogonal2(axn))
     ns = normalize(cross(aort, axn))
-    rM = rodriguesrad(aort, opangr)
+    rM = rodriguesrad(aort, opangr/2)
 
     # one line along the surface of the cone
     alongsurf = [rM*s for s in alongax]

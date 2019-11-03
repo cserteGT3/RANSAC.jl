@@ -12,12 +12,19 @@
     rrr2 = [25, 97, 19]
     hicone2 = RANSAC.fit3pointcone(cps[rrr2], cns[rrr2])
 
-    @test hicone.apex-apex |> norm < 1e-14
-    @test hicone2.apex-apex |> norm < 1e-14
+    @test hicone.apex-apex |> norm < 1e-13
+    @test hicone2.apex-apex |> norm < 1e-13
 
-    @test hicone.axis+[0,0,1] |> norm < 1e-14
-    @test hicone2.axis+[0,0,1] |> norm < 1e-14
+    @test hicone.axis+[0,0,1] |> norm < 1e-13
+    @test hicone2.axis+[0,0,1] |> norm < 1e-13
 
     @test isapprox(hicone.opang, opang)
     @test isapprox(hicone2.opang, opang)
+
+    p = RANSACParameters{Float64}()
+    hcone = RANSAC.fitcone(cps[rrr], cns[rrr], p)
+    hcone2 = RANSAC.fitcone(cps[rrr2], cns[rrr2], p)
+
+    @test hcone.iscone
+    @test hcone2.iscone
 end
