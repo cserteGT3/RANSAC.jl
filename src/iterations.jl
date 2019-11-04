@@ -10,15 +10,16 @@ function ransac(pc, params; reset_rand = false)
 
     @unpack drawN, minsubsetN, prob_det, τ = params
     @unpack itermax, leftovers, shape_types = params
+    start_time = time_ns()
 
     # build an octree
     subsetN = length(pc.subsets)
-    @debug "Building octree."
+    @logmsg IterLow1 "Building octree."
     minV, maxV = findAABB(pc.vertices)
     octree = Cell(SVector{3}(minV), SVector{3}(maxV), OctreeNode(pc, collect(1:pc.size), 1))
     r = OctreeRefinery(8)
     adaptivesampling!(octree, r)
-    @debug "Octree finished."
+    @logmsg IterLow1 "Octree finished."
     # initialize levelweight vector to 1/d
     # TODO: check if levelweight is not empty
     fill!(pc.levelweight, 1/length(pc.levelweight))
@@ -32,7 +33,7 @@ function ransac(pc, params; reset_rand = false)
     #lsd = smallestdistance(pc.vertices)
     # allocate for the random selected points
     sd = Vector{Int}(undef, drawN)
-    @debug "Iteration begins."
+    @logmsg IterInf "Iteration begins."
 
     # for logging
     notifit = itermax > 10 ? div(itermax,10) : 1
@@ -40,7 +41,7 @@ function ransac(pc, params; reset_rand = false)
     # iterate begin
     for k in 1:itermax
         if count(pc.isenabled) < τ
-            @debug "Break at $k, because left only: $(count(pc.isenabled))"
+            @logmsg IterInf "Break at $k, because left only: $(count(pc.isenabled))"
             break
         end
         # generate minsubsetN candidate
@@ -49,7 +50,7 @@ function ransac(pc, params; reset_rand = false)
             # select a random point
             if length(random_points)<10
                 random_points = randperm(pc.size)
-                @debug "Recomputing randperm."
+                @logmsg IterLow1 "Recomputing randperm."
             end
             r1 = popfirst!(random_points)
 
@@ -109,7 +110,7 @@ function ransac(pc, params; reset_rand = false)
             end
 
             if !allisdifferent(sd)
-                @debug "Selected indexes have same element: $sd; route $route was taken."
+                @logmsg IterLow1 "Selected indexes have same element: $sd; route $route was taken."
                 continue
             end
 
@@ -150,7 +151,7 @@ function ransac(pc, params; reset_rand = false)
 
         #info printing
         if k%notifit == 0
-            @debug "$k. it, best: $best_length db, score: $scr, prob: $ppp, scored shapes: $(length(scoredshapes)) db."
+            @logmsg IterInf "$k. it, best: $best_length db, score: $scr, prob: $ppp, scored shapes: $(length(scoredshapes)) db."
         end
 
 
@@ -164,19 +165,19 @@ function ransac(pc, params; reset_rand = false)
             if bestshape.candidate.shape isa FittedPlane
                 sp = refitplane(bestshape, pc, params)
                 sps = size(sp.inpoints,1)
-                @debug "Extracting best: $(strt(bestshape.candidate.shape)) score: $scr, refit length: $sps"
+                @logmsg IterInf "Extracting best: $(strt(bestshape.candidate.shape)) score: $scr, refit length: $sps"
             elseif bestshape.candidate.shape isa FittedSphere
                 ss = refitsphere(bestshape, pc, params)
                 sss = size(ss.inpoints,1)
-                @debug "Extracting best: $(strt(bestshape.candidate.shape)) score: $scr, refit length: $sss"
+                @logmsg IterInf "Extracting best: $(strt(bestshape.candidate.shape)) score: $scr, refit length: $sss"
             elseif bestshape.candidate.shape isa FittedCylinder
                 sc = refitcylinder(bestshape, pc, params)
                 scs = size(sc.inpoints,1)
-                @debug "Extracting best: $(strt(bestshape.candidate.shape)) score: $scr, refit length: $scs"
+                @logmsg IterInf "Extracting best: $(strt(bestshape.candidate.shape)) score: $scr, refit length: $scs"
             elseif bestshape.candidate.shape isa FittedCone
                 sc = refitcone(bestshape, pc, params)
                 scs = size(sc.inpoints,1)
-                @debug "Extracting best: $(strt(bestshape.candidate.shape)) score: $scr, refit length: $scs"
+                @logmsg IterInf "Extracting best: $(strt(bestshape.candidate.shape)) score: $scr, refit length: $scs"
             else
                 @error "Whatt? panic with $(typeof(bestshape.candidate.shape))"
             end
@@ -211,13 +212,14 @@ function ransac(pc, params; reset_rand = false)
         # TODO: τ-t is le kéne osztani a subsestek számával
         #if prob(τ/subsetN, length(scoredshapes), pc.size, drawN) > prob_det
         if prob(τ/subsetN, sofar, pc.size, drawN) > prob_det
-            @debug "Break, at this point all shapes should be extracted: $k. iteráció."
+            @logmsg IterInf "Break, at this point all shapes should be extracted: $k. iteráció."
             break
         end
         #if mod(k,itermax/10) == 0
         #    @debug "Iteration: $k"
         #end
     end # iterate end
-    @debug "Iteration finished with $(length(extracted)) extracted and $(length(scoredshapes)) scored shapes."
+    fint = trunc((time_ns() - start_time)/1_000_000_000, digits=2)
+    @logmsg IterInf "Iteration finished in $fint seconds with $(length(extracted)) extracted and $(length(scoredshapes)) scored shapes."
     return scoredshapes, extracted
 end # ransac function

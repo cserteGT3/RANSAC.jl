@@ -84,6 +84,11 @@ export  nosource_debuglogger,
         nosource_infologger,
         sourced_debuglogger,
         sourced_infologger,
+        nosource_IterInflog,
+        nosource_IterLow1log,
+        nosource_IterLow2log,
+        nosource_Compute1log,
+        nosource_Compute2log,
         nosource_metafmt
 
 include("utilities.jl")
