@@ -65,6 +65,7 @@ export  sampleplane,
         examplepc3,
         examplepc4,
         examplepc5,
+        examplepc6,
         showgeometry
 
 export  project2plane,

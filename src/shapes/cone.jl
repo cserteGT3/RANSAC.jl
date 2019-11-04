@@ -52,6 +52,11 @@ function fit3pointcone(psok, nsok)
         return FittedCone(true, ap, ax, opangle, true)
 end
 
+"""
+    project2cone(cone, p)
+
+Return the distance from the cone's surface and normal of the surface at that point.
+"""
 function project2cone(cone, p)
         # vector to the point from the apex
         to_point = cone.apex-p
@@ -101,4 +106,49 @@ function fitcone(p, n, params)
         fcone.iscone || return fcone
         valid_cone = validatecone(fcone, p, n, params)
         return valid_cone
+end
+
+## scoring
+
+function compatiblesCone(cone, points, normals, params)
+        @unpack α_cone, ϵ_cone = params
+        calcs = [project2cone(cone, points[i]) for i in eachindex(points)]
+
+        # eps check
+        c1 = [abs(calcs[i][1]) < ϵ_cone for i in eachindex(calcs)]
+        if cone.outwards
+            c2 = [isparallel(calcs[i][2], normals[i], α_cone) && c1[i] for i in eachindex(calcs)]
+        else
+            c2 = [isparallel(-calcs[i][2], normals[i], α_cone) && c1[i] for i in eachindex(calcs)]
+        end
+        return c2
+end
+
+function scorecandidate(pc, candidate::ShapeCandidate{T}, subsetID, params) where {T<:FittedCone}
+    ps = @view pc.vertices[pc.subsets[subsetID]]
+    ns = @view pc.normals[pc.subsets[subsetID]]
+    ens = @view pc.isenabled[pc.subsets[subsetID]]
+
+    cp = compatiblesCone(candidate.shape, ps, ns, params)
+    # verti: összes pont indexe, ami enabled és kompatibilis
+    # lenne, ha működne, de inkább a boolean indexelést machináljuk
+    inder = cp.&ens
+    inpoints = (pc.subsets[subsetID])[inder]
+    score = estimatescore(length(pc.subsets[subsetID]), pc.size, length(inpoints))
+    pc.levelscore[candidate.octree_lev] += E(score)
+    return ScoredShape(candidate, score, inpoints)
+end
+
+## refit
+
+"""
+    refitcone(s, pc, ϵ, α)
+
+Refit cone. Only s.inpoints is updated.
+"""
+function refitcone(s, pc, params)
+    # TODO: use octree for that
+    cp = compatiblesCone(s.candidate.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], params)
+    s.inpoints = ((1:pc.size)[pc.isenabled])[cp]
+    s
 end

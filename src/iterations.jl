@@ -173,6 +173,10 @@ function ransac(pc, params; reset_rand = false)
                 sc = refitcylinder(bestshape, pc, params)
                 scs = size(sc.inpoints,1)
                 @debug "Extracting best: $(strt(bestshape.candidate.shape)) score: $scr, refit length: $scs"
+            elseif bestshape.candidate.shape isa FittedCone
+                sc = refitcone(bestshape, pc, params)
+                scs = size(sc.inpoints,1)
+                @debug "Extracting best: $(strt(bestshape.candidate.shape)) score: $scr, refit length: $scs"
             else
                 @error "Whatt? panic with $(typeof(bestshape.candidate.shape))"
             end
