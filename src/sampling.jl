@@ -120,6 +120,31 @@ function samplesphere(cp, R, sizet)
     return vert, ns
 end
 
+function samplecone(ap, ax, opangr, h, sizet)
+    # s1 along ax
+    # s2 along circle
+    s1, s2 = sizet
+
+    surfl = h/cos(opangr/2)
+    axn = normalize(ax)
+    v1s = collect(range(0, stop=surfl, length=s1+1))
+    popfirst!(v1s)
+    # points along the axis
+    alongax = [axn*i for i in v1s]
+    aort = normalize(arbitrary_orthogonal2(axn))
+    ns = normalize(cross(aort, axn))
+    rM = rodriguesrad(aort, opangr/2)
+
+    # one line along the surface of the cone
+    alongsurf = [rM*s for s in alongax]
+    alongsurfn = fill!(similar(alongsurf), rM*ns)
+    rotMat = rodriguesrad(axn, 2*π/s2)
+    # translate with the apex too
+    ps = [rotMat^j*s + ap for s in alongsurf for j in 1:s2]
+    final_ns = [rotMat^j*s for s in alongsurfn for j in 1:s2]
+    return ps, final_ns
+end
+
 """
     normalsforplot(verts, norms, arrowsize = 0.5)
 
@@ -312,6 +337,40 @@ function examplepc5(nois = false; all = false, mrotdeg = 10, vertscale = 0.5)
 
     vs = vcat(cp1, cp2)
     ns = vcat(cn1, cn2)
+    if nois
+        vs_n = noisifyvertices(vs, all, vertscale)
+        ns_n = noisifynormals(ns, mrotdeg)
+        nsfp2_ = normalsforplot(vs_n, ns_n)
+        return vs_n, ns_n, nsfp2_, shape_sizes
+    end
+    nsfp_ = normalsforplot(vs, ns)
+    return vs, ns, nsfp_, shape_sizes
+end
+
+"""
+    examplepc6(nois = false; all = false, mrotdeg = 10, vertscale = 0.5)
+
+Generate a definitely not random example consisting planes and spheres.
+"""
+function examplepc6(nois = false; all = false, mrotdeg = 10, vertscale = 0.5)
+    vp1, np1 = sampleplane(SVector(0,0,0), SVector(0,0,1), SVector(1,3,0), (13.7, 9.58), (96, 70))
+    # vp2, np2 = sampleplane(SVector(7,2,1), SVector(1.9,2,0), SVector(0,1.2,1), (9.7, 15), (50, 75))
+    vp3, np3 = sampleplane(SVector(15,-5,-10), SVector(.98,.02,0), SVector(0,1,0), (17.2, 11.1), (30, 42))
+
+    cp1, cn1 = samplecylinder(SVector(0,0,1), SVector(2,3.8,7.3), 7.8, 9, (37,49) )
+    cp2, cn2 = samplecylinder(normalize(SVector(2,1.3,-0.5)), SVector(4,16,-3.9), 3.79, 4, (57,29) )
+
+    vc1, nc1 = samplesphere(SVector(5.0,5,-1), 10, (72,85))
+    vc2, nc2 = samplesphere(SVector(1.0,-7,8), 5, (45,57))
+
+    vco1, nco1 = samplecone(SVector(5,5.,-3.3), SVector(0,0,-1.), deg2rad(20), 6.5, (22,31))
+    ax2 = normalize(SVector(0.5,-0.7,0.9))
+    vco2, nco2 = samplecone(SVector(15,-7, 0.5), ax2, deg2rad(45), 9., (28,59))
+
+    shape_sizes = [96*70, 30*42, 72*85, 45*57, 37*49, 57*29, 22*31, 28*59]
+
+    vs = vcat(vp1, vc1, vc2, vp3, cp1, cp2, vco1, vco2)
+    ns = vcat(np1, nc1, nc2, np3, cn1, cn2, nco1, nco2)
     if nois
         vs_n = noisifyvertices(vs, all, vertscale)
         ns_n = noisifynormals(ns, mrotdeg)

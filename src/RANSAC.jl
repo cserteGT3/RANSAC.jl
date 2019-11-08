@@ -45,6 +45,7 @@ export  FittedShape,
         FittedPlane,
         FittedSphere,
         FittedCylinder,
+        FittedCone,
         ShapeCandidate,
         findhighestscore,
         ScoredShape,
@@ -55,6 +56,7 @@ export  sampleplane,
         sampleplanefromcorner,
         samplecylinder,
         samplesphere,
+        samplecone,
         normalsforplot,
         noisifyvertices,
         noisifynormals,
@@ -63,6 +65,7 @@ export  sampleplane,
         examplepc3,
         examplepc4,
         examplepc5,
+        examplepc6,
         showgeometry
 
 export  project2plane,
@@ -81,6 +84,11 @@ export  nosource_debuglogger,
         nosource_infologger,
         sourced_debuglogger,
         sourced_infologger,
+        nosource_IterInflog,
+        nosource_IterLow1log,
+        nosource_IterLow2log,
+        nosource_Compute1log,
+        nosource_Compute2log,
         nosource_metafmt
 
 include("utilities.jl")
@@ -90,6 +98,7 @@ include("fitting.jl")
 include("shapes/plane.jl")
 include("shapes/sphere.jl")
 include("shapes/cylinder.jl")
+include("shapes/cone.jl")
 include("sampling.jl")
 include("parameterspacebitmap.jl")
 include("iterations.jl")

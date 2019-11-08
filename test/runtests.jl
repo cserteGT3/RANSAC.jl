@@ -1,7 +1,7 @@
+using RANSAC
 using Test
+using LinearAlgebra
 using StaticArrays: SVector
-
-#include("../src/RANSAC.jl")
 
 @testset "iswithinrectangle test" begin
     include("rectangletest.jl")
@@ -13,4 +13,8 @@ end
 
 @testset "utility tests" begin
     include("utilitytests.jl")
+end
+
+@testset "cone" begin
+    include("cone.jl")
 end
