@@ -3,6 +3,8 @@
 struct FittedCone{A<:AbstractArray, R<:Real} <: FittedShape
     iscone::Bool
     apex::A
+    # points from apex towards the opening
+    # unit length
     axis::A
     # opening angle in radians
     opang::R

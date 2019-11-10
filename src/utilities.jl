@@ -167,6 +167,28 @@ function smallestdistance(points)
 end
 
 """
+    minmaxdistance(points)
+
+Find the smallest and largest distance between the points.
+"""
+function minmaxdistance(points)
+    @assert length(points) > 1 "At least two point is needed for that."
+    ld = norm(points[2]-points[1])
+    maxid = norm(points[2]-points[1])
+    for i in eachindex(points)
+        for j in eachindex(points)
+            if i!=j
+                d = norm(points[i]-points[j])
+                ld = d < ld ? d : ld
+                maxid = d > maxid ? d : maxid
+            end
+        end
+    end
+    return (mind=ld, maxd=maxid)
+end
+
+
+"""
     prob(n, s, N, k)
 
 The probability of successful detection of a shape sized `n`,
@@ -208,12 +230,15 @@ end
     ϵ_cone = 0.3
     α_cone = deg2rad(5)
 
+    ϵ_transl = 0.3
+    α_transl = deg2rad(5)
+
     ϵ_torus = 0.3
     α_torus = deg2rad(5)
 
     # number of points to be sampled (length of a minimal subset)
     drawN::Int = 3; @assert drawN>2
-    # number of minimal subsets sampled in one iteration
+    # number of minimal sets sampled in one iteration
     minsubsetN::Int = 15; @assert minsubsetN>0
     # probability of detection
     prob_det = 0.9
@@ -233,6 +258,11 @@ end
     β = 1
     # parameter in sphere fitting
     sphere_par = 0.02
+
+    ## translational fitting parameters
+    perpendnull = cosd(89)
+    # ???
+    diagthr = 0.1
 
     # shapes that are fitted to the point cloud
     shape_types::Array{Symbol,1} = [:sphere, :plane, :cylinder, :cone]
