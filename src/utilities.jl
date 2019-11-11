@@ -232,6 +232,8 @@ end
 
     ϵ_transl = 0.3
     α_transl = deg2rad(5)
+    # max deviaton of the normal being perpendicular to the translation direction
+    α_perpend = cosd(89)
 
     ϵ_torus = 0.3
     α_torus = deg2rad(5)
@@ -260,9 +262,9 @@ end
     sphere_par = 0.02
 
     ## translational fitting parameters
-    perpendnull = cosd(89)
     # ???
     diagthr = 0.1
+    transl_conn = :default
 
     # shapes that are fitted to the point cloud
     shape_types::Array{Symbol,1} = [:sphere, :plane, :cylinder, :cone]
