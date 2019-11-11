@@ -89,7 +89,7 @@ function largestpatch(p, pind, resolution, bb, params)
         yplace = ceil(Int, abs(p[i][1]-minv[1])/βx)
         xplace = ceil(Int, abs(p[i][2]-minv[2])/βy)
         bitmap[xplace, yplace] = true
-        push!(indexmap[xplace, yplace], pind[i])
+        append!(indexmap[xplace, yplace], pind[i])
     end
     largestconncomp(bitmap, indexmap, transl_conn)
 end

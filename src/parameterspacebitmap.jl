@@ -76,9 +76,14 @@ function largestconncomp(bimage, indmap, connectivity::AbstractArray)
     # TODO: ERROR: ArgumentError: collection must be non-empty
     max_l = argmax(lab_length[2:end])+1
     # indexes that counts towards the largest area
-    inds = findall(x->x==max_l-1, labeled)
+    subscripts = component_subscripts(labeled)[max_l]
+    inds = Int[]
+    for i in 1:size(subscripts, 1)
+        ii = subscripts[i]
+        append!(inds, indmap[ii[1], ii[2]])
+    end
     # get all the indexes that count towards the largest component
-    return indmap[inds]
+    return inds
 end
 
 """
@@ -93,7 +98,7 @@ Return the indexes from `indmap` that are part of the largest component.
 - `indmap::AbstractArray`: index map, with the size of `bimage`.
 - `conn_key::Symbol`: currently `:default` or `:eight` connectivity.
 """
-function largestconncomp(bimage, indmap, conn_key::Symbol = :default)
+function largestconncomp(bimage, indmap, conn_key::Symbol=:default)
     if conn_key == :default
         return largestconncomp(bimage, indmap, 1:ndims(bimage))
     elseif conn_key == :eight

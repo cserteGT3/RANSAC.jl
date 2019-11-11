@@ -10,7 +10,7 @@ using RegionTrees
 #using Makie: scatter, linesegments!, Scene, scatter!
 #using Makie: mesh!, cam3d!, Sphere, Point
 #using GeometryTypes: Cylinder
-using Images: label_components, component_lengths
+using Images: label_components, component_lengths, component_subscripts
 using Parameters
 
 import RegionTrees: AbstractRefinery, needs_refinement, refine_data

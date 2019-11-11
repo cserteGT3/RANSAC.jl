@@ -18,3 +18,7 @@ end
 @testset "cone" begin
     include("cone.jl")
 end
+
+@testset "parameterspace bitmap" begin
+    include("parameterspacebitmap.jl")
+end

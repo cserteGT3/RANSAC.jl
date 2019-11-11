@@ -264,7 +264,7 @@ end
     ## translational fitting parameters
     # ???
     diagthr = 0.1
-    transl_conn = :default
+    transl_conn::Symbol = :eight
 
     # shapes that are fitted to the point cloud
     shape_types::Array{Symbol,1} = [:sphere, :plane, :cylinder, :cone]
