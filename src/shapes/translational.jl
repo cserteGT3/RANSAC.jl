@@ -91,7 +91,7 @@ function largestpatch(p, pind, resolution, bb, params)
         bitmap[xplace, yplace] = true
         append!(indexmap[xplace, yplace], pind[i])
     end
-    largestconncomp(bitmap, indexmap, transl_conn)
+    return largestconncomp(bitmap, indexmap, transl_conn)
 end
 
 function fittranslationalsurface(pcr, p, n, params)
@@ -109,7 +109,7 @@ function fittranslationalsurface(pcr, p, n, params)
 
     #TODO: okosabb kéne ide
     # most: az első subsetet nézem és abból is csak azt ami enabled
-    projected, proj_ind = (pcr, subsets[1], coordframe, params)
+    projected, proj_ind = project2sketchplane(pcr, subsets[1], coordframe, params)
 
     # 3. legkisebb és legnagyobb távolság megnézése
     @unpack mind, maxd = minmaxdistance(projected)
@@ -120,7 +120,7 @@ function fittranslationalsurface(pcr, p, n, params)
     diagd = norm(aabb[2]-aabb[1])
     diagd < diagthr && return FittedTranslation(false, NaNVec, nothing)
     # 6. legnagyobb összefüggő terület
-
+    largest_ind = largestpatch(projected, proj_ind, mind, aabb, params)
     # 7. kontúr kiszedése: kell-e, hogy zárt görbe legyen? - szerintem kell -> 2 végpont összekötése
     # 8. kör/egyenes illesztése
     # 9. visszaellenőrzés?
