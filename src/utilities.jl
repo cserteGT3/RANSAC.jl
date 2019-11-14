@@ -187,6 +187,28 @@ function minmaxdistance(points)
     return (mind=ld, maxd=maxid)
 end
 
+"""
+    not0minmaxdistance(points)
+
+Find the smallest and largest distance between the points.
+Zero distance is not taken into account.
+"""
+function not0minmaxdistance(points)
+    @assert length(points) > 1 "At least two point is needed for that."
+    ld = norm(points[2]-points[1])
+    maxid = norm(points[2]-points[1])
+    for i in eachindex(points)
+        for j in eachindex(points)
+            if i!=j
+                d = norm(points[i]-points[j])
+                d == 0 && continue
+                ld = d < ld ? d : ld
+                maxid = d > maxid ? d : maxid
+            end
+        end
+    end
+    return (mind=ld, maxd=maxid)
+end
 
 """
     prob(n, s, N, k)
