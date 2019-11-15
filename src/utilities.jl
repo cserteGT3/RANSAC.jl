@@ -169,22 +169,25 @@ end
 """
     minmaxdistance(points)
 
-Find the smallest and largest distance between the points.
+Find the smallest, largest and average distance between the points.
 """
 function minmaxdistance(points)
     @assert length(points) > 1 "At least two point is needed for that."
     ld = norm(points[2]-points[1])
     maxid = norm(points[2]-points[1])
+    sumd = 0.
     for i in eachindex(points)
         for j in eachindex(points)
             if i!=j
                 d = norm(points[i]-points[j])
+                sumd += d
                 ld = d < ld ? d : ld
                 maxid = d > maxid ? d : maxid
             end
         end
     end
-    return (mind=ld, maxd=maxid)
+    avg_d = sumd/size(points, 1)
+    return (mind=ld, maxd=maxid, avgd=avg_d)
 end
 
 """
@@ -286,7 +289,14 @@ end
     ## translational fitting parameters
     # ???
     diagthr = 0.1
+    # conntectivity on the bitmap - not used currently
     transl_conn::Symbol = :eight
+    # maximum number of contours on a plane
+    max_group_num::Int = 3
+    # maximum number of iterations of tryíng
+    # to find < max_group_num number for contour patches
+    max_contour_it::Int = 5
+    thinning_par = 2.0
 
     # shapes that are fitted to the point cloud
     shape_types::Array{Symbol,1} = [:sphere, :plane, :cylinder, :cone]

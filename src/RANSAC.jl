@@ -12,6 +12,8 @@ using RegionTrees
 #using GeometryTypes: Cylinder
 using Images: label_components, component_lengths, component_subscripts
 using Parameters
+using NearestNeighbors: BallTree, inrange
+using UnionFind
 
 import RegionTrees: AbstractRefinery, needs_refinement, refine_data
 import Base: show
@@ -99,6 +101,7 @@ include("shapes/plane.jl")
 include("shapes/sphere.jl")
 include("shapes/cylinder.jl")
 include("shapes/cone.jl")
+include("shapes/profit.jl")
 include("shapes/translational.jl")
 include("sampling.jl")
 include("parameterspacebitmap.jl")
