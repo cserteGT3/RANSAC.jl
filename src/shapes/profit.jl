@@ -153,7 +153,7 @@ returns a list of edges defining a minimal weight spanning tree.
 """
 function spanning_tree(edges, weights)
     order = sortperm(weights)
-    result = []
+    result = Array{Array{Int64,1},1}(undef, 0)
     sets = Dict()
     for edge in edges
         for p in edge
@@ -221,8 +221,8 @@ function thinning(points, edges, thickness)
     end
 
     ordered = bfs(bfs(1)[end])
-    thinned = []
-    chunks = []
+    thinned = Array{Array{Float64,1},1}(undef, 0)
+    chunks = Array{Array{Int64,1},1}(undef, 0)
     while !isempty(ordered)
         adjacent = neighbors(ordered[1])
         push!(thinned, mapreduce(x -> points[x], +, adjacent) / length(adjacent))
@@ -378,10 +378,11 @@ function fit_in_chunks(points, guide, chunks, tolerance; seed_size = 3)
         ce, (type=:arc, r=circle[1], p=circle[2], min=a, max=b)
     end
 
-    length(chunks) < seed_size && return [bestfit(1, length(chunks))[2]]
+    length(chunks) < seed_size && return [bestfit(1, length(chunks))[2]], [(1,length(chunks))]
 
     local best
     result = []
+    result_chunks = []
     from = 1
     i = 1
     while i <= length(chunks) - seed_size + 1
@@ -390,13 +391,15 @@ function fit_in_chunks(points, guide, chunks, tolerance; seed_size = 3)
             best = next
         elseif next - best > tolerance
             push!(result, bestfit(from, i + seed_size - 2)[2])
+            push!(result_chunks, (from, i + seed_size - 2))
             from = i + seed_size - 2
             i = from - 1
         end
         i += 1
     end
     push!(result, bestfit(from, length(chunks))[2])
-    result
+    push!(result_chunks, (from, length(chunks)))
+    result, result_chunks
 end
 
 function fit(points, thickness)
