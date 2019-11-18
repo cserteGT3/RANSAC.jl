@@ -9,10 +9,12 @@
 # 8. kör/egyenes illesztése
 # 9. visszaellenőrzés?
 
-struct FittedTranslational{A<:AbstractArray} <: FittedShape
+struct FittedTranslational <: FittedShape
     istranslational::Bool
-    coordframe::A
+    coordframe
     contour
+    # center of gravity
+    center
 end
 
 Base.show(io::IO, x::FittedTranslational) =
@@ -122,13 +124,88 @@ function segmentpatches(points, ϵ_inrange)
     return CompressedFinder(uf)
 end
 
+## distance and normal computation of linesegments
+
+"""
+    midpoint(A, i)
+
+Compute the midpoint of the i-th segment of a linesegment-list.
+"""
+function midpoint(A, i)
+    i == lastindex(A) && return (A[1]+A[end])/2
+    return (A[i]+A[i+1])/2
+end
+
+"""
+    twopointnormal(a)
+
+Compute the normal of a segment. Inwards/outwards is not considered here.
+The normal points towards "left".
+"""
+function twopointnormal(a)
+    dirv = normalize(a[2]-a[1])
+    return convert(eltype(a), normalize([-dirv[2], dirv[1]]))
+end
+
+"""
+    segmentnormal(A, i)
+
+Compute the normal of the i-th segment of a linesegment-list.
+"""
+function segmentnormal(A, i)
+    if i == lastindex(A)
+        a = [A[end], A[1]]
+        return twopointnormal(a)
+    end
+    b = @view A[i:i+1]
+    return twopointnormal(b)
+end
+
+"""
+    distance2onesegment(point, A, i)
+
+Compute distance of `point` to the i-th segment in A.
+"""
+function distance2onesegment(point, A, i)
+    nv = segmentnormal(A, i)
+    topoint = point-A[i]
+    return dot(topoint, nv)
+end
+
+"""
+    distandnormal2segment(point, A)
+
+Compute the shortest distance from `point` to the linesegments `A`.
+Also compute the corresponding normal.
+"""
+function distandnormal2segment(point, A)
+    leastd = distance2onesegment(point, A, 1)
+    size(A,1) == 1 && return leastd
+    best = 1
+    for i in 2:size(A,1)
+        d = distance2onesegment(point, A, i)
+        if d < leastd
+            leastd = d
+            best = i
+        end
+    end
+    return (leastd, segmentnormal(A, best))
+end
+
+function validatetrans(candidate, ps, ns, params)
+    @unpack α_transl , ϵ_transl = params
+    calcs = [distandnormal2segment(p, candidate.contour) for p in ps]
+    #TODO:
+    return nothing
+end
+
 function fittranslationalsurface(pcr, p, n, params)
     @unpack α_perpend, diagthr, max_group_num = params
     @unpack max_contour_it, thinning_par = params
     # Method:
     # 1. van-e közös merőleges? nincs -> break
     ok, dir = transldir(p, n, params)
-    ok || return FittedTranslational(false, NaNVec, nothing)
+    ok || return nothing
     # 2. összes pont levetítése erre a síkra (egyik pont és a közös normális)
     o = p[1]
     xv = n[1]
@@ -147,7 +224,7 @@ function fittranslationalsurface(pcr, p, n, params)
     # 5. ha az AABB területe nagyon kicsi -> break
     #TODO: azt kéne inkább nézni, hogy az egyik oldal nagyon kicsi a másikhoz képest=sík
     diagd = norm(aabb[2]-aabb[1])
-    diagd < diagthr && return FittedTranslational(false, NaNVec, nothing)
+    diagd < diagthr && return nothing
     # 6. összefüggő kontúrok
     thr = 1.5*avgd
     maxit = max_contour_it
@@ -155,12 +232,12 @@ function fittranslationalsurface(pcr, p, n, params)
     while true
         spatchs = segmentpatches(projected, thr)
         spatchs.groups <= max_group_num && break
-        maxit < 1 && return FittedTranslational(false, NaNVec, nothing)
+        maxit < 1 && return nothing
         maxi -= 1
     end
     # hereby spatchs should contain maximum max_group_num of patches
     # 7. kontúr kiszedése: kell-e, hogy zárt görbe legyen? - szerintem kell -> 2 végpont összekötése
-    results = Array{FittedTranslational,1}(undef, spatchs.groups)
+    fitresults = Array{FittedTranslational,1}(undef, spatchs.groups)
     for i in 1:spatchs.groups
         patch_p = projected[spatchs.ids[i]]
         tris = delaunay(patch_p)
@@ -169,10 +246,15 @@ function fittranslationalsurface(pcr, p, n, params)
         tree = spanning_tree(all_edges, weights)
         thinned, chunks = thinning(p, tree, 2.0)
         # put them into a FittedTranslational
+        closed = [SVector{2,Float64}(th) for th in thinned]
+        c = centroid(closed)
+        ft = FittedTranslational(true, coordframe, closed, c)
+        fitresults[i] = ft
     end
 
     # 8. kör/egyenes illesztése
     # - skipp
     # 9. visszaellenőrzés?
-    # -skipp? :D 
+    # validation is currently skipped
+    return fitresults
 end

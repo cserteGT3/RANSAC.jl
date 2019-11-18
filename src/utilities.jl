@@ -299,7 +299,7 @@ end
     thinning_par = 2.0
 
     # shapes that are fitted to the point cloud
-    shape_types::Array{Symbol,1} = [:sphere, :plane, :cylinder, :cone]
+    shape_types::Array{Symbol,1} = [:sphere, :plane, :cylinder, :cone, :translational_surface]
 end
 
 """

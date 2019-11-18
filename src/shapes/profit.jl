@@ -335,7 +335,7 @@ Cuts the arc relevant to the given points. Returns the angles at the endpoints.
 """
 function circle_cut(X, circle)
     p = circle[2]
-    angle(q) = copysign(acos(normalize!(q - p)[1]), asin(normalize!(q - p)[2]))
+    angle(q) = copysign(acos(normalize(q - p)[1]), asin(normalize(q - p)[2]))
     dist(a, b) = b > a ? b - a : 2pi + b - a
     from = angle(X[1])
     mid = angle(X[(length(X)+1)÷2])
@@ -405,6 +405,17 @@ end
 function fit(points, thickness)
     thinned, chunks = thinning(points, thickness)
     fit_in_chunks(points, thinned, chunks, thickness / 2)
+end
+
+function closeprofile!(segments)
+    size(segments, 1) < 2 && return segments
+    push!(segments, deepcopy(segments[1]))
+    return segments
+end
+
+function centroid(points)
+    com = sum(points)
+    return com/size(points, 1)
 end
 
 # end # module
