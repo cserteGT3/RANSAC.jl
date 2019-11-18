@@ -120,7 +120,7 @@ function ransac(pc, params; reset_rand = false)
             f_v = @view pc.vertices[sd]
             f_n = @view pc.normals[sd]
 
-            forcefitshapes(f_v, f_n, params, candidates, curr_level)
+            forcefitshapes!(pc, f_v, f_n, params, candidates, curr_level)
         end # for t
 
         # evaluate the compatible points, currently used as score

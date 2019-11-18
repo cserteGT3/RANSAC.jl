@@ -76,7 +76,7 @@ This is "dummy" vector for type stability.
 """
 const NaNVec = SVector(0.0,0.0,0.0)
 
-function forcefitshapes(points, normals, parameters, candidates, octree_lev)
+function forcefitshapes!(pc, points, normals, parameters, candidates, octree_lev)
     @unpack shape_types = parameters
     for s in shape_types
         if s === :plane
@@ -87,9 +87,15 @@ function forcefitshapes(points, normals, parameters, candidates, octree_lev)
             fitted = fitcylinder(points, normals, parameters)
         elseif s === :cone
             fitted = fitcone(points, normals, parameters)
+        elseif s === :translational_surface
+            fits = fittranslationalsurface(pc, points, normals, parameters)
+            fits === nothing && return candidates
+            append!(candidates, [ShapeCandidate(f, octree_lev) for f in fits])
+            return candidates
         else
             error("$s is not recognized as valid shape type.")
         end
         isshape(fitted) && push!(candidates, ShapeCandidate(fitted, octree_lev))
+        return candidates
     end
 end
