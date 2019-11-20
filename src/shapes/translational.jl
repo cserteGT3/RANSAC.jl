@@ -228,18 +228,23 @@ function fittranslationalsurface(pcr, p, n, params)
     # 6. összefüggő kontúrok
     thr = 1.5*avgd
     maxit = max_contour_it
-    spatchs = CompressedFinder([], 0)
-    while true
-        spatchs = segmentpatches(projected, thr)
-        spatchs.groups <= max_group_num && break
+    spatchs = segmentpatches(projected, thr)
+    while spatchs.groups > max_group_num
         maxit < 1 && return nothing
         maxi -= 1
+        thr = 0.9*thr
+        spatchs = segmentpatches(projected, thr)
+        #spatchs.groups <= max_group_num && break
     end
     # hereby spatchs should contain maximum max_group_num of patches
     # 7. kontúr kiszedése: kell-e, hogy zárt görbe legyen? - szerintem kell -> 2 végpont összekötése
     fitresults = Array{FittedTranslational,1}(undef, spatchs.groups)
     for i in 1:spatchs.groups
-        patch_p = projected[spatchs.ids[i]]
+        # if spatchs.groups==1 -> .ids is not Array of Array, only Array
+
+        # 1 if part of the current group
+        patch_p = projected[findall(x->x==i, spatchs.ids)]
+        return patch_p, nothing
         tris = delaunay(patch_p)
         all_edges = to_edges!(tris)
         weights = [norm(patch_p[e[1]] - patch_p[e[2]]) for e in all_edges]
