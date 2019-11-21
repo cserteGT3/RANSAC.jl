@@ -270,27 +270,31 @@ function normaldirs(segments, points, normals, center, params)
         # towards the center of the contour?
         # == should flip the computed normals to direct outwards?
         # this is used in e.g. CSGBuilding
-        outwards[i] = dot(contour_n, tocenter) < 0.0 ? true : false
+        outwards[i] = dot(contour_n, tocenter) < 0.0 ? false : true
 
         # should the computed normal be flipped to match the measured points
         # this is used in this package to ensure that in/outwards is correct
         flipnormal[i] = dot(contour_n, normals[i]) < 0.0 ? true : false
     end
     thisoutw = @view outwards[compats]
+    outwr = count(thisoutw)/compatsize
     thisoutwn = count(thisoutw)
     # can't agree on outwards
-    (thisoutwn/compatsize > min_normal_num) || (thisoutwn/compatsize <= 1-min_normal_num) || return fff()
+    (outwr > min_normal_num) || (outwr <= 1-min_normal_num) || return fff()
+    @show thisoutwn
+    @show thisoutwn/compatsize
 
     # can't agree on flipnormals
     thisflip = @view flipnormal[compats]
+    flipr = count(thisflip)/compatsize
     thisflipn = count(thisflip)
-    (thisflipn/compatsize > min_normal_num) || (thisflipn/compatsize <= 1-min_normal_num) || return fff()
+    (flipr > min_normal_num) || (flipr <= 1-min_normal_num) || return fff()
 
     # this means, that the computed normals must be turned to direct outside
-    outwb = thisoutwn/compatsize > min_normal_num ? -1 : 1
+    outwb = outwr > min_normal_num ? 1 : -1
 
     # this means that computed normals must be turned to match the measured points
-    flipn = thisflipn/compatsize > min_normal_num ? -1 : 1
+    flipn = flipr > min_normal_num ? -1 : 1
 
     return (true, outwb, flipn)
 end
