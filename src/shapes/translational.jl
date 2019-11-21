@@ -106,6 +106,7 @@ function largestpatch_depr(p, pind, resolution, bb, params)
 end
 
 """
+    segmentpatches(points, ϵ_inrange)
 
 Return connected patches of a pointcloud
 """
@@ -201,7 +202,7 @@ end
 
 function fittranslationalsurface(pcr, p, n, params)
     @unpack α_perpend, diagthr, max_group_num = params
-    @unpack max_contour_it, thinning_par = params
+    @unpack max_contour_it, thinning_par, ϵ_transl = params
     # Method:
     # 1. van-e közös merőleges? nincs -> break
     ok, dir = transldir(p, n, params)
@@ -223,15 +224,15 @@ function fittranslationalsurface(pcr, p, n, params)
     aabb = findAABB(projected)
     # 5. ha az AABB területe nagyon kicsi -> break
     #TODO: azt kéne inkább nézni, hogy az egyik oldal nagyon kicsi a másikhoz képest=sík
-    diagd = norm(aabb[2]-aabb[1])
-    diagd < diagthr && return nothing
+    #diagd = norm(aabb[2]-aabb[1])
+    #diagd < diagthr && return nothing
     # 6. összefüggő kontúrok
-    thr = 1.5*avgd
+    thr = ϵ_transl
     maxit = max_contour_it
     spatchs = segmentpatches(projected, thr)
     while spatchs.groups > max_group_num
         maxit < 1 && return nothing
-        maxi -= 1
+        maxit -= 1
         thr = 0.9*thr
         spatchs = segmentpatches(projected, thr)
         #spatchs.groups <= max_group_num && break
@@ -244,12 +245,13 @@ function fittranslationalsurface(pcr, p, n, params)
 
         # 1 if part of the current group
         patch_p = projected[findall(x->x==i, spatchs.ids)]
-        return patch_p, nothing
-        tris = delaunay(patch_p)
-        all_edges = to_edges!(tris)
-        weights = [norm(patch_p[e[1]] - patch_p[e[2]]) for e in all_edges]
-        tree = spanning_tree(all_edges, weights)
-        thinned, chunks = thinning(p, tree, 2.0)
+        #return patch_p, nothing
+        #tris = delaunay(patch_p)
+        #all_edges = to_edges!(tris)
+        #weights = [norm(patch_p[e[1]] - patch_p[e[2]]) for e in all_edges]
+        #tree = spanning_tree(all_edges, weights)
+        #thinned, chunks = thinning(p, tree, 2.0)
+        thinned, chunks = thinning_slow(patch_p, ϵ_transl/2)
         # put them into a FittedTranslational
         closed = [SVector{2,Float64}(th) for th in thinned]
         c = centroid(closed)

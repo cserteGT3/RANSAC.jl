@@ -247,6 +247,32 @@ function thinning(points, thickness)
     thinning(points, tree, thickness)
 end
 
+function alle(l)
+    ae = Vector{Vector{Int}}(undef, 0)
+    for i in 1:l
+        for j in i:l
+            i == j && continue
+            push!(ae, [i,j])
+        end
+    end
+    ae
+end
+
+"""
+    thinning_slow(points, thickness)
+
+Given a set of unsorted points taken from a (noisy) curve,
+this function generates an ordered list of points representing a thinned version of the curve.
+The `thickness` parameter should be around the same size as the noise.
+Delaunay triangulation is not used to accelerate the code.
+"""
+function thinning_slow(points, thickness)
+    all_edges = alle(size(points,1))
+    weights = [norm(points[e[1]] - points[e[2]]) for e in all_edges]
+    tree = spanning_tree(all_edges, weights)
+    thinning(points, tree, thickness)
+end
+
 # Fitting
 
 """

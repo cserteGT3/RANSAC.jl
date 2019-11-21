@@ -176,17 +176,19 @@ function minmaxdistance(points)
     ld = norm(points[2]-points[1])
     maxid = norm(points[2]-points[1])
     sumd = 0.
+    sumi = 0
     for i in eachindex(points)
         for j in eachindex(points)
             if i!=j
                 d = norm(points[i]-points[j])
                 sumd += d
+                sumi += 1
                 ld = d < ld ? d : ld
                 maxid = d > maxid ? d : maxid
             end
         end
     end
-    avg_d = sumd/size(points, 1)
+    avg_d = sumd/sumi
     return (mind=ld, maxd=maxid, avgd=avg_d)
 end
 
