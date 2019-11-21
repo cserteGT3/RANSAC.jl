@@ -15,6 +15,14 @@ struct FittedTranslational <: FittedShape
     contour
     # center of gravity
     center
+    # normal of the contour is parallel to the direction
+    # towards the center of the contour?
+    # == should flip the computed normals to direct outwards?
+    # this is used in e.g. CSGBuilding
+    outwards::Bool
+    # should the computed normal be flipped to match the measured points
+    # this is used in this package to ensure that in/outwards is correct
+    flipnormal::Bool
 end
 
 Base.show(io::IO, x::FittedTranslational) =
@@ -62,6 +70,18 @@ function project2sketchplane(pcr, indexes, transl_frame, params)
         push!(inds, indexes[i])
     end
     return projected, inds
+end
+
+"""
+    project2sketchplane(points, transl_frame)
+
+Just project the points to the plane.
+"""
+function project2sketchplane(points, transl_frame)
+    xv = transl_frame[1]
+    yv = transl_frame[2]
+    projd = [SVector{2,Float64}(dot(xv, p[i]), dot(yv, p[i])) for p in points]
+    return projd
 end
 
 """
@@ -145,7 +165,7 @@ The normal points towards "left".
 """
 function twopointnormal(a)
     dirv = normalize(a[2]-a[1])
-    return convert(eltype(a), normalize([-dirv[2], dirv[1]]))
+    return normalize(convert(eltype(a), [-dirv[2], dirv[1]]))
 end
 
 """
@@ -174,12 +194,12 @@ function distance2onesegment(point, A, i)
 end
 
 """
-    distandnormal2segment(point, A)
+    dist2segment(point, A)
 
 Compute the shortest distance from `point` to the linesegments `A`.
-Also compute the corresponding normal.
+Also return the index of that segment.
 """
-function distandnormal2segment(point, A)
+function dist2segment(point, A)
     leastd = distance2onesegment(point, A, 1)
     size(A,1) == 1 && return leastd
     best = 1
@@ -190,7 +210,7 @@ function distandnormal2segment(point, A)
             best = i
         end
     end
-    return (leastd, segmentnormal(A, best))
+    return (leastd, best)
 end
 
 function validatetrans(candidate, ps, ns, params)
@@ -198,6 +218,60 @@ function validatetrans(candidate, ps, ns, params)
     calcs = [distandnormal2segment(p, candidate.contour) for p in ps]
     #TODO:
     return nothing
+end
+
+"""
+    normaldirs(segments, points, normals, center, params)
+
+Compute the normal directions.
+This is based on the points, which are closer than `ϵ_transl`.
+Return a boolean first that indicates that the normals direct to the "same direction".
+"""
+function normaldirs(segments, points, normals, center, params)
+    fff() = (false, false, false)
+    @unpack ϵ_transl, min_normal_num = params
+    calcs = [dist2segment(p, segments) for p in points]
+    compats = [abs(calcs[i][1]) < ϵ_transl for i in eachindex(calcs)]
+    compatsize = size(compats, 1)
+    compatsize == 0 && return fff()
+    # later working with points[compats]
+    psize = size(points,1)
+    flipnormal = Vector{Bool}(undef, psize)
+    outwards = Vector{Bool}(undef, psize)
+    for i in 1:psize
+        # continue if not compatible
+        compats[i] || continue
+        # this is the fitted normal
+        contour_n = segmentnormal(segments, calcs[i][2])
+        tocenter = normalize(center-midpoint(segments, calcs[i][2]))
+
+        # normal of the contour is parallel to the direction
+        # towards the center of the contour?
+        # == should flip the computed normals to direct outwards?
+        # this is used in e.g. CSGBuilding
+        outwards[i] = dot(contour_n, tocenter) < 0.0 ? true : false
+
+        # should the computed normal be flipped to match the measured points
+        # this is used in this package to ensure that in/outwards is correct
+        flipnormal[i] = dot(contour_n, normals[i]) < 0.0 ? true : false
+    end
+    thisoutw = @view outwards[compats]
+    thisoutwn = count(thisoutw)
+    # can't agree on outwards
+    (thisoutwn/compatsize > min_normal_num) || (thisoutwn/compatsize <= 1-min_normal_num) || return fff()
+
+    # can't agree on flipnormals
+    thisflip = @view flipnormal[compats]
+    thisflipn = count(thisflip)
+    (thisflipn/compatsize > min_normal_num) || (thisflipn/compatsize <= 1-min_normal_num) || return fff()
+
+    # this means, that the computed normals must be turned to direct outside
+    outwb = thisoutwn/compatsize > min_normal_num ? true : false
+
+    # this means that computed normals must be turned to match the measured points
+    flipn = thisflipn/compatsize > min_normal_num ? true : false
+
+    return (true, outwb, flipn)
 end
 
 function fittranslationalsurface(pcr, p, n, params)
@@ -239,7 +313,7 @@ function fittranslationalsurface(pcr, p, n, params)
     end
     # hereby spatchs should contain maximum max_group_num of patches
     # 7. kontúr kiszedése: kell-e, hogy zárt görbe legyen? - szerintem kell -> 2 végpont összekötése
-    fitresults = Array{FittedTranslational,1}(undef, spatchs.groups)
+    fitresults = Array{FittedTranslational,1}(undef, 0)
     for i in 1:spatchs.groups
         # if spatchs.groups==1 -> .ids is not Array of Array, only Array
 
@@ -255,13 +329,63 @@ function fittranslationalsurface(pcr, p, n, params)
         # put them into a FittedTranslational
         closed = [SVector{2,Float64}(th) for th in thinned]
         c = centroid(closed)
-        ft = FittedTranslational(true, coordframe, closed, c)
-        fitresults[i] = ft
+
+        used_n = @view pcr.normals[proj_ind]
+        proj_n = project2sketchplane(used_n, coordframe)
+
+        isok, outw, flips = normaldirs(closed, projected, proj_n, c, params)
+        if !isok
+            @debug "normals not ok"
+            continue
+        end
+        ft = FittedTranslational(true, coordframe, closed, c, outw, flips)
+        push!(fitresults, ft)
     end
 
     # 8. kör/egyenes illesztése
     # - skipp
     # 9. visszaellenőrzés?
     # validation is currently skipped
+    isempty(fitresults) && return nothing
     return fitresults
+end
+
+## scoring
+
+function compatiblesTranslational(shape, points, normals, params)
+    @unpack α_transl, ϵ_transl = params
+
+    # project to plane
+    ps = project2sketchplane(points, shape.coordframe)
+    ns = project2sketchplane(normals, shape.coordframe)
+
+    calcs = [dist2segment(p, shape.contour) for p in ps]
+
+    #eps check
+    c1 = [abs(calcs[i][1]) < ϵ_transl for i in eachindex(points)]
+
+    #alpha check
+    c2 = Vector{Bool}(undef, size(points))
+
+    flips = shape.flipnormal ? -1 : 1
+    for i in eachindex(c2)
+        comp_n = -1*segmentnormal(shape.contour, calcs[i][2])
+        c2[i] = isparallel(comp_n, ns[i], α_transl)
+    end
+    return c1.&c2
+end
+
+
+function scorecandidate(pc, candidate::ShapeCandidate{T}, subsetID, params) where {T<:FittedTranslational}
+    ps = @view pc.vertices[pc.subsets[subsetID]]
+    ns = @view pc.normals[pc.subsets[subsetID]]
+    ens = @view pc.isenabled[pc.subsets[subsetID]]
+    # verti: összes pont indexe, ami enabled és kompatibilis
+    # lenne, ha működne, de inkább a boolean indexelést machináljuk
+    cp = compatiblesCone(candidate.shape, ps, ns, params)
+    inder = cp.&ens
+    inpoints = (pc.subsets[subsetID])[inder]
+    score = estimatescore(length(pc.subsets[subsetID]), pc.size, length(inpoints))
+    pc.levelscore[candidate.octree_lev] += E(score)
+    return ScoredShape(candidate, score, inpoints)
 end
