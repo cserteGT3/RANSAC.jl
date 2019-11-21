@@ -19,10 +19,12 @@ struct FittedTranslational <: FittedShape
     # towards the center of the contour?
     # == should flip the computed normals to direct outwards?
     # this is used in e.g. CSGBuilding
-    outwards::Bool
+    # true means, that the computed normals must be turned to direct outside
+    outwards::Int
     # should the computed normal be flipped to match the measured points
     # this is used in this package to ensure that in/outwards is correct
-    flipnormal::Bool
+    # true means that computed normals must be turned to match the measured points
+    flipnormal::Int
 end
 
 Base.show(io::IO, x::FittedTranslational) =
@@ -80,7 +82,7 @@ Just project the points to the plane.
 function project2sketchplane(points, transl_frame)
     xv = transl_frame[1]
     yv = transl_frame[2]
-    projd = [SVector{2,Float64}(dot(xv, p[i]), dot(yv, p[i])) for p in points]
+    projd = [SVector{2,Float64}(dot(xv, p), dot(yv, p)) for p in points]
     return projd
 end
 
@@ -183,6 +185,25 @@ function segmentnormal(A, i)
 end
 
 """
+    contournormal(shape::FittedTranslational, i)
+
+Compute the normal of the i-th segment of a FittedTranslational shape.
+"""
+function contournormal(shape::FittedTranslational, i)
+    return shape.flipnormal .* segmentnormal(shape.contour, i)
+end
+
+"""
+    outwardsnormal(shape::FittedTranslational, i)
+
+Compute the normal of the i-th segment of a FittedTranslational shape.
+This normal points always outwards.
+"""
+function outwardsnormal(shape::FittedTranslational, i)
+    return shape.outwards .* segmentnormal(shape.contour, i)
+end
+
+"""
     distance2onesegment(point, A, i)
 
 Compute distance of `point` to the i-th segment in A.
@@ -266,10 +287,10 @@ function normaldirs(segments, points, normals, center, params)
     (thisflipn/compatsize > min_normal_num) || (thisflipn/compatsize <= 1-min_normal_num) || return fff()
 
     # this means, that the computed normals must be turned to direct outside
-    outwb = thisoutwn/compatsize > min_normal_num ? true : false
+    outwb = thisoutwn/compatsize > min_normal_num ? -1 : 1
 
     # this means that computed normals must be turned to match the measured points
-    flipn = thisflipn/compatsize > min_normal_num ? true : false
+    flipn = thisflipn/compatsize > min_normal_num ? -1 : 1
 
     return (true, outwb, flipn)
 end

@@ -6,10 +6,6 @@ using Logging
 using Logging: default_logcolor
 using StaticArrays: SVector
 using RegionTrees
-#using AbstractPlotting: Point3f0
-#using Makie: scatter, linesegments!, Scene, scatter!
-#using Makie: mesh!, cam3d!, Sphere, Point
-#using GeometryTypes: Cylinder
 using Images: label_components, component_lengths, component_subscripts
 using Parameters
 using NearestNeighbors: BallTree, inrange
@@ -48,6 +44,7 @@ export  FittedShape,
         FittedSphere,
         FittedCylinder,
         FittedCone,
+        FittedTranslational,
         ShapeCandidate,
         findhighestscore,
         ScoredShape,
