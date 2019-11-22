@@ -129,7 +129,11 @@ function ransac(pc, params; reset_rand = false)
 
         for c in candidates
             #TODO: save the bitmmaped parameters for debug
-            push!(scoredshapes, scorecandidate(pc, c, which_, params))
+            sc = scorecandidate(pc, c, which_, params)
+            if sc.candidate.shape isa FittedTranslational
+                println("new extr: size: $(length(sc.inpoints)), score: $(E(sc.score))")
+            end
+            push!(scoredshapes, sc)
         end # for c
         # by now every candidate is scored into scoredshapes
         empty!(candidates)
@@ -139,8 +143,8 @@ function ransac(pc, params; reset_rand = false)
 
         size(scoredshapes, 1) < 1 && @goto endofscoring
         # search for the largest score == length(inpoints) (for now)
-        # best = largestshape(scoredshapes)
-        best = findhighestscore(scoredshapes)
+        best = largestshape(scoredshapes)
+        #best = findhighestscore(scoredshapes)
         bestshape = scoredshapes[best.index]
         # TODO: refine if best.overlap
         scr = E(bestshape.score)
@@ -176,6 +180,10 @@ function ransac(pc, params; reset_rand = false)
                 @logmsg IterInf "Extracting best: $(strt(bestshape.candidate.shape)) score: $scr, refit length: $scs"
             elseif bestshape.candidate.shape isa FittedCone
                 sc = refitcone(bestshape, pc, params)
+                scs = size(sc.inpoints,1)
+                @logmsg IterInf "Extracting best: $(strt(bestshape.candidate.shape)) score: $scr, refit length: $scs"
+            elseif bestshape.candidate.shape isa FittedTranslational
+                sc = refittransl(bestshape, pc, params)
                 scs = size(sc.inpoints,1)
                 @logmsg IterInf "Extracting best: $(strt(bestshape.candidate.shape)) score: $scr, refit length: $scs"
             else

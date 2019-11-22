@@ -144,13 +144,15 @@ end
 ## refit
 
 """
-    refitcone(s, pc, ϵ, α)
+    refitcone(s, pc, params)
 
 Refit cone. Only s.inpoints is updated.
 """
 function refitcone(s, pc, params)
     # TODO: use octree for that
-    cp = compatiblesCone(s.candidate.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], params)
+    p = @view pc.vertices[pc.isenabled]
+    n = @view pc.normals[pc.isenabled]
+    cp = compatiblesCone(s.candidate.shape, p, n, params)
     s.inpoints = ((1:pc.size)[pc.isenabled])[cp]
     s
 end

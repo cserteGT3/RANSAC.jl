@@ -49,16 +49,21 @@ function transldir(p, n, params)
     return (false, direction)
 end
 
+"""
+    project2sketchplane(pcr, indexes, transl_frame, params)
+
+Project points defined by `indexes` (`pcr.vertices[indexes]`) to the plane defined by `transl_frame`.
+All the points should be enabled.
+Only those points are considered, whose normal is perpendicular to the plane.
+"""
 function project2sketchplane(pcr, indexes, transl_frame, params)
     @unpack α_perpend = params
-    # enabled indices
-    en_ind = pcr.isenabled[indexes]
     xv = transl_frame[1]
     yv = transl_frame[2]
     z = transl_frame[3]
     # enabled points and normals
-    p = @view pcr.vertices[en_ind]
-    n = @view pcr.normals[en_ind]
+    p = @view pcr.vertices[indexes]
+    n = @view pcr.normals[indexes]
 
     projected = Array{SVector{2,Float64},1}(undef, 0)
     inds = Int[]
@@ -234,6 +239,17 @@ function dist2segment(point, A)
     return (leastd, best)
 end
 
+"""
+    impldistance2segment(point, shape::FittedTranslational)
+
+Compute the shortest signed distance from `point` to the linesegments `A`.
+Sign is decided so, that the normal of the surface points outwards.
+"""
+function impldistance2segment(point, shape::FittedTranslational)
+    d, i = dist2segment(point, shape.contour)
+    return (shape.outwards*d, i)
+end
+
 function validatetrans(candidate, ps, ns, params)
     @unpack α_transl , ϵ_transl = params
     calcs = [distandnormal2segment(p, candidate.contour) for p in ps]
@@ -308,10 +324,15 @@ function fittranslationalsurface(pcr, p, n, params)
     zv = dir
     yv = normalize(cross(zv, xv))
     coordframe = [xv, yv, zv]
+
     #TODO: okosabb kéne ide
-    # most: az első subsetet nézem és abból is csak azt ami enabled
-    #projected, proj_ind = project2sketchplane(pcr, pcr.subsets[1], coordframe, params)
-    projected, proj_ind = project2sketchplane(pcr, 1:size(pcr.vertices,1), coordframe, params)
+    # these are the enabled points from the first subset
+    ien = pcr.isenabled
+    sbs = pcr.subsets[1]
+    # index in isenabled with the subset, to get those who are enabled in the subset
+    # then use it to index into the subset
+    used_i = sbs[ien[sbs]]
+    projected, proj_ind = project2sketchplane(pcr, used_i, coordframe, params)
 
     # 3. legkisebb és legnagyobb távolság megnézése
     @unpack mind, maxd, avgd = minmaxdistance(projected)
@@ -346,7 +367,10 @@ function fittranslationalsurface(pcr, p, n, params)
         #weights = [norm(patch_p[e[1]] - patch_p[e[2]]) for e in all_edges]
         #tree = spanning_tree(all_edges, weights)
         #thinned, chunks = thinning(p, tree, 2.0)
-        thinned, chunks = thinning_slow(patch_p, ϵ_transl/2)
+        #println("pathc")
+        #@show patch_p
+        println("time slow:")
+        thinned, chunks = @time thinning_slow(patch_p, ϵ_transl/2)
         # put them into a FittedTranslational
         closed = [SVector{2,Float64}(th) for th in thinned]
         c = centroid(closed)
@@ -388,9 +412,8 @@ function compatiblesTranslational(shape, points, normals, params)
     #alpha check
     c2 = Vector{Bool}(undef, size(points))
 
-    flips = shape.flipnormal ? -1 : 1
     for i in eachindex(c2)
-        comp_n = -1*segmentnormal(shape.contour, calcs[i][2])
+        comp_n = contournormal(shape, calcs[i][2])
         c2[i] = isparallel(comp_n, ns[i], α_transl)
     end
     return c1.&c2
@@ -403,10 +426,27 @@ function scorecandidate(pc, candidate::ShapeCandidate{T}, subsetID, params) wher
     ens = @view pc.isenabled[pc.subsets[subsetID]]
     # verti: összes pont indexe, ami enabled és kompatibilis
     # lenne, ha működne, de inkább a boolean indexelést machináljuk
-    cp = compatiblesCone(candidate.shape, ps, ns, params)
+    cp = compatiblesTranslational(candidate.shape, ps, ns, params)
     inder = cp.&ens
     inpoints = (pc.subsets[subsetID])[inder]
     score = estimatescore(length(pc.subsets[subsetID]), pc.size, length(inpoints))
     pc.levelscore[candidate.octree_lev] += E(score)
     return ScoredShape(candidate, score, inpoints)
+end
+
+
+## refit
+
+"""
+    refittransl(s, pc, params)
+
+Refit translational. Only s.inpoints is updated.
+"""
+function refittransl(s, pc, params)
+    # TODO: use octree for that
+    p = @view pc.vertices[pc.isenabled]
+    n = @view pc.normals[pc.isenabled]
+    cp = compatiblesTranslational(s.candidate.shape, p, n, params)
+    s.inpoints = ((1:pc.size)[pc.isenabled])[cp]
+    s
 end
