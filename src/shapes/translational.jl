@@ -222,11 +222,11 @@ Also return the index of that segment.
 """
 function dist2segment(point, A)
     leastd = distance2onesegment(point, A, 1)
-    size(A,1) == 1 && return leastd
+    size(A,1) == 1 && return (leastd, 1)
     best = 1
     for i in 2:size(A,1)
         d = distance2onesegment(point, A, i)
-        if d < leastd
+        if abs(d) < abs(leastd)
             leastd = d
             best = i
         end
@@ -249,11 +249,12 @@ This is based on the points, which are closer than `ϵ_transl`.
 Return a boolean first that indicates that the normals direct to the "same direction".
 """
 function normaldirs(segments, points, normals, center, params)
+    @assert size(points) == size(normals)
     fff() = (false, false, false)
     @unpack ϵ_transl, min_normal_num = params
     calcs = [dist2segment(p, segments) for p in points]
     compats = [abs(calcs[i][1]) < ϵ_transl for i in eachindex(calcs)]
-    compatsize = size(compats, 1)
+    compatsize = count(compats)
     compatsize == 0 && return fff()
     # later working with points[compats]
     psize = size(points,1)
@@ -278,20 +279,15 @@ function normaldirs(segments, points, normals, center, params)
     end
     thisoutw = @view outwards[compats]
     outwr = count(thisoutw)/compatsize
-    thisoutwn = count(thisoutw)
     # can't agree on outwards
     (outwr > min_normal_num) || (outwr <= 1-min_normal_num) || return fff()
-    @show thisoutwn
-    @show thisoutwn/compatsize
 
     # can't agree on flipnormals
     thisflip = @view flipnormal[compats]
     flipr = count(thisflip)/compatsize
-    thisflipn = count(thisflip)
     (flipr > min_normal_num) || (flipr <= 1-min_normal_num) || return fff()
-
     # this means, that the computed normals must be turned to direct outside
-    outwb = outwr > min_normal_num ? 1 : -1
+    outwb = outwr > min_normal_num ? -1 : 1
 
     # this means that computed normals must be turned to match the measured points
     flipn = flipr > min_normal_num ? -1 : 1
@@ -343,8 +339,8 @@ function fittranslationalsurface(pcr, p, n, params)
         # if spatchs.groups==1 -> .ids is not Array of Array, only Array
 
         # 1 if part of the current group
-        patch_p = projected[findall(x->x==i, spatchs.ids)]
-        #return patch_p, nothing
+        cur_group = findall(x->x==i, spatchs.ids)
+        patch_p = projected[cur_group]
         #tris = delaunay(patch_p)
         #all_edges = to_edges!(tris)
         #weights = [norm(patch_p[e[1]] - patch_p[e[2]]) for e in all_edges]
@@ -355,10 +351,10 @@ function fittranslationalsurface(pcr, p, n, params)
         closed = [SVector{2,Float64}(th) for th in thinned]
         c = centroid(closed)
 
-        used_n = @view pcr.normals[proj_ind]
+        used_n = @view pcr.normals[proj_ind[cur_group]]
         proj_n = project2sketchplane(used_n, coordframe)
 
-        isok, outw, flips = normaldirs(closed, projected, proj_n, c, params)
+        isok, outw, flips = normaldirs(closed, patch_p, proj_n, c, params)
         if !isok
             @debug "normals not ok"
             continue
