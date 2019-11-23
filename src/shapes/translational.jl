@@ -9,7 +9,16 @@
 # 8. kör/egyenes illesztése
 # 9. visszaellenőrzés?
 
-struct FittedTranslational <: FittedShape
+abstract type AbstactTranslationalSurface <: FittedShape
+
+struct FittedTranslational <: AbstactTranslationalSurface
+    istranslational::Bool
+    coordframe
+    contourindexes
+    subsetnum::Int
+end
+
+struct ExtractedTranslational <: AbstactTranslationalSurface
     istranslational::Bool
     coordframe
     contour
@@ -27,15 +36,18 @@ struct FittedTranslational <: FittedShape
     flipnormal::Int
 end
 
-Base.show(io::IO, x::FittedTranslational) =
+Base.show(io::IO, x::AbstactTranslationalSurface) =
     print(io, """$(x.istranslational ? "o" : "x") extruded""")
 
 Base.show(io::IO, ::MIME"text/plain", x::FittedTranslational) =
     print(io, """FittedTranslational\n$(x.istranslational ? "o" : "x") extruded""")
 
-strt(x::FittedTranslational) = "extruded"
+Base.show(io::IO, ::MIME"text/plain", x::ExtractedTranslational) =
+    print(io, """ExtractedTranslational\n$(x.istranslational ? "o" : "x") extruded""")
 
-isshape(shape::FittedTranslational) = shape.istranslational
+strt(x::AbstactTranslationalSurface) = "extruded"
+
+isshape(shape::AbstactTranslationalSurface) = shape.istranslational
 
 function transldir(p, n, params)
     # 1. van-e közös merőleges? nincs -> break
@@ -328,6 +340,62 @@ function fittranslationalsurface(pcr, p, n, params)
     #TODO: okosabb kéne ide
     # these are the enabled points from the first subset
     ien = pcr.isenabled
+    subsnum = 1
+    sbs = pcr.subsets[subsnum]
+    # index in isenabled with the subset, to get those who are enabled in the subset
+    # then use it to index into the subset
+    used_i = sbs[ien[sbs]]
+    projected, proj_ind = project2sketchplane(pcr, used_i, coordframe, params)
+
+    # 3. legkisebb és legnagyobb távolság megnézése
+    @unpack mind, maxd, avgd = minmaxdistance(projected)
+    # 4. AABB
+    aabb = findAABB(projected)
+    # 5. ha az AABB területe nagyon kicsi -> break
+    #TODO: azt kéne inkább nézni, hogy az egyik oldal nagyon kicsi a másikhoz képest=sík
+    #diagd = norm(aabb[2]-aabb[1])
+    #diagd < diagthr && return nothing
+    # 6. összefüggő kontúrok
+    thr = ϵ_transl
+    maxit = max_contour_it
+    spatchs = segmentpatches(projected, thr)
+    while spatchs.groups > max_group_num
+        maxit < 1 && return nothing
+        maxit -= 1
+        thr = 0.9*thr
+        spatchs = segmentpatches(projected, thr)
+        #spatchs.groups <= max_group_num && break
+    end
+    # hereby spatchs should contain maximum max_group_num of patches
+    fitresults = Array{FittedTranslational,1}(undef, 0)
+    for i in 1:spatchs.groups
+        # i if part of the i-th group
+        cur_group = findall(x->x==i, spatchs.ids)
+        patch_indexes = proj_ind[cur_group]
+        ft = FittedTranslational(true, coordframe, patch_indexes, subsnum)
+        push!(fitresults, ft)
+    end
+    return fitresults
+end
+
+#=
+function fittranslationalsurface(pcr, p, n, params)
+    @unpack α_perpend, diagthr, max_group_num = params
+    @unpack max_contour_it, thinning_par, ϵ_transl = params
+    # Method:
+    # 1. van-e közös merőleges? nincs -> break
+    ok, dir = transldir(p, n, params)
+    ok || return nothing
+    # 2. összes pont levetítése erre a síkra (egyik pont és a közös normális)
+    o = p[1]
+    xv = n[1]
+    zv = dir
+    yv = normalize(cross(zv, xv))
+    coordframe = [xv, yv, zv]
+
+    #TODO: okosabb kéne ide
+    # these are the enabled points from the first subset
+    ien = pcr.isenabled
     sbs = pcr.subsets[1]
     # index in isenabled with the subset, to get those who are enabled in the subset
     # then use it to index into the subset
@@ -394,6 +462,7 @@ function fittranslationalsurface(pcr, p, n, params)
     isempty(fitresults) && return nothing
     return fitresults
 end
+=#
 
 ## scoring
 
@@ -421,15 +490,9 @@ end
 
 
 function scorecandidate(pc, candidate::ShapeCandidate{T}, subsetID, params) where {T<:FittedTranslational}
-    ps = @view pc.vertices[pc.subsets[subsetID]]
-    ns = @view pc.normals[pc.subsets[subsetID]]
-    ens = @view pc.isenabled[pc.subsets[subsetID]]
-    # verti: összes pont indexe, ami enabled és kompatibilis
-    # lenne, ha működne, de inkább a boolean indexelést machináljuk
-    cp = compatiblesTranslational(candidate.shape, ps, ns, params)
-    inder = cp.&ens
-    inpoints = (pc.subsets[subsetID])[inder]
-    score = estimatescore(length(pc.subsets[subsetID]), pc.size, length(inpoints))
+    inpoints = candidate.shape.contourindexes
+    subsID = candidate.shape.subsetnum
+    score = estimatescore(length(pc.subsets[subsID]), pc.size, length(inpoints))
     pc.levelscore[candidate.octree_lev] += E(score)
     return ScoredShape(candidate, score, inpoints)
 end

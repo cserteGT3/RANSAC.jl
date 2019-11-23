@@ -130,9 +130,6 @@ function ransac(pc, params; reset_rand = false)
         for c in candidates
             #TODO: save the bitmmaped parameters for debug
             sc = scorecandidate(pc, c, which_, params)
-            if sc.candidate.shape isa FittedTranslational
-                println("new extr: size: $(length(sc.inpoints)), score: $(E(sc.score))")
-            end
             push!(scoredshapes, sc)
         end # for c
         # by now every candidate is scored into scoredshapes
@@ -158,8 +155,6 @@ function ransac(pc, params; reset_rand = false)
             @logmsg IterInf "$k. it, best: $best_length db, score: $scr, prob: $ppp, scored shapes: $(length(scoredshapes)) db."
         end
 
-
-        #TODO: length will be only 1/numberofsubsets
         # if the probability is large enough, extract the shape
         if ppp > prob_det
 
@@ -167,35 +162,26 @@ function ransac(pc, params; reset_rand = false)
             # what do you mean by refit?
             # refit on the whole pointcloud
             if bestshape.candidate.shape isa FittedPlane
-                sp = refitplane(bestshape, pc, params)
-                sps = size(sp.inpoints,1)
-                @logmsg IterInf "Extracting best: $(strt(bestshape.candidate.shape)) score: $scr, refit length: $sps"
+                bs = refitplane(bestshape, pc, params)
             elseif bestshape.candidate.shape isa FittedSphere
-                ss = refitsphere(bestshape, pc, params)
-                sss = size(ss.inpoints,1)
-                @logmsg IterInf "Extracting best: $(strt(bestshape.candidate.shape)) score: $scr, refit length: $sss"
+                bs = refitsphere(bestshape, pc, params)
             elseif bestshape.candidate.shape isa FittedCylinder
-                sc = refitcylinder(bestshape, pc, params)
-                scs = size(sc.inpoints,1)
-                @logmsg IterInf "Extracting best: $(strt(bestshape.candidate.shape)) score: $scr, refit length: $scs"
+                bs = refitcylinder(bestshape, pc, params)
             elseif bestshape.candidate.shape isa FittedCone
-                sc = refitcone(bestshape, pc, params)
-                scs = size(sc.inpoints,1)
-                @logmsg IterInf "Extracting best: $(strt(bestshape.candidate.shape)) score: $scr, refit length: $scs"
+                bs = refitcone(bestshape, pc, params)
             elseif bestshape.candidate.shape isa FittedTranslational
-                sc = refittransl(bestshape, pc, params)
-                scs = size(sc.inpoints,1)
-                @logmsg IterInf "Extracting best: $(strt(bestshape.candidate.shape)) score: $scr, refit length: $scs"
+                bs = refittransl(bestshape, pc, params)
             else
-                @error "Whatt? panic with $(typeof(bestshape.candidate.shape))"
+                @warn "Refit not implemented for: $(typeof(bestshape.candidate.shape))"
             end
-
+            scs = size(bs.inpoints,1)
+            @logmsg IterInf "Extracting best: $(strt(bs.candidate.shape)) score: $scr, refit length: $scs"
             # invalidate points
-            for a in bestshape.inpoints
+            for a in bs.inpoints
                 pc.isenabled[a] = false
             end
             # extract the shape and delete from scoredshapes
-            push!(extracted, bestshape)
+            push!(extracted, bs)
             deleteat!(scoredshapes, best.index)
             # mark scoredshapes that have invalid points
             toremove = Int[]
@@ -217,15 +203,11 @@ function ransac(pc, params; reset_rand = false)
         updatelevelweight(pc)
 
         # check exit condition
-        # TODO: τ-t is le kéne osztani a subsestek számával
         #if prob(τ/subsetN, length(scoredshapes), pc.size, drawN) > prob_det
         if prob(τ/subsetN, sofar, pc.size, drawN) > prob_det
             @logmsg IterInf "Break, at this point all shapes should be extracted: $k. iteráció."
             break
         end
-        #if mod(k,itermax/10) == 0
-        #    @debug "Iteration: $k"
-        #end
     end # iterate end
     fint = trunc((time_ns() - start_time)/1_000_000_000, digits=2)
     @logmsg IterInf "Iteration finished in $fint seconds with $(length(extracted)) extracted and $(length(scoredshapes)) scored shapes."
