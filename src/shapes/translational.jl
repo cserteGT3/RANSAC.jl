@@ -104,47 +104,6 @@ function project2sketchplane(points, transl_frame)
 end
 
 """
-    largestpatch_depr(p, pind, resolution, bb, params)
-
-Indexes of the points in the largest patch.
-This should not be used.
-
-# Arguments:
-- `p`: points in 2D.
-- `pind`: index of the points in the pointcloud.
-- `resolution`: resolution of the bitmap.
-- `bb`: axis aligned bounding box.
-- `params::RANSACParameters`: parameters.
-"""
-function largestpatch_depr(p, pind, resolution, bb, params)
-    @unpack transl_conn = params
-    minv = bb[1]
-    maxv = bb[2]
-
-    # size of the bitmap
-    xs = trunc(Int, (maxv[1]-minv[1])/resolution)
-    ys = trunc(Int, (maxv[2]-minv[2])/resolution)
-    @assert xs > 0 && ys > 0 "max-min must be > 0. Check the code! xs: $xs, ys:$ys"
-    # size of pixels
-    βx = (maxv[1]-minv[1])/xs
-    βy = (maxv[2]-minv[2])/ys
-
-    bitmap = falses(xs, ys)
-    indexmap = [Int[] for i in 1:xs, j in 1:ys]
-    for i in eachindex(p)
-        # coordinate frame is transposed
-        xplace = ceil(Int, abs(p[i][1]-minv[1])/βx)
-        yplace = ceil(Int, abs(p[i][2]-minv[2])/βy)
-        xplace = xplace == 0 ? 1 : xplace
-        yplace = yplace == 0 ? 1 : yplace
-        bitmap[xplace, yplace] = true
-        append!(indexmap[xplace, yplace], pind[i])
-    end
-    return p, bitmap
-    # return largestconncomp(bitmap, indexmap, transl_conn)
-end
-
-"""
     segmentpatches(points, ϵ_inrange)
 
 Return connected patches of a pointcloud
