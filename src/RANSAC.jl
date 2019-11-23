@@ -6,7 +6,7 @@ using Logging
 using Logging: default_logcolor
 using StaticArrays: SVector
 using RegionTrees
-using Images: label_components, component_lengths, component_subscripts
+#using Images: label_components, component_lengths, component_subscripts
 using Parameters
 using NearestNeighbors: BallTree, inrange
 using UnionFind
@@ -102,7 +102,7 @@ include("shapes/cone.jl")
 include("shapes/profit.jl")
 include("shapes/translational.jl")
 include("sampling.jl")
-include("parameterspacebitmap.jl")
+#include("parameterspacebitmap.jl")
 include("iterations.jl")
 include("logging.jl")
 
