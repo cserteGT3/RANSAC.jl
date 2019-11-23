@@ -9,16 +9,16 @@
 # 8. kör/egyenes illesztése
 # 9. visszaellenőrzés?
 
-abstract type AbstactTranslationalSurface <: FittedShape
+abstract type AbstractTranslationalSurface <: FittedShape end
 
-struct FittedTranslational <: AbstactTranslationalSurface
+struct FittedTranslational <: AbstractTranslationalSurface
     istranslational::Bool
     coordframe
     contourindexes
     subsetnum::Int
 end
 
-struct ExtractedTranslational <: AbstactTranslationalSurface
+struct ExtractedTranslational <: AbstractTranslationalSurface
     istranslational::Bool
     coordframe
     contour
@@ -36,7 +36,7 @@ struct ExtractedTranslational <: AbstactTranslationalSurface
     flipnormal::Int
 end
 
-Base.show(io::IO, x::AbstactTranslationalSurface) =
+Base.show(io::IO, x::AbstractTranslationalSurface) =
     print(io, """$(x.istranslational ? "o" : "x") extruded""")
 
 Base.show(io::IO, ::MIME"text/plain", x::FittedTranslational) =
@@ -45,9 +45,9 @@ Base.show(io::IO, ::MIME"text/plain", x::FittedTranslational) =
 Base.show(io::IO, ::MIME"text/plain", x::ExtractedTranslational) =
     print(io, """ExtractedTranslational\n$(x.istranslational ? "o" : "x") extruded""")
 
-strt(x::AbstactTranslationalSurface) = "extruded"
+strt(x::AbstractTranslationalSurface) = "extruded"
 
-isshape(shape::AbstactTranslationalSurface) = shape.istranslational
+isshape(shape::AbstractTranslationalSurface) = shape.istranslational
 
 function transldir(p, n, params)
     # 1. van-e közös merőleges? nincs -> break
@@ -161,21 +161,21 @@ function segmentnormal(A, i)
 end
 
 """
-    contournormal(shape::FittedTranslational, i)
+    contournormal(shape::ExtractedTranslational, i)
 
-Compute the normal of the i-th segment of a FittedTranslational shape.
+Compute the normal of the i-th segment of a ExtractedTranslational shape.
 """
-function contournormal(shape::FittedTranslational, i)
+function contournormal(shape::ExtractedTranslational, i)
     return shape.flipnormal .* segmentnormal(shape.contour, i)
 end
 
 """
-    outwardsnormal(shape::FittedTranslational, i)
+    outwardsnormal(shape::ExtractedTranslational, i)
 
-Compute the normal of the i-th segment of a FittedTranslational shape.
+Compute the normal of the i-th segment of a ExtractedTranslational shape.
 This normal points always outwards.
 """
-function outwardsnormal(shape::FittedTranslational, i)
+function outwardsnormal(shape::ExtractedTranslational, i)
     return shape.outwards .* segmentnormal(shape.contour, i)
 end
 
@@ -306,14 +306,13 @@ function fittranslationalsurface(pcr, p, n, params)
     used_i = sbs[ien[sbs]]
     projected, proj_ind = project2sketchplane(pcr, used_i, coordframe, params)
 
-    # 3. legkisebb és legnagyobb távolság megnézése
-    @unpack mind, maxd, avgd = minmaxdistance(projected)
     # 4. AABB
     aabb = findAABB(projected)
-    # 5. ha az AABB területe nagyon kicsi -> break
+    sidelength = aabb[2]-aabb[1]
     #TODO: azt kéne inkább nézni, hogy az egyik oldal nagyon kicsi a másikhoz képest=sík
-    #diagd = norm(aabb[2]-aabb[1])
-    #diagd < diagthr && return nothing
+    # if one of the side's length is <<< then the other -> nothing
+    sidelength[1] < 0.01*sidelength[2] && return nothing
+    sidelength[2] < 0.01*sidelength[1] && return nothing
     # 6. összefüggő kontúrok
     thr = ϵ_transl
     maxit = max_contour_it
@@ -338,7 +337,7 @@ function fittranslationalsurface(pcr, p, n, params)
 end
 
 #=
-function fittranslationalsurface(pcr, p, n, params)
+function fittranslationalsurface_orig(pcr, p, n, params)
     @unpack α_perpend, diagthr, max_group_num = params
     @unpack max_contour_it, thinning_par, ϵ_transl = params
     # Method:
@@ -465,10 +464,33 @@ end
 Refit translational. Only s.inpoints is updated.
 """
 function refittransl(s, pc, params)
+    @unpack ϵ_transl = params
+    transl = s.candidate.shape
+    cf = transl.coordframe
+    cidxs = transl.contourindexes
+
+    # 1. project points & normals
+    old_p = @view pc.vertices[cidxs]
+    old_n = @view pc.normals[cidxs]
+    o_pp = project2sketchplane(old_p, cf)
+    o_np = project2sketchplane(old_n, cf)
+
+    # 2. thinning
+    thinned, _ = thinning_slow(o_pp, ϵ_transl/2)
+    closed = [SVector{2,Float64}(th) for th in thinned]
+    c = centroid(closed)
+
+    # 3. normaldirs()
+    isok, outw, flips = normaldirs(closed, o_pp, o_np, c, params)
+    isok || return nothing
+    et = ExtractedTranslational(true, cf, closed, c, outw, flips)
+
+    # 4. search for all enabled and compatibel points
     # TODO: use octree for that
     p = @view pc.vertices[pc.isenabled]
     n = @view pc.normals[pc.isenabled]
-    cp = compatiblesTranslational(s.candidate.shape, p, n, params)
-    s.inpoints = ((1:pc.size)[pc.isenabled])[cp]
-    s
+    cp = compatiblesTranslational(et, p, n, params)
+    ip = ((1:pc.size)[pc.isenabled])[cp]
+    cand = ShapeCandidate(et, s.candidate.octree_lev)
+    return ScoredShape(cand, s.score, ip)
 end

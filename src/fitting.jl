@@ -88,8 +88,7 @@ function forcefitshapes!(pc, points, normals, parameters, candidates, octree_lev
         elseif s === :cone
             fitted = fitcone(points, normals, parameters)
         elseif s === :translational_surface
-            println("whole fit")
-            fits = @time fittranslationalsurface(pc, points, normals, parameters)
+            fits = fittranslationalsurface(pc, points, normals, parameters)
             fits === nothing && continue
             append!(candidates, [ShapeCandidate(f, octree_lev) for f in fits])
             continue

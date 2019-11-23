@@ -138,66 +138,76 @@ function ransac(pc, params; reset_rand = false)
         # considered so far k*minsubsetN db. minimal sets
         sofar = k*minsubsetN
 
-        size(scoredshapes, 1) < 1 && @goto endofscoring
-        # search for the largest score == length(inpoints) (for now)
-        best = largestshape(scoredshapes)
-        #best = findhighestscore(scoredshapes)
-        bestshape = scoredshapes[best.index]
-        # TODO: refine if best.overlap
-        scr = E(bestshape.score)
-        best_length = length(bestshape.inpoints)
+        if ! (size(scoredshapes, 1) < 1)
+            # search for the largest score == length(inpoints) (for now)
+            best = largestshape(scoredshapes)
+            #best = findhighestscore(scoredshapes)
+            bestshape = scoredshapes[best.index]
+            # TODO: refine if best.overlap
+            scr = E(bestshape.score)
+            best_length = length(bestshape.inpoints)
 
-        #ppp = prob(best_length*subsetN, length(scoredshapes), pc.size, drawN)
-        ppp = prob(best_length*subsetN, sofar, pc.size, drawN)
+            #ppp = prob(best_length*subsetN, length(scoredshapes), pc.size, drawN)
+            ppp = prob(best_length*subsetN, sofar, pc.size, drawN)
 
-        #info printing
-        if k%notifit == 0
-            @logmsg IterInf "$k. it, best: $best_length db, score: $scr, prob: $ppp, scored shapes: $(length(scoredshapes)) db."
-        end
-
-        # if the probability is large enough, extract the shape
-        if ppp > prob_det
-
-            # TODO: proper refit, not only getting the points that fit to that shape
-            # what do you mean by refit?
-            # refit on the whole pointcloud
-            if bestshape.candidate.shape isa FittedPlane
-                bs = refitplane(bestshape, pc, params)
-            elseif bestshape.candidate.shape isa FittedSphere
-                bs = refitsphere(bestshape, pc, params)
-            elseif bestshape.candidate.shape isa FittedCylinder
-                bs = refitcylinder(bestshape, pc, params)
-            elseif bestshape.candidate.shape isa FittedCone
-                bs = refitcone(bestshape, pc, params)
-            elseif bestshape.candidate.shape isa FittedTranslational
-                bs = refittransl(bestshape, pc, params)
-            else
-                @warn "Refit not implemented for: $(typeof(bestshape.candidate.shape))"
+            #info printing: there's a best
+            if k%notifit == 0
+                @logmsg IterInf "$k. it, best: $best_length db, score: $scr, prob: $ppp, scored shapes: $(length(scoredshapes)) db."
             end
-            scs = size(bs.inpoints,1)
-            @logmsg IterInf "Extracting best: $(strt(bs.candidate.shape)) score: $scr, refit length: $scs"
-            # invalidate points
-            for a in bs.inpoints
-                pc.isenabled[a] = false
-            end
-            # extract the shape and delete from scoredshapes
-            push!(extracted, bs)
-            deleteat!(scoredshapes, best.index)
-            # mark scoredshapes that have invalid points
-            toremove = Int[]
-            for i in eachindex(scoredshapes)
-                for a in scoredshapes[i].inpoints
-                    if ! pc.isenabled[a]
-                        push!(toremove, i)
-                        break
+
+            # if the probability is large enough, extract the shape
+            if ppp > prob_det
+
+                # TODO: proper refit, not only getting the points that fit to that shape
+                # what do you mean by refit?
+                # refit on the whole pointcloud
+                if bestshape.candidate.shape isa FittedPlane
+                    bs = refitplane(bestshape, pc, params)
+                elseif bestshape.candidate.shape isa FittedSphere
+                    bs = refitsphere(bestshape, pc, params)
+                elseif bestshape.candidate.shape isa FittedCylinder
+                    bs = refitcylinder(bestshape, pc, params)
+                elseif bestshape.candidate.shape isa FittedCone
+                    bs = refitcone(bestshape, pc, params)
+                elseif bestshape.candidate.shape isa FittedTranslational
+                    bs = refittransl(bestshape, pc, params)
+                else
+                    @warn "Refit not implemented for: $(typeof(bestshape.candidate.shape))"
+                end
+                if bs === nothing
+                    @logmsg IterInf "Couldn't extract extruded surface."
+                    deleteat!(scoredshapes, best.index)
+                    @goto endofscoring
+                end
+                scs = size(bs.inpoints,1)
+                @logmsg IterInf "Extracting best: $(strt(bs.candidate.shape)) score: $scr, refit length: $scs"
+                # invalidate points
+                for a in bs.inpoints
+                    pc.isenabled[a] = false
+                end
+                # extract the shape and delete from scoredshapes
+                push!(extracted, bs)
+                deleteat!(scoredshapes, best.index)
+                # mark scoredshapes that have invalid points
+                toremove = Int[]
+                for i in eachindex(scoredshapes)
+                    for a in scoredshapes[i].inpoints
+                        if ! pc.isenabled[a]
+                            push!(toremove, i)
+                            break
+                        end
                     end
                 end
+
+                # remove scoredshapes that have invalid points
+                deleteat!(scoredshapes, toremove)
+            end # if extract shape
+        else
+            #info printing: not best
+            if k%notifit == 0
+                @logmsg IterInf "$k. it, no candidates."
             end
-
-            # remove scoredshapes that have invalid points
-            deleteat!(scoredshapes, toremove)
-        end # if extract shape
-
+        end
         @label endofscoring
         # update octree levels
         updatelevelweight(pc)
