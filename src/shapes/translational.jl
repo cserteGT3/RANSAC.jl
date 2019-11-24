@@ -37,15 +37,15 @@ struct ExtractedTranslational <: AbstractTranslationalSurface
 end
 
 Base.show(io::IO, x::AbstractTranslationalSurface) =
-    print(io, """$(x.istranslational ? "o" : "x") extruded""")
+    print(io, """$(x.istranslational ? "o" : "x") translational""")
 
 Base.show(io::IO, ::MIME"text/plain", x::FittedTranslational) =
-    print(io, """FittedTranslational\n$(x.istranslational ? "o" : "x") extruded""")
+    print(io, """FittedTranslational\n$(x.istranslational ? "o" : "x") translational""")
 
 Base.show(io::IO, ::MIME"text/plain", x::ExtractedTranslational) =
-    print(io, """ExtractedTranslational\n$(x.istranslational ? "o" : "x") extruded""")
+    print(io, """ExtractedTranslational\n$(x.istranslational ? "o" : "x") translational""")
 
-strt(x::AbstractTranslationalSurface) = "extruded"
+strt(x::AbstractTranslationalSurface) = "translational"
 
 isshape(shape::AbstractTranslationalSurface) = shape.istranslational
 
