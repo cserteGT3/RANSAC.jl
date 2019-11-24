@@ -305,7 +305,7 @@ function fittranslationalsurface(pcr, p, n, params)
     # then use it to index into the subset
     used_i = sbs[ien[sbs]]
     projected, proj_ind = project2sketchplane(pcr, used_i, coordframe, params)
-
+    size(projected, 1) < 2 && return nothing
     # 4. AABB
     aabb = findAABB(projected)
     sidelength = aabb[2]-aabb[1]

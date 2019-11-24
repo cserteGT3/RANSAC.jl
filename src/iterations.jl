@@ -41,7 +41,7 @@ function ransac(pc, params; reset_rand = false)
     # iterate begin
     for k in 1:itermax
         if count(pc.isenabled) < τ
-            @logmsg IterInf "Break at $k, because left only: $(count(pc.isenabled))"
+            @logmsg IterInf "Break at $k it., because left only: $(count(pc.isenabled))"
             break
         end
         # generate minsubsetN candidate
@@ -213,8 +213,8 @@ function ransac(pc, params; reset_rand = false)
         updatelevelweight(pc)
 
         # check exit condition
-        #if prob(τ/subsetN, length(scoredshapes), pc.size, drawN) > prob_det
-        if prob(τ/subsetN, sofar, pc.size, drawN) > prob_det
+        if prob(τ/subsetN, length(scoredshapes), pc.size, drawN) > prob_det
+        #if prob(τ/subsetN, sofar, pc.size, drawN) > prob_det
             @logmsg IterInf "Break, at this point all shapes should be extracted: $k. iteráció."
             break
         end

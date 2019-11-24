@@ -29,6 +29,17 @@ Base.show(io::IO, ::MIME"text/plain", x::PointCloud{A,B,C}) where {A,B,C} =
     print(io, "PointCloud{$A,$B,$C}\n", x)
 
 """
+    PointCloud(vertices, normals, subsets, isenabled, size, levelweight, levelscore)
+
+Constructor that converts vertices and normals to array of `SVector{3,Float64}`.
+"""
+function PointCloud(vertices, normals, subsets, isenabled, size, levelweight, levelscore)
+    vc = [SVector{3,Float64}(v) for v in vertices]
+    nc = [SVector{3,Float64}(v) for v in normals]
+    PointCloud(vc, nc, subsets, isenabled, size, levelweight, levelscore)
+end
+
+"""
     PointCloud(vertices, normals, subsets, isenabled)
 
 Construct a `PointCloud` with filling it's `size` and `levelweight` fields.
