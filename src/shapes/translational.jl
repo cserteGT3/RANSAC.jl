@@ -161,21 +161,21 @@ function segmentnormal(A, i)
 end
 
 """
-    contournormal(shape::ExtractedTranslational, i)
+    contournormal(shape, i)
 
-Compute the normal of the i-th segment of a ExtractedTranslational shape.
+Compute the normal of the i-th segment of a shape.
 """
-function contournormal(shape::ExtractedTranslational, i)
+function contournormal(shape, i)
     return shape.flipnormal .* segmentnormal(shape.contour, i)
 end
 
 """
-    outwardsnormal(shape::ExtractedTranslational, i)
+    outwardsnormal(shape, i)
 
-Compute the normal of the i-th segment of a ExtractedTranslational shape.
+Compute the normal of the i-th segment of a shape.
 This normal points always outwards.
 """
-function outwardsnormal(shape::ExtractedTranslational, i)
+function outwardsnormal(shape, i)
     return shape.outwards .* segmentnormal(shape.contour, i)
 end
 
@@ -211,12 +211,12 @@ function dist2segment(point, A)
 end
 
 """
-    impldistance2segment(point, shape::FittedTranslational)
+    impldistance2segment(point, shape)
 
-Compute the shortest signed distance from `point` to the linesegments `A`.
+Compute the shortest signed distance from `point` to the linesegments `shape`.
 Sign is decided so, that the normal of the surface points outwards.
 """
-function impldistance2segment(point, shape::FittedTranslational)
+function impldistance2segment(point, shape)
     d, i = dist2segment(point, shape.contour)
     return (shape.outwards*d, i)
 end
