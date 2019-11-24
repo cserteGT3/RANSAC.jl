@@ -301,6 +301,8 @@ end
     thinning_par = 2.0
     # minimum % of the normals must be the same
     min_normal_num = 0.9
+    # extract translational surface even though normals are not ok
+    force_transl::Bool = false
 
     # shapes that are fitted to the point cloud
     shape_types::Array{Symbol,1} = [:sphere, :plane, :cylinder, :cone, :translational_surface]

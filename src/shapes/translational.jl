@@ -464,7 +464,7 @@ end
 Refit translational. Only s.inpoints is updated.
 """
 function refittransl(s, pc, params)
-    @unpack ϵ_transl = params
+    @unpack ϵ_transl, force_transl = params
     transl = s.candidate.shape
     cf = transl.coordframe
     cidxs = transl.contourindexes
@@ -482,7 +482,7 @@ function refittransl(s, pc, params)
 
     # 3. normaldirs()
     isok, outw, flips = normaldirs(closed, o_pp, o_np, c, params)
-    isok || return nothing
+    (isok || force_transl) || return nothing
     et = ExtractedTranslational(true, cf, closed, c, outw, flips)
 
     # 4. search for all enabled and compatibel points
