@@ -115,10 +115,11 @@ function scorecandidate(pc, candidate::ShapeCandidate{T}, subsetID, params) wher
     # verti: összes pont indexe, ami enabled és kompatibilis
     # lenne, ha működne, de inkább a boolean indexelést machináljuk
     verti = pc.subsets[subsetID]
-    underEn = uo.under .& cpl
-    overEn = uo.over .& cpl
+    #underEn = uo.under .& cpl
+    #overEn = uo.over .& cpl
 
-    inpoints = count(underEn) >= count(overEn) ? verti[underEn] : verti[overEn]
+    #inpoints = count(underEn) >= count(overEn) ? verti[underEn] : verti[overEn]
+    inpoints = verti[cpl]
     score = estimatescore(length(pc.subsets[subsetID]), pc.size, length(inpoints))
     pc.levelscore[candidate.octree_lev] += E(score)
     return ScoredShape(candidate, score, inpoints)
@@ -172,8 +173,9 @@ function refitsphere(s, pc, params)
     cpl, uo, sp = compatiblesSphere(s.candidate.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], params)
     # verti: összes pont indexe, ami enabled és kompatibilis
     verti = (1:pc.size)[pc.isenabled]
-    underEn = uo.under .& cpl
-    overEn = uo.over .& cpl
-    s.inpoints = count(underEn) >= count(overEn) ? verti[underEn] : verti[overEn]
+    #underEn = uo.under .& cpl
+    #overEn = uo.over .& cpl
+    #s.inpoints = count(underEn) >= count(overEn) ? verti[underEn] : verti[overEn]
+    s.inpoints = verti[cpl]
     s
 end
