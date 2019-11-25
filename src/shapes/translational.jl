@@ -136,6 +136,24 @@ function midpoint(A, i)
 end
 
 """
+    nearestpoint(point, A)
+
+Return the index of the nearest point from A to `point`.
+"""
+function nearestpoint(point, A)
+    di = norm(point-A[1])
+    i = 1
+    for j in eachindex(A)
+        dj = norm(point-A[j])
+        if dj < di
+            di = dj
+            i = j
+        end
+    end
+    return di, i
+end
+
+"""
     twopointnormal(a)
 
 Compute the normal of a segment. Inwards/outwards is not considered here.
@@ -219,6 +237,38 @@ Sign is decided so, that the normal of the surface points outwards.
 function impldistance2segment(point, shape)
     d, i = dist2segment(point, shape.contour)
     return (shape.outwards*d, i)
+end
+
+"""
+    impldistance2segment2(point, shape)
+
+Distance: distance from the nearest point of the shape.contour point.
+"""
+function impldistance2segment2(point, shape)
+    d, i = nearestpoint(point, shape.contour)
+    dotp = dot(shape.contour[i]-shape.center, shape.contour[i]-point)
+    signi = dotp < 0 ? 1 : -1
+    return (signi*d, i)
+end
+
+"""
+    impldistance2segment3(point, shape)
+
+Distance: nearest point of the segment is chosen,
+then the distance from the linesegments joining to that point is computed,
+and the smaller is returned.
+"""
+function impldistance2segment3(point, shape)
+    _, i = nearestpoint(point, shape.contour)
+    # if the first is the nearest, then the i-1 segment is the last
+    i_1 = i==1 ? lastindex(shape.contour) : i-1
+    di_1 = distance2onesegment(point, shape.contour, i_1)
+    di = distance2onesegment(point, shape.contour, i)
+    # absolute distance is computed
+    j = argmin([abs(di_1), abs(di)])
+
+    d = [di_1, di][j]
+    return (shape.outwards*d, j)
 end
 
 function validatetrans(candidate, ps, ns, params)
