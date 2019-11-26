@@ -129,6 +129,7 @@ end
     midpoint(A, i)
 
 Compute the midpoint of the i-th segment of a linesegment-list.
+`A`: list of points.
 """
 function midpoint(A, i)
     i == lastindex(A) && return (A[1]+A[end])/2
@@ -139,6 +140,7 @@ end
     nearestpoint(point, A)
 
 Return the index of the nearest point from A to `point`.
+`A`: list of points.
 """
 function nearestpoint(point, A)
     di = norm(point-A[1])
@@ -158,6 +160,7 @@ end
 
 Compute the normal of a segment. Inwards/outwards is not considered here.
 The normal points towards "left".
+`A`: list of points.
 """
 function twopointnormal(a)
     dirv = normalize(a[2]-a[1])
@@ -168,6 +171,7 @@ end
     segmentnormal(A, i)
 
 Compute the normal of the i-th segment of a linesegment-list.
+`A`: list of points.
 """
 function segmentnormal(A, i)
     if i == lastindex(A)
@@ -182,8 +186,11 @@ end
     contournormal(shape, i)
 
 Compute the normal of the i-th segment of a shape.
+`shape` should be an `ExtractedTranslational` or `ImplicitTranslational`.
+DEPRECATED
 """
 function contournormal(shape, i)
+    @warn "depricated file: $(@__FILE__), line:$(@__LINE__)"
     return shape.flipnormal .* segmentnormal(shape.contour, i)
 end
 
@@ -192,8 +199,10 @@ end
 
 Compute the normal of the i-th segment of a shape.
 This normal points always outwards.
+`shape` should be an `ExtractedTranslational` or `ImplicitTranslational`.
 """
 function outwardsnormal(shape, i)
+    @warn "depricated file: $(@__FILE__), line:$(@__LINE__)"
     return shape.outwards .* segmentnormal(shape.contour, i)
 end
 
@@ -201,8 +210,10 @@ end
     distance2onesegment(point, A, i)
 
 Compute distance of `point` to the i-th segment in A.
+This distance is computed along the normal vector. No further +- considered.
 """
 function distance2onesegment(point, A, i)
+    @warn "depricated file: $(@__FILE__), line:$(@__LINE__)"
     nv = segmentnormal(A, i)
     topoint = point-A[i]
     return dot(topoint, nv)
@@ -213,8 +224,10 @@ end
 
 Compute the shortest distance from `point` to the linesegments `A`.
 Also return the index of that segment.
+This distance is computed along the normal vector. No further +- considered.
 """
 function dist2segment(point, A)
+    @warn "depricated file: $(@__FILE__), line:$(@__LINE__)"
     leastd = distance2onesegment(point, A, 1)
     size(A,1) == 1 && return (leastd, 1)
     best = 1
@@ -235,6 +248,7 @@ Compute the shortest signed distance from `point` to the linesegments `shape`.
 Sign is decided so, that the normal of the surface points outwards.
 """
 function impldistance2segment(point, shape)
+    @warn "depricated file: $(@__FILE__), line:$(@__LINE__)"
     d, i = dist2segment(point, shape.contour)
     return (shape.outwards*d, i)
 end
@@ -245,10 +259,66 @@ end
 Distance: distance from the nearest point of the shape.contour point.
 """
 function impldistance2segment2(point, shape)
+    @warn "depricated file: $(@__FILE__), line:$(@__LINE__)"
     d, i = nearestpoint(point, shape.contour)
     dotp = dot(shape.contour[i]-shape.center, shape.contour[i]-point)
     signi = dotp < 0 ? 1 : -1
     return (signi*d, i)
+end
+
+# THIS SHOULD BE USED!!!!!!!!!!!!!!!!
+"""
+    dn2contour(point, contour)
+
+Distance: distance from the nearest point of the contour point.
+"""
+function dn2contour(point, contour)
+    d, i = nearestpoint(point, contour)
+    i_1 = i==1 ? lastindex(contour) : i-1
+    # original:
+    #pn_ = (segmentnormal(contour, i_1)+segmentnormal(shape.contour, i))/2
+    dss = [contourdistance(point, contour, is) for is in [i_1, i]]
+    # 1. this leaves unwanted things
+    #pn_ = segmentnormal(contour, [i_1, i][argmin(dss)])
+    # 2.
+    sdss = sum(dss)
+    if isapprox(sdss, 0)
+        # can't divide by 0
+        pn_ = segmentnormal(contour, i)
+    else
+        pn_ = (dss[2]*segmentnormal(contour, i_1)+dss[1]*segmentnormal(contour, i))/sdss
+    end
+    return (d, pn_, i)
+end
+
+# THIS SHOULD BE USED!!!!!!!!!!!!!!!!
+"""
+    dn2shape_outw(point, shape)
+
+Distance: distance from the nearest point of the shape.contour point.
+Normal points always outwards. Use in CSG.
+"""
+function dn2shape_outw(point, shape)
+    d, pn_, i = dn2contour(point, shape.contour)
+    pn = shape.outwards * pn_
+    dotp = dot(pn, point-shape.contour[i])
+    signi = dotp < 0 ? -1 : 1
+    return (signi*d, pn, i)
+end
+
+# THIS SHOULD BE USED!!!!!!!!!!!!!!!!
+"""
+    dn2shape_contour(point, shape)
+
+Distance: distance from the nearest point of the shape.contour point.
+Use in RANSAC.
+"""
+function dn2shape_contour(point, shape)
+    d, pn_, i = dn2contour(point, shape.contour)
+    pn = shape.flipnormal * pn_
+    dotp = dot(pn, point-shape.contour[i])
+    signi = dotp < 0 ? -1 : 1
+    return (signi*d, pn, i)
 end
 
 """
@@ -259,6 +329,7 @@ then the distance from the linesegments joining to that point is computed,
 and the smaller is returned.
 """
 function impldistance2segment3(point, shape)
+    @warn "depricated file: $(@__FILE__), line:$(@__LINE__)"
     _, i = nearestpoint(point, shape.contour)
     # if the first is the nearest, then the i-1 segment is the last
     i_1 = i==1 ? lastindex(shape.contour) : i-1
@@ -271,11 +342,92 @@ function impldistance2segment3(point, shape)
     return (shape.outwards*d, j)
 end
 
-function validatetrans(candidate, ps, ns, params)
-    @unpack α_transl , ϵ_transl = params
-    calcs = [distandnormal2segment(p, candidate.contour) for p in ps]
-    #TODO:
-    return nothing
+## not line but segment distances
+
+"""
+    segmentdistance(q, ab)
+
+Distance from `q` to segment, which is just two points.
+This distance is an absolute value.
+(Distance to segment, not line!)
+"""
+function segmentdistance(q, ab)
+    a = ab[1]
+    b = ab[2]
+    if isapprox(norm(b-a), 0)
+        @warn "$ab is just a point, not a linesegment."
+        return norm(q-a)
+    end
+    v = normalize(b-a)
+    a2qv = dot(q-a,v)*v
+    qv = a+a2qv
+    dv = abs.(b-a)
+    # indc = abs(bx-ax) > abs(by-ay) ? 1 : 2
+    i = dv[1] > dv[2] ? 1 : 2
+    t = (q[i]-a[i])/(b[i]-a[i])
+    if t < 0
+        return norm(q-a)
+    elseif t > 1
+        return norm(q-b)
+    else
+        return norm(q-qv)
+    end
+end
+
+"""
+    contourdistance(p, contour, i)
+
+Distance of `p` from the `i`-th segment of `contour`.
+Uses `segmentdistance`.
+"""
+function contourdistance(p, contour, i)
+    if i == lastindex(contour)
+        a = [contour[end], contour[1]]
+        return segmentdistance(p, a)
+    end
+    b = @view contour[i:i+1]
+    return segmentdistance(p, b)
+end
+
+"""
+    dandn2contour(point, contour)
+
+Distance and normal from `point` to segment, which is just two points.
+Distance and normals signs are consistently computed from the contour.
+Also return the number of THE segment.
+Inwards-outwards signs must be dealt separately (use `contournormal()` or `outwardsnormal()` with `Ai` ).
+"""
+function _dandn2segment(point, contour)
+    @warn "depricated file: $(@__FILE__), line:$(@__LINE__)"
+    @assert size(contour, 1) > 1 "Contour should contain at least 2 points."
+    _, i = nearestpoint(point, contour)
+    # is i the first of the contour? if so i-1 is the last
+    i_1 = i == firstindex(contour) ? size(contour,1) : i-1
+    di_1 = contourdistance(point, contour, i_1)
+    di = contourdistance(point, contour, i)
+    # selected segment:
+    Ai, d = di_1 < di ? (i_1,di_1) : (i,di)
+    # normal in the point: normal of the segment
+    n = segmentnormal(contour, Ai)
+    # sign of the distance: is point-A[1]
+    #tp = contour[i]
+    tp = midpoint(contour, Ai)
+    dsigned = dot(point-tp, n) > 0 ? d : -d
+    return (dsigned, n, Ai)
+end
+
+function _dn2shape_outwards(point, shape)
+    @warn "depricated file: $(@__FILE__), line:$(@__LINE__)"
+    d, n, _ = dandn2segment(point, shape.contour)
+    outw = shape.outwards
+    return outw*d, outw*n
+end
+
+function _dn2shape_contour(point, shape)
+    @warn "depricated file: $(@__FILE__), line:$(@__LINE__)"
+    d, n, _ = dandn2segment(point, shape.contour)
+    flips = shape.flipnormal
+    return flips*d, flips*n
 end
 
 """
@@ -289,7 +441,8 @@ function normaldirs(segments, points, normals, center, params)
     @assert size(points) == size(normals)
     fff() = (false, false, false)
     @unpack ϵ_transl, min_normal_num = params
-    calcs = [dist2segment(p, segments) for p in points]
+    #calcs = [dist2segment(p, segments) for p in points]
+    calcs = [dn2contour(p, segments) for p in points]
     compats = [abs(calcs[i][1]) < ϵ_transl for i in eachindex(calcs)]
     compatsize = count(compats)
     compatsize == 0 && return fff()
@@ -301,8 +454,9 @@ function normaldirs(segments, points, normals, center, params)
         # continue if not compatible
         compats[i] || continue
         # this is the fitted normal
-        contour_n = segmentnormal(segments, calcs[i][2])
-        tocenter = normalize(center-midpoint(segments, calcs[i][2]))
+        #contour_n = segmentnormal(segments, calcs[i][2])
+        contour_n = calcs[i][2]
+        tocenter = normalize(center-midpoint(segments, calcs[i][3]))
 
         # normal of the contour is parallel to the direction
         # towards the center of the contour?
@@ -474,29 +628,6 @@ end
 
 ## scoring
 
-function compatiblesTranslational(shape, points, normals, params)
-    @unpack α_transl, ϵ_transl = params
-
-    # project to plane
-    ps = project2sketchplane(points, shape.coordframe)
-    ns = project2sketchplane(normals, shape.coordframe)
-
-    calcs = [dist2segment(p, shape.contour) for p in ps]
-
-    #eps check
-    c1 = [abs(calcs[i][1]) < ϵ_transl for i in eachindex(points)]
-
-    #alpha check
-    c2 = Vector{Bool}(undef, size(points))
-
-    for i in eachindex(c2)
-        comp_n = contournormal(shape, calcs[i][2])
-        c2[i] = isparallel(comp_n, ns[i], α_transl)
-    end
-    return c1.&c2
-end
-
-
 function scorecandidate(pc, candidate::ShapeCandidate{T}, subsetID, params) where {T<:FittedTranslational}
     inpoints = candidate.shape.contourindexes
     subsID = candidate.shape.subsetnum
@@ -505,8 +636,30 @@ function scorecandidate(pc, candidate::ShapeCandidate{T}, subsetID, params) wher
     return ScoredShape(candidate, score, inpoints)
 end
 
-
 ## refit
+
+function compatiblesTranslational(shape, points, normals, params)
+    @unpack α_transl, ϵ_transl = params
+
+    # project to plane
+    ps = project2sketchplane(points, shape.coordframe)
+    ns = project2sketchplane(normals, shape.coordframe)
+
+    calcs = [dn2shape_contour(p, shape) for p in ps]
+
+    #eps check
+    c1 = [abs(calcs[i][1]) < ϵ_transl for i in eachindex(points)]
+
+    #alpha check
+    c2 = Vector{Bool}(undef, size(points))
+
+    for i in eachindex(c2)
+        #comp_n = contournormal(shape, calcs[i][2])
+        comp_n = calcs[i][2]
+        c2[i] = isparallel(comp_n, ns[i], α_transl)
+    end
+    return c1.&c2
+end
 
 """
     refittransl(s, pc, params)
