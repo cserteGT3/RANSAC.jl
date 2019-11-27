@@ -68,6 +68,7 @@ uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 [[RegionTrees]]
 deps = ["IterTools", "LinearAlgebra", "StaticArrays"]
 git-tree-sha1 = "763ea91022b03c1ff18d5c80d61f676419fb7505"
+pinned = true
 uuid = "dee08c22-ab7f-5625-9660-a9af2021b33f"
 version = "0.3.0"
 
