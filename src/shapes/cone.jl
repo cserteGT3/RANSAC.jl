@@ -49,7 +49,7 @@ function fit3pointcone(psok, nsok)
     dirv = normalize(midp-ap)
     ax = dot(ax, dirv) < 0 ? -1*ax : ax
     # opening angle
-    angles = [acos(dot(normalize(p[i]-ap), ax)) for i in 1:3]
+    angles = [acos(clamp(dot(normalize(p[i]-ap), ax), -1, 1)) for i in 1:3]
     opangle = 2*sum(angles)/3
     return FittedCone(true, ap, ax, opangle, true)
 end
