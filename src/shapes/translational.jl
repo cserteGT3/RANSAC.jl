@@ -439,13 +439,18 @@ Return a boolean first that indicates that the normals direct to the "same direc
 """
 function normaldirs(segments, points, normals, center, params)
     @assert size(points) == size(normals)
-    fff() = (false, false, false)
+    function fff(msg)
+        if ! (msg === nothing)
+            @logmsg IterLow1 msg
+        end
+        return (false, false, false)
+    end
     @unpack ϵ_transl, min_normal_num = params
     #calcs = [dist2segment(p, segments) for p in points]
     calcs = [dn2contour(p, segments) for p in points]
     compats = [abs(calcs[i][1]) < ϵ_transl for i in eachindex(calcs)]
     compatsize = count(compats)
-    compatsize == 0 && return fff()
+    compatsize == 0 && return fff("Compat size is 0.")
     # later working with points[compats]
     psize = size(points,1)
     flipnormal = Vector{Bool}(undef, psize)
@@ -471,12 +476,12 @@ function normaldirs(segments, points, normals, center, params)
     thisoutw = @view outwards[compats]
     outwr = count(thisoutw)/compatsize
     # can't agree on outwards
-    (outwr > min_normal_num) || (outwr <= 1-min_normal_num) || return fff()
+    (outwr > min_normal_num) || (outwr <= 1-min_normal_num) || return fff("Bad outwards.")
 
     # can't agree on flipnormals
     thisflip = @view flipnormal[compats]
     flipr = count(thisflip)/compatsize
-    (flipr > min_normal_num) || (flipr <= 1-min_normal_num) || return fff()
+    (flipr > min_normal_num) || (flipr <= 1-min_normal_num) || return fff("Bad flipsign.")
     # this means, that the computed normals must be turned to direct outside
     outwb = outwr > min_normal_num ? -1 : 1
 
@@ -486,13 +491,20 @@ function normaldirs(segments, points, normals, center, params)
     return (true, outwb, flipn)
 end
 
+function retnot(msg)
+    if ! (msg === nothing)
+        @logmsg IterLow1 msg
+    end
+    return nothing
+end
+
 function fittranslationalsurface(pcr, p, n, params)
     @unpack α_perpend, diagthr, max_group_num = params
     @unpack max_contour_it, thinning_par, ϵ_transl = params
     # Method:
     # 1. van-e közös merőleges? nincs -> break
     ok, dir = transldir(p, n, params)
-    ok || return nothing
+    ok || return retnot("No translational direction.")
     # 2. összes pont levetítése erre a síkra (egyik pont és a közös normális)
     o = p[1]
     xv = n[1]
@@ -509,31 +521,48 @@ function fittranslationalsurface(pcr, p, n, params)
     # then use it to index into the subset
     used_i = sbs[ien[sbs]]
     projected, proj_ind = project2sketchplane(pcr, used_i, coordframe, params)
-    size(projected, 1) < 2 && return nothing
+    size(projected, 1) < 2 && return retnot("No compatible points to transl. direction.")
     # 4. AABB
     aabb = findAABB(projected)
     sidelength = aabb[2]-aabb[1]
     #TODO: azt kéne inkább nézni, hogy az egyik oldal nagyon kicsi a másikhoz képest=sík
     # if one of the side's length is <<< then the other -> nothing
-    sidelength[1] < 0.01*sidelength[2] && return nothing
-    sidelength[2] < 0.01*sidelength[1] && return nothing
+    sidelength[1] < 0.02*sidelength[2] && return retnot("Bad: sidelength[1] < 0.01*sidelength[2]")
+    sidelength[2] < 0.02*sidelength[1] && return retnot("Bad: sidelength[2] < 0.01*sidelength[1]")
     # 6. összefüggő kontúrok
     thr = ϵ_transl
     maxit = max_contour_it
     spatchs = segmentpatches(projected, thr)
     while spatchs.groups > max_group_num
-        maxit < 1 && return nothing
+        maxit < 1 && return retnot("Can't make max_group_num contours in max_contour_it. N of contours: $(spatchs.groups)")
         maxit -= 1
-        thr = 0.9*thr
+        thr = 1.01*thr
         spatchs = segmentpatches(projected, thr)
         #spatchs.groups <= max_group_num && break
     end
     # hereby spatchs should contain maximum max_group_num of patches
     fitresults = Array{FittedTranslational,1}(undef, 0)
+    @logmsg IterLow1 "Nof groups: $(spatchs.groups)"
     for i in 1:spatchs.groups
         # i if part of the i-th group
         cur_group = findall(x->x==i, spatchs.ids)
+        # at least 3 points please...
+        size(cur_group,1) < 3 && continue
         patch_indexes = proj_ind[cur_group]
+        @logmsg IterLow1 "Nof contour points: $(length(patch_indexes)), eps: $thr"
+
+        # don't extract planes
+        ppp = @view projected[cur_group]
+        aabb = findAABB(ppp)
+        sidelength = aabb[2]-aabb[1]
+        sidelength[1] < 0.02*sidelength[2] && continue
+        sidelength[2] < 0.02*sidelength[1] && continue
+        cent = centroid(ppp)
+        mavc = aabb[2]-cent
+        mavc[1] < 0.02*mavc[2] && continue
+        mavc[2] < 0.02*mavc[1] && continue
+        # discard diagonal too
+
         ft = FittedTranslational(true, coordframe, patch_indexes, subsnum)
         push!(fitresults, ft)
     end
@@ -685,7 +714,7 @@ function refittransl(s, pc, params)
 
     # 3. normaldirs()
     isok, outw, flips = normaldirs(closed, o_pp, o_np, c, params)
-    (isok || force_transl) || return nothing
+    (isok || force_transl) || return retnot("Normals not ok in refit.")
     et = ExtractedTranslational(true, cf, closed, c, outw, flips)
 
     # 4. search for all enabled and compatibel points
