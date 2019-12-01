@@ -221,5 +221,5 @@ function ransac(pc, params; reset_rand = false)
     end # iterate end
     fint = trunc((time_ns() - start_time)/1_000_000_000, digits=2)
     @logmsg IterInf "Iteration finished in $fint seconds with $(length(extracted)) extracted and $(length(scoredshapes)) scored shapes."
-    return scoredshapes, extracted
+    return scoredshapes, extracted, fint
 end # ransac function
