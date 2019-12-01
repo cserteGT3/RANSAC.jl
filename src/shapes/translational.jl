@@ -45,7 +45,7 @@ Base.show(io::IO, ::MIME"text/plain", x::FittedTranslational) =
 Base.show(io::IO, ::MIME"text/plain", x::ExtractedTranslational) =
     print(io, """ExtractedTranslational\n$(x.istranslational ? "o" : "x") translational""")
 
-strt(x::AbstractTranslationalSurface) = "translational"
+strt(x::AbstractTranslationalSurface) = "Transl"
 
 isshape(shape::AbstractTranslationalSurface) = shape.istranslational
 

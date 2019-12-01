@@ -17,7 +17,7 @@ function isshape(shape::FittedSphere)
     return shape.issphere
 end
 
-strt(x::FittedSphere) = "sphere"
+strt(x::FittedSphere) = "Sphere"
 
 function fit2pointsphere(v, n, params)
     @unpack parallelthrdeg, sphere_par = params

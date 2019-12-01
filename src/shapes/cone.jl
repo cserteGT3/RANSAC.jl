@@ -17,7 +17,7 @@ Base.show(io::IO, x::FittedCone) =
 Base.show(io::IO, ::MIME"text/plain", x::FittedCone{A, R}) where {A, R} =
     print(io, """FittedCone{$A, $R}\n$(x.iscone ? "o" : "x") cone, apex: $(x.apex), axis: $(x.axis), ω: $(x.opang), $(x.outwards ? "outwards" : "inwards" )""")
 
-strt(x::FittedCone) = "cone"
+strt(x::FittedCone) = "Cone"
 
 function isshape(shape::FittedCone)
     return shape.iscone
