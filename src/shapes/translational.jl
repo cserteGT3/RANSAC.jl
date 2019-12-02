@@ -113,7 +113,7 @@ function segmentpatches(points, ϵ_inrange)
     uf = UnionFinder(size(points,1))
 
     for i in eachindex(points)
-        inr = inrange(btree, points[i], ϵ_inrange, true)
+        inr = inrange(btree, points[i], ϵ_inrange)
         for j in eachindex(inr)
             # the point itself is always in range
             i == inr[j] && continue
@@ -500,7 +500,7 @@ end
 
 function fittranslationalsurface(pcr, p, n, params)
     @unpack α_perpend, diagthr, max_group_num = params
-    @unpack max_contour_it, thinning_par, ϵ_transl = params
+    @unpack max_contour_it, thinning_par, ϵ_transl, τ = params
     # Method:
     # 1. van-e közös merőleges? nincs -> break
     ok, dir = transldir(p, n, params)
@@ -530,9 +530,11 @@ function fittranslationalsurface(pcr, p, n, params)
     sidelength[1] < 0.02*sidelength[2] && return retnot("Bad: sidelength[1] < 0.01*sidelength[2]")
     sidelength[2] < 0.02*sidelength[1] && return retnot("Bad: sidelength[2] < 0.01*sidelength[1]")
     # 6. összefüggő kontúrok
-    thr = ϵ_transl
-    maxit = max_contour_it
-    spatchs = segmentpatches(projected, thr)
+    #thr = ϵ_transl
+    #maxit = max_contour_it
+    spatchs = segmentpatches(projected, ϵ_transl)
+    #@infiltrate
+    #=
     while spatchs.groups > max_group_num
         maxit < 1 && return retnot("Can't make max_group_num contours in max_contour_it. N of contours: $(spatchs.groups)")
         maxit -= 1
@@ -540,16 +542,19 @@ function fittranslationalsurface(pcr, p, n, params)
         spatchs = segmentpatches(projected, thr)
         #spatchs.groups <= max_group_num && break
     end
+    =#
     # hereby spatchs should contain maximum max_group_num of patches
     fitresults = Array{FittedTranslational,1}(undef, 0)
-    @logmsg IterLow1 "Nof groups: $(spatchs.groups)"
+    #@logmsg IterLow1 "Nof groups: $(spatchs.groups)"
     for i in 1:spatchs.groups
         # i if part of the i-th group
         cur_group = findall(x->x==i, spatchs.ids)
         # at least 3 points please...
         size(cur_group,1) < 3 && continue
         patch_indexes = proj_ind[cur_group]
-        @logmsg IterLow1 "Nof contour points: $(length(patch_indexes)), eps: $thr"
+        # only extract contours that contain at least the minimumsize number of points
+        size(patch_indexes, 1) < τ/size(pcr.subsets,1) && continue
+        #@logmsg IterLow1 "Nof contour points: $(length(patch_indexes))"
 
         # don't extract planes
         ppp = @view projected[cur_group]

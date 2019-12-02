@@ -14,6 +14,10 @@ using UnionFind
 import RegionTrees: AbstractRefinery, needs_refinement, refine_data
 import Base: show
 
+# debuuugggggg
+#using Infiltrator
+#using Makie: scatter, vbox
+
 export  rodriguesdeg,
         rodriguesrad
 

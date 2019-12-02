@@ -294,9 +294,11 @@ end
     # conntectivity on the bitmap - not used currently
     transl_conn::Symbol = :eight
     # maximum number of contours on a plane
+    #TODO: delete this
     max_group_num::Int = 3
     # maximum number of iterations of tryíng
     # to find < max_group_num number for contour patches
+    #TODO: delete this
     max_contour_it::Int = 5
     thinning_par = 2.0
     # minimum % of the normals must be the same
