@@ -10,6 +10,7 @@ function ransac(pc, params; reset_rand = false)
 
     @unpack drawN, minsubsetN, prob_det, τ = params
     @unpack itermax, leftovers, shape_types = params
+    @unpack extract_s, terminate_s = params
     start_time = time_ns()
 
     # build an octree
@@ -37,6 +38,12 @@ function ransac(pc, params; reset_rand = false)
 
     # for logging
     notifit = itermax > 10 ? div(itermax,10) : 1
+
+    # track the number of candidates for the probabilities
+    # 1. :lengthC - number of candidates in a given iteration
+    # 2. :allcand - number of candidates that have been ever scored
+    # 3. :nofminset - number of minimal sets that have been drawn so far
+    countcandidates = [0, 0, 0]
 
     # iterate begin
     for k in 1:itermax
@@ -128,31 +135,35 @@ function ransac(pc, params; reset_rand = false)
         which_ = 1
 
         for c in candidates
-            #TODO: save the bitmmaped parameters for debug
             sc = scorecandidate(pc, c, which_, params)
             push!(scoredshapes, sc)
+            countcandidates[2] += 1
         end # for c
         # by now every candidate is scored into scoredshapes
         empty!(candidates)
 
-        # considered so far k*minsubsetN db. minimal sets
-        sofar = k*minsubsetN
-
+        # considered so far k*minsubsetN pcs. minimal sets
+        countcandidates[3] = k*minsubsetN
+        # length of the candidate array
+        countcandidates[1] = size(scoredshapes, 1)
         if ! (size(scoredshapes, 1) < 1)
             # search for the largest score == length(inpoints) (for now)
-            best = largestshape(scoredshapes)
-            #best = findhighestscore(scoredshapes)
+            best_shape = largestshape(scoredshapes)
+            best = findhighestscore(scoredshapes)
+            if best.index != best_shape.index
+                @logmsg IterLow1 "best: $(best.index), best_shape: $(best_shape.index)"
+            end
             bestshape = scoredshapes[best.index]
             # TODO: refine if best.overlap
             scr = E(bestshape.score)
-            best_length = length(bestshape.inpoints)
+            best_length = size(bestshape.inpoints, 1)
 
-            #ppp = prob(best_length*subsetN, length(scoredshapes), pc.size, drawN)
-            ppp = prob(best_length*subsetN, sofar, pc.size, drawN)
+            s = chooseS(countcandidates, extract_s)
+            ppp = prob(best_length*subsetN, s, pc.size, drawN)
 
             #info printing: there's a best
             if k%notifit == 0
-                @logmsg IterInf "$k. it, best: $best_length db, score: $scr, prob: $ppp, scored shapes: $(length(scoredshapes)) db."
+                @logmsg IterInf "$k. it, best: $best_length db, score: $scr, prob: $ppp, scored shapes: $(length(scoredshapes)) pcs."
             end
 
             # if the probability is large enough, extract the shape
@@ -213,9 +224,10 @@ function ransac(pc, params; reset_rand = false)
         updatelevelweight(pc)
 
         # check exit condition
-        if prob(τ/subsetN, length(scoredshapes), pc.size, drawN) > prob_det
-        #if prob(τ/subsetN, sofar, pc.size, drawN) > prob_det
-            @logmsg IterInf "Break, at this point all shapes should be extracted: $k. iteráció."
+        s = chooseS(countcandidates, terminate_s)
+        #if prob(τ/subsetN, s, pc.size, drawN) > prob_det
+        if prob(τ, s, pc.size, drawN) > prob_det
+            @logmsg IterInf "Break, at this point all shapes should be extracted: $k. iteration."
             break
         end
     end # iterate end

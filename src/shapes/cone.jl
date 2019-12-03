@@ -79,13 +79,16 @@ function project2cone(cone, p)
 end
 
 function validatecone(cone, ps, ns, params)
-    @unpack α_cone, ϵ_cone = params
+    @unpack α_cone, ϵ_cone, minconeopang = params
     calcs = [project2cone(cone, ps[i]) for i in eachindex(ps)]
     for i in eachindex(calcs)
         if calcs[i][1] > ϵ_cone
             return FittedCone(false, NaNVec, NaNVec, 0.0, false)
         end
     end
+
+    #cone with small opening angle is filtered
+    cone.opang < minconeopang && return FittedCone(false, NaNVec, NaNVec, 0.0, false)
 
     lp = size(ps, 1)
     norm_ok = falses(lp)

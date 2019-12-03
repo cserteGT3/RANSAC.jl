@@ -256,6 +256,7 @@ end
 
     ϵ_cone = 0.3
     α_cone = deg2rad(5)
+    minconeopang = deg2rad(2)
 
     ϵ_transl = 0.3
     α_transl = deg2rad(5)
@@ -308,6 +309,15 @@ end
 
     # shapes that are fitted to the point cloud
     shape_types::Array{Symbol,1} = [:sphere, :plane, :cylinder, :cone, :translational_surface]
+
+    # track the number of candidates for the probabilities
+    # 1. :lengthC - number of candidates in a given iteration
+    # 2. :allcand - number of candidates that have been ever scored
+    # 3. :nofminset - number of minimal sets that have been drawn so far
+    # which to use for extracting the best candidate
+    extract_s::Symbol = :nofminset
+    # which to use to terminate the algorithm
+    terminate_s::Symbol = :nofminset
 end
 
 """
@@ -326,4 +336,9 @@ function allisdifferent(a::AbstractArray{T, 1}) where {T}
         end
     end
     return true
+end
+
+function chooseS(A, k)
+    symtoint = Dict(:lengthC=>1, :allcand=>2, :nofminset=>3)
+    return A[symtoint[k]]
 end
