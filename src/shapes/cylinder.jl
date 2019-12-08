@@ -112,45 +112,6 @@ function fit2pointcylinder(p, n, params)
     outw = dot(p12proj-p11proj, p11proj-interc) > 0
 
     return FittedCylinder(true, an, c, R, outw)
-
-
-#=
-    p1proj = p[1] - an*dot(p[1], an)
-    p2proj = p[2] - an*dot(p[2], an)
-
-    v = [p1proj, p2proj]
-
-    # first check if they intersect
-    g = v[2]-v[1]
-    h = cross(n[2], g)
-    k = cross(n[2], n[1])
-    nk = norm(k)
-    nh = norm(h)
-
-    if abs(nk) < 0.02 || abs(nh) < 0.02
-        error("That is impossible with p: $p, n: $n and nk=$nk, nh=$nh")
-    else
-        # intersection
-        if dot(h, k) > 0
-            # point the same direction -> +
-            c = v[1] + nh/nk * n[1]
-            #return FittedSphere(true, SVector{3}(zchop!(MVector{3}(M))), norm(M-v[1]), b)
-        else
-            # point in different direction -> -
-            c = v[1] - nh/nk * n[1]
-            #return FittedSphere(true, SVector{3}(zchop!(MVector{3}(M))), norm(M-v[1]), b)
-        end
-
-
-
-        # radius is the average of: center-point
-        R = (norm(p1proj-c) + norm(p2proj-c))/2
-        # outwards?
-        outw = isparallel(n[1], p1proj-c, alpharad)
-
-        return FittedCylinder(true, an, c, R, outw)
-
-    end=#
 end
 
 """
