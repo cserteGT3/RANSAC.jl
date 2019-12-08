@@ -182,6 +182,53 @@ function segmentnormal(A, i)
     return twopointnormal(b)
 end
 
+## not line but segment distances
+
+"""
+    segmentdistance(q, ab)
+
+Distance from `q` to segment, which is just two points.
+This distance is an absolute value.
+(Distance to segment, not line!)
+"""
+function segmentdistance(q, ab)
+    a = ab[1]
+    b = ab[2]
+    if isapprox(norm(b-a), 0)
+        @warn "$ab is just a point, not a linesegment."
+        return norm(q-a)
+    end
+    v = normalize(b-a)
+    a2qv = dot(q-a,v)*v
+    qv = a+a2qv
+    dv = abs.(b-a)
+    # indc = abs(bx-ax) > abs(by-ay) ? 1 : 2
+    i = dv[1] > dv[2] ? 1 : 2
+    t = (q[i]-a[i])/(b[i]-a[i])
+    if t < 0
+        return norm(q-a)
+    elseif t > 1
+        return norm(q-b)
+    else
+        return norm(q-qv)
+    end
+end
+
+"""
+    contourdistance(p, contour, i)
+
+Distance of `p` from the `i`-th segment of `contour`.
+Uses `segmentdistance`.
+"""
+function contourdistance(p, contour, i)
+    if i == lastindex(contour)
+        a = [contour[end], contour[1]]
+        return segmentdistance(p, a)
+    end
+    b = @view contour[i:i+1]
+    return segmentdistance(p, b)
+end
+
 # THIS SHOULD BE USED!!!!!!!!!!!!!!!!
 """
     dn2contour(point, contour)
@@ -235,54 +282,6 @@ function dn2shape_contour(point, shape)
     dotp = dot(pn, point-shape.contour[i])
     signi = dotp < 0 ? -1 : 1
     return (signi*d, pn, i)
-end
-
-
-## not line but segment distances
-
-"""
-    segmentdistance(q, ab)
-
-Distance from `q` to segment, which is just two points.
-This distance is an absolute value.
-(Distance to segment, not line!)
-"""
-function segmentdistance(q, ab)
-    a = ab[1]
-    b = ab[2]
-    if isapprox(norm(b-a), 0)
-        @warn "$ab is just a point, not a linesegment."
-        return norm(q-a)
-    end
-    v = normalize(b-a)
-    a2qv = dot(q-a,v)*v
-    qv = a+a2qv
-    dv = abs.(b-a)
-    # indc = abs(bx-ax) > abs(by-ay) ? 1 : 2
-    i = dv[1] > dv[2] ? 1 : 2
-    t = (q[i]-a[i])/(b[i]-a[i])
-    if t < 0
-        return norm(q-a)
-    elseif t > 1
-        return norm(q-b)
-    else
-        return norm(q-qv)
-    end
-end
-
-"""
-    contourdistance(p, contour, i)
-
-Distance of `p` from the `i`-th segment of `contour`.
-Uses `segmentdistance`.
-"""
-function contourdistance(p, contour, i)
-    if i == lastindex(contour)
-        a = [contour[end], contour[1]]
-        return segmentdistance(p, a)
-    end
-    b = @view contour[i:i+1]
-    return segmentdistance(p, b)
 end
 
 """
