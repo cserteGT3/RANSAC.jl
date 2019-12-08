@@ -8,7 +8,7 @@ using StaticArrays: SVector
 using RegionTrees
 #using Images: label_components, component_lengths, component_subscripts
 using Parameters
-using NearestNeighbors: BallTree, inrange
+using NearestNeighbors: BallTree, inrange, KDTree
 using UnionFind
 
 import RegionTrees: AbstractRefinery, needs_refinement, refine_data

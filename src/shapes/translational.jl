@@ -109,7 +109,7 @@ end
 Return connected patches of a pointcloud
 """
 function segmentpatches(points, ϵ_inrange)
-    btree = BallTree(points)
+    btree = KDTree(points)
     uf = UnionFinder(size(points,1))
 
     for i in eachindex(points)
