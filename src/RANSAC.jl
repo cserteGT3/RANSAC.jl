@@ -106,5 +106,6 @@ include("sampling.jl")
 #include("parameterspacebitmap.jl")
 include("iterations.jl")
 include("logging.jl")
+include("deprecated.jl")
 
 end #module
