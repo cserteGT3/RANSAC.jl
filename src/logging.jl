@@ -28,3 +28,4 @@ nosource_IterLow1log() = ConsoleLogger(stderr, IterLow1, meta_formatter=nosource
 nosource_IterLow2log() = ConsoleLogger(stderr, IterLow2, meta_formatter=nosource_metafmt)
 nosource_Compute1log() = ConsoleLogger(stderr, Compute1, meta_formatter=nosource_metafmt)
 nosource_Compute2log() = ConsoleLogger(stderr, Compute2, meta_formatter=nosource_metafmt)
+nosource_Errorlog() = ConsoleLogger(stderr, Logging.Error, meta_formatter=nosource_metafmt)

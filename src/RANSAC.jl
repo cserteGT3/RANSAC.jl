@@ -90,6 +90,7 @@ export  nosource_debuglogger,
         nosource_IterLow2log,
         nosource_Compute1log,
         nosource_Compute2log,
+        nosource_Errorlog,
         nosource_metafmt
 
 include("utilities.jl")
