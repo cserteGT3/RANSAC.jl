@@ -315,7 +315,8 @@ function normaldirs(segments, points, normals, center, params)
         # this is the fitted normal
         #contour_n = segmentnormal(segments, calcs[i][2])
         contour_n = calcs[i][2]
-        tocenter = normalize(center-midpoint(segments, calcs[i][3]))
+        #tocenter = normalize(center-midpoint(segments, calcs[i][3]))
+        tocenter = normalize(center-segments[calcs[i][3]])
 
         # normal of the contour is parallel to the direction
         # towards the center of the contour?
