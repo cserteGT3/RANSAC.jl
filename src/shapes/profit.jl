@@ -268,13 +268,13 @@ The `thickness` parameter should be around the same size as the noise.
 Delaunay triangulation is not used to accelerate the code.
 """
 function thinning_slow(points, thickness)
-    @info "Collect edges for $(length(points)) points."
+    @logmsg IterLow1 "Collect edges for $(length(points)) points."
     all_edges = alle(size(points,1))
-    @info "Computing distance"
+    @logmsg IterLow1 "Computing distance"
     weights = [norm(points[e[1]] - points[e[2]]) for e in all_edges]
-    @info "Spanning tree"
+    @logmsg IterLow1 "Spanning tree"
     tree = spanning_tree(all_edges, weights)
-    @info "Thinning"
+    @logmsg IterLow1 "Thinning"
     thinning(points, tree, thickness)
 end
 
@@ -283,17 +283,16 @@ function thinning_deldir(points, thickness)
     rect = [miv[1]; mav[1]; miv[2]; mav[2]]
     pix = (x->x[1]).(points)
     piy = (x->x[2]).(points)
-    @info "Delaunay-ing"
+    @logmsg IterLow1  "Delaunay"
     deli1, deli2 = deldir(pix, piy, rect)
-    @info "Getting edges."
     all_edges = [ [deli1[i], deli2[i]] for i in 1:size(deli1,1)]
     #tris = delaunay(points)
     #all_edges = to_edges!(tris)
-    @info "Computing distance for $(length(all_edges)) edges, with $(length(points)) points"
+    @logmsg IterLow1 "Computing distance for $(length(all_edges)) edges, with $(length(points)) points"
     weights = [norm(points[e[1]] - points[e[2]]) for e in all_edges]
-    @info "Spanning tree"
+    @logmsg IterLow1 "Spanning tree"
     tree = spanning_tree(all_edges, weights)
-    @info "Thinning"
+    @logmsg IterLow1 "Thinning"
     thinning(points, tree, thickness)
 end
 

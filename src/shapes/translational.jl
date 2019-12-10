@@ -434,7 +434,7 @@ function fittranslationalsurface(pcr, p, n, params)
     =#
     # hereby spatchs should contain maximum max_group_num of patches
     fitresults = Array{FittedTranslational,1}(undef, 0)
-    #@logmsg IterLow1 "Nof groups: $(spatchs.groups)"
+    @logmsg IterLow1 "Nof groups: $(spatchs.groups)"
     for i in 1:spatchs.groups
         # i if part of the i-th group
         cur_group = findall(x->x==i, spatchs.ids)
@@ -518,7 +518,7 @@ function refittransl(s, pc, params)
     old_n = @view pc.normals[cidxs]
     o_np = project2sketchplane(old_n, cf)
 
-    @info "Thinning"
+    @logmsg IterLow1 "Thinning"
     # 2. thinning
     if thin_method === :fast
         thinned, _ = thinning(o_pp, ϵ_transl/2)
@@ -529,12 +529,12 @@ function refittransl(s, pc, params)
     end
     closed = [SVector{2,Float64}(th) for th in thinned]
     c = centroid(closed)
-    @info "Normaldirs"
+    @logmsg IterLow1 "Normaldirs"
     # 3. normaldirs()
     isok, outw, flips = normaldirs(closed, o_pp, o_np, c, params)
     (isok || force_transl) || return retnot("Normals not ok in refit.")
     et = ExtractedTranslational(true, cf, closed, c, outw, flips)
-    @info "Compatibles"
+    @logmsg IterLow1 "Compatibles"
     # 4. search for all enabled and compatibel points
     # TODO: use octree for that
     p = @view pc.vertices[pc.isenabled]
