@@ -505,6 +505,7 @@ Refit translational. Only s.inpoints is updated.
 """
 function refittransl(s, pc, params)
     @unpack ϵ_transl, force_transl, thin_method = params
+    @unpack thinning_par = params
     transl = s.candidate.shape
     cf = transl.coordframe
     cidxs = transl.contourindexes
@@ -521,11 +522,11 @@ function refittransl(s, pc, params)
     @logmsg IterLow1 "Thinning"
     # 2. thinning
     if thin_method === :fast
-        thinned, _ = thinning(o_pp, ϵ_transl/2)
+        thinned, _ = thinning(o_pp, thinning_par)
     elseif thin_method === :slow
-        thinned, _ = thinning_slow(o_pp, ϵ_transl/2)
+        thinned, _ = thinning_slow(o_pp, thinning_par)
     elseif thin_method === :deldir
-        thinned, _ = thinning_deldir(o_pp, ϵ_transl/2)
+        thinned, _ = thinning_deldir(o_pp, thinning_par)
     end
     closed = [SVector{2,Float64}(th) for th in thinned]
     c = centroid(closed)
