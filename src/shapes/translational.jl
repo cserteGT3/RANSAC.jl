@@ -34,6 +34,8 @@ struct ExtractedTranslational <: AbstractTranslationalSurface
     # this is used in this package to ensure that in/outwards is correct
     # true means that computed normals must be turned to match the measured points
     flipnormal::Int
+    # for visualization
+    ft::FittedTranslational
 end
 
 Base.show(io::IO, x::AbstractTranslationalSurface) =
@@ -534,7 +536,7 @@ function refittransl(s, pc, params)
     # 3. normaldirs()
     isok, outw, flips = normaldirs(closed, o_pp, o_np, c, params)
     (isok || force_transl) || return retnot("Normals not ok in refit.")
-    et = ExtractedTranslational(true, cf, closed, c, outw, flips)
+    et = ExtractedTranslational(true, cf, closed, c, outw, flips, transl)
     @logmsg IterLow1 "Compatibles"
     # 4. search for all enabled and compatibel points
     # TODO: use octree for that

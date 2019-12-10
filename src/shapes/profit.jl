@@ -241,10 +241,14 @@ this function generates an ordered list of points representing a thinned version
 The `thickness` parameter should be around the same size as the noise.
 """
 function thinning(points, thickness)
+    @logmsg IterLow1  "Delaunay"
     tris = delaunay(points)
     all_edges = to_edges!(tris)
+    @logmsg IterLow1 "Computing distance for $(length(all_edges)) edges, with $(length(points)) points"
     weights = [norm(points[e[1]] - points[e[2]]) for e in all_edges]
+    @logmsg IterLow1 "Spanning tree"
     tree = spanning_tree(all_edges, weights)
+    @logmsg IterLow1 "Thinning"
     thinning(points, tree, thickness)
 end
 
