@@ -14,6 +14,9 @@ using UnionFind
 import RegionTrees: AbstractRefinery, needs_refinement, refine_data
 import Base: show
 
+# Delaunay
+using Deldir
+
 # debuuugggggg
 #using Infiltrator
 #using Makie: scatter, vbox

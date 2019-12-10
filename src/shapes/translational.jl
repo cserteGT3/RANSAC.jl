@@ -123,6 +123,35 @@ function segmentpatches(points, ϵ_inrange)
     return CompressedFinder(uf)
 end
 
+"""
+    filtermultipoint!(points, indexes, params)
+
+Filter out points that are close (params.samep) to each other.
+Duplicates are removed inplace from the `points` and also their index from `indexes`.
+"""
+function filtermultipoint!(points, indexes, params)
+    @unpack samep = params
+    btree = KDTree(points)
+    trm = Int[]
+
+    for i in eachindex(points)
+        inr = inrange(btree, points[i], samep)
+        for j in eachindex(inr)
+            # i - current index
+            # inr[j] - index of a point that is < eps at i
+            # i itself is also in inr
+            inr[j] <= i && continue
+            push!(trm, inr[j])
+        end
+    end
+    sort!(trm)
+    unique!(trm)
+    @logmsg IterLow1 "Deleted $(length(trm)) duplicates"
+    deleteat!(indexes, trm)
+    deleteat!(points, trm)
+    return indexes
+end
+
 ## distance and normal computation of linesegments
 
 """
@@ -384,6 +413,11 @@ function fittranslationalsurface(pcr, p, n, params)
     # if one of the side's length is <<< then the other -> nothing
     sidelength[1] < 0.02*sidelength[2] && return retnot("Bad: sidelength[1] < 0.01*sidelength[2]")
     sidelength[2] < 0.02*sidelength[1] && return retnot("Bad: sidelength[2] < 0.01*sidelength[1]")
+
+    # 5. filter out points that are close to each other
+    # for both the indexes and both the points
+    #filtermultipoint!(projected, proj_ind, params)
+
     # 6. összefüggő kontúrok
     #thr = ϵ_transl
     #maxit = max_contour_it
@@ -470,27 +504,37 @@ end
 Refit translational. Only s.inpoints is updated.
 """
 function refittransl(s, pc, params)
-    @unpack ϵ_transl, force_transl = params
+    @unpack ϵ_transl, force_transl, thin_method = params
     transl = s.candidate.shape
     cf = transl.coordframe
     cidxs = transl.contourindexes
 
     # 1. project points & normals
     old_p = @view pc.vertices[cidxs]
-    old_n = @view pc.normals[cidxs]
     o_pp = project2sketchplane(old_p, cf)
+
+    filtermultipoint!(o_pp, cidxs, params)
+    # this uses the filtered cidxs
+    old_n = @view pc.normals[cidxs]
     o_np = project2sketchplane(old_n, cf)
 
+    @info "Thinning"
     # 2. thinning
-    thinned, _ = thinning_slow(o_pp, ϵ_transl/2)
+    if thin_method === :fast
+        thinned, _ = thinning(o_pp, ϵ_transl/2)
+    elseif thin_method === :slow
+        thinned, _ = thinning_slow(o_pp, ϵ_transl/2)
+    elseif thin_method === :deldir
+        thinned, _ = thinning_deldir(o_pp, ϵ_transl/2)
+    end
     closed = [SVector{2,Float64}(th) for th in thinned]
     c = centroid(closed)
-
+    @info "Normaldirs"
     # 3. normaldirs()
     isok, outw, flips = normaldirs(closed, o_pp, o_np, c, params)
     (isok || force_transl) || return retnot("Normals not ok in refit.")
     et = ExtractedTranslational(true, cf, closed, c, outw, flips)
-
+    @info "Compatibles"
     # 4. search for all enabled and compatibel points
     # TODO: use octree for that
     p = @view pc.vertices[pc.isenabled]

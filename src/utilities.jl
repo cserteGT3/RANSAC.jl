@@ -306,6 +306,10 @@ end
     min_normal_num = 0.9
     # extract translational surface even though normals are not ok
     force_transl::Bool = false
+    # thinning method: :slow/:fast/:deldir
+    thin_method::Symbol = :slow
+    # how close must they be to consider them as the same point?
+    samep = Float64(eps(Float32))
 
     # shapes that are fitted to the point cloud
     shape_types::Array{Symbol,1} = [:sphere, :plane, :cylinder, :cone, :translational_surface]

@@ -127,6 +127,7 @@ function delaunay(points)
             norm(p[i] - c) <= r
         end
         setdiff!(triangles, bad)
+        #isempty(bad) && continue
         bad_edges = to_edges!(bad)
         bad_boundary = filter(bad_edges) do edge
             count(x -> x == edge, bad_edges) == 1
@@ -250,8 +251,8 @@ end
 function alle(l)
     ae = Vector{Vector{Int}}(undef, 0)
     for i in 1:l
-        for j in i:l
-            i == j && continue
+        for j in i+1:l
+            #i == j && continue
             push!(ae, [i,j])
         end
     end
@@ -267,9 +268,32 @@ The `thickness` parameter should be around the same size as the noise.
 Delaunay triangulation is not used to accelerate the code.
 """
 function thinning_slow(points, thickness)
+    @info "Collect edges for $(length(points)) points."
     all_edges = alle(size(points,1))
+    @info "Computing distance"
     weights = [norm(points[e[1]] - points[e[2]]) for e in all_edges]
+    @info "Spanning tree"
     tree = spanning_tree(all_edges, weights)
+    @info "Thinning"
+    thinning(points, tree, thickness)
+end
+
+function thinning_deldir(points, thickness)
+    miv, mav = findAABB(points)
+    rect = [miv[1]; mav[1]; miv[2]; mav[2]]
+    pix = (x->x[1]).(points)
+    piy = (x->x[2]).(points)
+    @info "Delaunay-ing"
+    deli1, deli2 = deldir(pix, piy, rect)
+    @info "Getting edges."
+    all_edges = [ [deli1[i], deli2[i]] for i in 1:size(deli1,1)]
+    #tris = delaunay(points)
+    #all_edges = to_edges!(tris)
+    @info "Computing distance for $(length(all_edges)) edges, with $(length(points)) points"
+    weights = [norm(points[e[1]] - points[e[2]]) for e in all_edges]
+    @info "Spanning tree"
+    tree = spanning_tree(all_edges, weights)
+    @info "Thinning"
     thinning(points, tree, thickness)
 end
 
