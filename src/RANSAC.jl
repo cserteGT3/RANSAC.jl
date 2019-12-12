@@ -4,7 +4,7 @@ using LinearAlgebra
 using Random
 using Logging
 using Logging: default_logcolor
-using StaticArrays: SVector
+using StaticArrays: SVector, SMatrix
 using RegionTrees
 #using Images: label_components, component_lengths, component_subscripts
 using Parameters
@@ -110,6 +110,7 @@ include("sampling.jl")
 #include("parameterspacebitmap.jl")
 include("iterations.jl")
 include("logging.jl")
+include("orientedbox_.jl")
 include("deprecated.jl")
 
 end #module

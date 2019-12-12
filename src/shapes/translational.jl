@@ -377,6 +377,26 @@ function normaldirs(segments, points, normals, center, params)
     return (true, outwb, flipn)
 end
 
+"""
+    checksides(points, multipl)
+
+`multipl=0.02` for example.
+"""
+function checksides(points, multipl)
+    obb = findOBB_(points)
+    sl1 = norm(obb[1]-obb[2])
+    sl2 = norm(obb[1]-obb[3])
+    sl3 = norm(obb[1]-obb[5])
+    sls = [sl1, sl2, sl3]
+    for i in 1:3
+        for j in 1:3
+            i == j && continue
+            sls[i] < multipl*sls[j] && return (false, sls)
+        end
+    end
+    return (true, sls)
+end
+
 function retnot(msg)
     if ! (msg === nothing)
         @logmsg IterLow1 msg
@@ -408,14 +428,13 @@ function fittranslationalsurface(pcr, p, n, params)
     used_i = sbs[ien[sbs]]
     projected, proj_ind = project2sketchplane(pcr, used_i, coordframe, params)
     size(projected, 1) < 2 && return retnot("No compatible points to transl. direction.")
-    # 4. AABB
+
+    #=
     aabb = findAABB(projected)
     sidelength = aabb[2]-aabb[1]
-    #TODO: azt kéne inkább nézni, hogy az egyik oldal nagyon kicsi a másikhoz képest=sík
-    # if one of the side's length is <<< then the other -> nothing
     sidelength[1] < 0.02*sidelength[2] && return retnot("Bad: sidelength[1] < 0.01*sidelength[2]")
     sidelength[2] < 0.02*sidelength[1] && return retnot("Bad: sidelength[2] < 0.01*sidelength[1]")
-
+    =#
     # 5. filter out points that are close to each other
     # for both the indexes and both the points
     #filtermultipoint!(projected, proj_ind, params)
@@ -447,7 +466,7 @@ function fittranslationalsurface(pcr, p, n, params)
         size(patch_indexes, 1) < τ/size(pcr.subsets,1) && continue
         #@logmsg IterLow1 "Nof contour points: $(length(patch_indexes))"
 
-        # don't extract planes
+        #=
         ppp = @view projected[cur_group]
         aabb = findAABB(ppp)
         sidelength = aabb[2]-aabb[1]
@@ -458,7 +477,18 @@ function fittranslationalsurface(pcr, p, n, params)
         mavc[1] < 0.02*mavc[2] && continue
         mavc[2] < 0.02*mavc[1] && continue
         # discard diagonal too
+        =#
 
+        # 4. OOBB
+        # don't extract planes
+        #TODO: azt kéne inkább nézni, hogy az egyik oldal nagyon kicsi a másikhoz képest=sík
+        # if one of the side's length is <<< then the other -> nothing
+        ppp = @view pcr.vertices[patch_indexes]
+        goodside, sidel = checksides(ppp, 0.02)
+        if !goodside
+            @logmsg IterLow1 "One side of OOBB is small: $sidel"
+            continue
+        end
         ft = FittedTranslational(true, coordframe, patch_indexes, subsnum)
         push!(fitresults, ft)
     end

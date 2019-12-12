@@ -50,6 +50,7 @@ uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
 [[Deldir]]
 deps = ["BinaryProvider", "DataFrames", "Libdl"]
 git-tree-sha1 = "3481688349fda2bf23288083350bf36d8c601fe4"
+pinned = true
 repo-rev = "master"
 repo-url = "https://github.com/cserteGT3/Deldir.jl"
 uuid = "64db5801-a3ae-51a7-b7d2-a0a5f0813e47"
