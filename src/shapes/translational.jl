@@ -382,7 +382,8 @@ end
 
 `multipl=0.02` for example.
 """
-function checksides(points, multipl)
+function checksides(points, params)
+    @unpack checksidepar = params
     obb = findOBB_(points)
     sl1 = norm(obb[1]-obb[2])
     sl2 = norm(obb[1]-obb[3])
@@ -391,7 +392,7 @@ function checksides(points, multipl)
     for i in 1:3
         for j in 1:3
             i == j && continue
-            sls[i] < multipl*sls[j] && return (false, sls)
+            sls[i] < checksidepar*sls[j] && return (false, sls)
         end
     end
     return (true, sls)
@@ -484,7 +485,7 @@ function fittranslationalsurface(pcr, p, n, params)
         #TODO: azt kéne inkább nézni, hogy az egyik oldal nagyon kicsi a másikhoz képest=sík
         # if one of the side's length is <<< then the other -> nothing
         ppp = @view pcr.vertices[patch_indexes]
-        goodside, sidel = checksides(ppp, 0.02)
+        goodside, sidel = checksides(ppp, params)
         if !goodside
             @logmsg IterLow1 "One side of OOBB is small: $sidel"
             continue

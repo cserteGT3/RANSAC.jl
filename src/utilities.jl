@@ -310,6 +310,8 @@ end
     thin_method::Symbol = :slow
     # how close must they be to consider them as the same point?
     samep = Float64(eps(Float32))
+    # check side parameter
+    checksidepar = 0.04
 
     # shapes that are fitted to the point cloud
     shape_types::Array{Symbol,1} = [:sphere, :plane, :cylinder, :cone, :translational_surface]
