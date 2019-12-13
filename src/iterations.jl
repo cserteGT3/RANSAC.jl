@@ -235,3 +235,38 @@ function ransac(pc, params; reset_rand = false)
     @logmsg IterInf "Iteration finished in $fint seconds with $(length(extracted)) extracted and $(length(scoredshapes)) scored shapes."
     return scoredshapes, extracted, fint
 end # ransac function
+
+"""
+    rerunleftover!(pc, nofs, params, sofarextr; reset_rand=true)
+
+For example: `rerunleftover(pcr, 4, p, extr, reset_rand=true)`.
+It modifies the list of extracted candidates (`sofarextr`) and `pointcloud.isenabled`.
+"""
+function rerunleftover!(pc, nofs, params, sofarextr; reset_rand=true)
+    lftvr_i = collect(1:pc.size)[pc.isenabled]
+    @logmsg IterInf "Rerunning ransac."
+    newpc = PointCloud(pc.vertices[lftvr_i], pc.normals[lftvr_i], nofs)
+    _, extr2, rtime2 = ransac(newpc, params, true; reset_rand=reset_rand);
+    @warn "Additional $rtime2 sec. must be added!!!"
+    for i in eachindex(extr2)
+        scored = extr2[i]
+        old_indexes = lftvr_i[scored.inpoints]
+        scored.inpoints = old_indexes
+        if scored.candidate.shape isa ExtractedTranslational
+            @warn "Extracted translational at rerun! Found at extr2[$i]"
+        end
+    end
+
+    # set isenabled to false
+    for j in eachindex(extr2)
+        for i in extr2[j].inpoints
+            if pc.isenabled[i]
+                pc.isenabled[i] = false
+            else
+                @warn "$j at $i made mistake."
+            end
+        end
+    end
+    append!(sofarextr, extr2)
+    return sofarextr, rtime2, extr2
+end

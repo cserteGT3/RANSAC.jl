@@ -82,7 +82,8 @@ export  project2plane,
         refitplane,
         refitcylinder
 
-export  ransac
+export  ransac,
+        rerunleftover!
 
 export  nosource_debuglogger,
         nosource_infologger,
