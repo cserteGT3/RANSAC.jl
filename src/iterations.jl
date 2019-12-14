@@ -10,7 +10,7 @@ function ransac(pc, params; reset_rand = false)
 
     @unpack drawN, minsubsetN, prob_det, τ = params
     @unpack itermax, leftovers, shape_types = params
-    @unpack extract_s, terminate_s = params
+    @unpack extract_s, terminate_s, jumpback = params
     start_time = time_ns()
 
     # build an octree
@@ -145,6 +145,11 @@ function ransac(pc, params; reset_rand = false)
         # considered so far k*minsubsetN pcs. minimal sets
         countcandidates[3] = k*minsubsetN
         # length of the candidate array
+
+        # jumping around translationals
+        happened = false
+        @label badtranslational
+
         countcandidates[1] = size(scoredshapes, 1)
         if ! (size(scoredshapes, 1) < 1)
             # search for the largest score == length(inpoints) (for now)
@@ -162,7 +167,7 @@ function ransac(pc, params; reset_rand = false)
             ppp = prob(best_length*subsetN, s, pc.size, drawN)
 
             #info printing: there's a best
-            if k%notifit == 0
+            if k%notifit == 0 && (! happened)
                 @logmsg IterInf "$k. it, best: $best_length db, score: $scr, prob: $ppp, scored shapes: $(length(scoredshapes)) pcs."
             end
 
@@ -186,8 +191,13 @@ function ransac(pc, params; reset_rand = false)
                     @warn "Refit not implemented for: $(typeof(bestshape.candidate.shape))"
                 end
                 if bs === nothing
-                    @logmsg IterInf "Couldn't extract extruded surface."
                     deleteat!(scoredshapes, best.index)
+                    if jumpback
+                        happened && @logmsg IterLow1 "Couldn't extract extruded surface, jumping back."
+                        happened = true
+                        @goto badtranslational
+                    end
+                    @logmsg IterLow1 "Couldn't extract extruded surface, going on."
                     @goto endofscoring
                 end
                 scs = size(bs.inpoints,1)

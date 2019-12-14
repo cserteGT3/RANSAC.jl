@@ -312,6 +312,10 @@ end
     samep = Float64(eps(Float32))
     # check side parameter
     checksidepar = 0.04
+    # "disabled by default"
+    max_end_d = 10000.0
+    # skip or jumpback
+    jumpback::Bool = false
 
     # shapes that are fitted to the point cloud
     shape_types::Array{Symbol,1} = [:sphere, :plane, :cylinder, :cone, :translational_surface]

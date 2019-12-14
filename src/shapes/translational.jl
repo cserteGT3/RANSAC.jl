@@ -538,7 +538,7 @@ Refit translational. Only s.inpoints is updated.
 """
 function refittransl(s, pc, params)
     @unpack ϵ_transl, force_transl, thin_method = params
-    @unpack thinning_par = params
+    @unpack thinning_par, max_end_d = params
     transl = s.candidate.shape
     cf = transl.coordframe
     cidxs = transl.contourindexes
@@ -562,6 +562,9 @@ function refittransl(s, pc, params)
         thinned, _ = thinning_deldir(o_pp, thinning_par)
     end
     closed = [SVector{2,Float64}(th) for th in thinned]
+    if norm(closed[1]-closed[end]) > max_end_d
+        return retnot("max_end_d: $(norm(closed[1]-closed[end]))")
+    end
     c = centroid(closed)
     @logmsg IterLow1 "Normaldirs"
     # 3. normaldirs()
