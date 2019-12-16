@@ -32,6 +32,7 @@ export  arbitrary_orthogonal,
         smallestdistance,
         prob,
         havesameelement,
+        #p2table,
         RANSACParameters
 
 export  ConfidenceInterval,
@@ -44,6 +45,7 @@ export  OctreeNode,
         OctreeRefinery,
         PointCloud,
         getcellandparents,
+        octreedepth,
         updatelevelweight
 
 export  FittedShape,

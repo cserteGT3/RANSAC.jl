@@ -143,3 +143,18 @@ function updatelevelweight(pc, x = 0.9)
         pc.levelweight[i] = x*σ[i]/(w*P[i]) + (1-x)/length(P)
     end
 end
+
+function octreedepth(pc)
+    minV, maxV = findAABB(pc.vertices)
+    octree = Cell(SVector{3}(minV), SVector{3}(maxV), OctreeNode(pc, collect(1:pc.size), 1))
+    r = OctreeRefinery(8)
+    adaptivesampling!(octree, r)
+    alll = allleaves(octree)
+    maxdepth = 0
+    for a in alll
+        if a.data.depth > maxdepth
+            maxdepth = a.data.depth
+        end
+    end
+    return maxdepth
+end

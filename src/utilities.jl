@@ -352,3 +352,42 @@ function chooseS(A, k)
     symtoint = Dict(:lengthC=>1, :allcand=>2, :nofminset=>3)
     return A[symtoint[k]]
 end
+
+#=
+"""
+    p2table(p)
+
+Format a parameter into latex table.
+"""
+function p2table(p, fname, pre=true)
+    b = IOBuffer()
+    if pre
+        println(b, """
+        \\begin{table}[h]
+        \\centering
+        \\caption{Parameters for the segmentation for \\emph{Example ?}. (description of values: \\ref{tab:ransacpars})}
+        """)
+    end
+    println(b,"""	\\begin{tabular}{ c | c | c | c }
+		Parameter & Description & Parameter & Description \\\\
+		\\hline
+		\\hline
+		\$N\$ & \$?\$ & \$p_t\$ & \$$(p.prob_det)\%\$\\\\
+		\$\\tau\$ & \$$(p.τ)\$ & \$k\$ & \$3\$ \\\\
+		\$d\$ & \$?\$& \$t\$ & \$$(p.minsubsetN)\$ \\\\
+		\$r\$ & \$?\$ & - & - \\\\
+		\$\\epsilon_{plane}\$ & \$$(p.ϵ_plane)\$ & \$\\alpha_{plane}\$  & \$$(p.α_plane)^{\\circ}\$\\\\
+		\$\\epsilon_{sphere}\$ & \$$(p.ϵ_sphere)\$ & \$\\alpha_{sphere}\$  & \$$(p.α_sphere)^{\\circ}\$\\\\
+		\$\\epsilon_{cylinder}\$ & \$$(p.ϵ_cylinder)\$ & \$\\alpha_{cylinder}\$  & \$$(p.α_cylinder)^{\\circ}\$\\\\
+		\$\\epsilon_{cone}\$ & \$$(p.ϵ_cone)\$ & \$\\alpha_{cone}\$  & \$$(p.α_cone)^{\\circ}\$\\\\
+        \$\\epsilon_{translational}\$ & \$$(p.ϵ_transl)\$ & \$\\alpha_{translational}\$  & \$$(p.α_transl)^{\\circ}\$\\\\
+        \\end{tabular}""")
+    if pre
+        println(b, """	\\label{tab:ex1pars}
+                    \\end{table}""")
+    end
+    open(fname, "w") do io
+        println(io, b)
+    end
+end
+=#
