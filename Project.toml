@@ -15,8 +15,8 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 UnionFind = "99c6138d-4661-531e-8606-19bf1ec96588"
 
 [compat]
-julia = "^1"
 RegionTrees = "^0.3"
+julia = "^1"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
