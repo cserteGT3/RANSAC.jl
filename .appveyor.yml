@@ -15,9 +15,9 @@ matrix:
     - julia_version: nightly
 
 branches:
-  only:
-    - master
-    - /release-.*/
+  except:
+    - /dev.*/
+    - playground
 
 notifications:
   - provider: Email
