@@ -16,7 +16,7 @@ Primitive shapes can be: plane, sphere, cylinder, cone and torus, though torus i
 The input of the algorithm is a point cloud with associated surface normals.
 The output is a set of primitive shapes with corresponding sets of points, and the rest of the points that do not belong to any primitives.
 
-## Getting started
+## Quick tour
 
 1. Install the package:
 ```julia
@@ -27,6 +27,7 @@ The output is a set of primitive shapes with corresponding sets of points, and t
 ```julia
 using FileIO
 m = load("testm.obj")
+using RANSAC
 pc = PointCloud(m, 2)
 rparams = RANSACParameters{Float64}()
 ```
@@ -34,3 +35,4 @@ rparams = RANSACParameters{Float64}()
 ## The Efficient RANSAC algorithm
 
 A [full page](@ref Efficient RANSAC) is dedicated to describe the algorithm and to help to understand the parameters.
+If something is not clear, please open an issue or check the original paper.
