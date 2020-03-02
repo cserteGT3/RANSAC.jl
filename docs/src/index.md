@@ -15,3 +15,22 @@ Primitive shapes can be: plane, sphere, cylinder, cone and torus, though torus i
 
 The input of the algorithm is a point cloud with associated surface normals.
 The output is a set of primitive shapes with corresponding sets of points, and the rest of the points that do not belong to any primitives.
+
+## Getting started
+
+1. Install the package:
+```julia
+] add https://github.com/cserteGT3/RANSAC.jl
+```
+2. Get an example point cloud. Use your own, or download a public dataset (for example the one used in `Schnabel2007`, read more about [here](@ref Example))
+3. You can use [FileIO] and [MeshIO] to load models.
+```julia
+using FileIO
+m = load("testm.obj")
+pc = PointCloud(m, 2)
+rparams = RANSACParameters{Float64}()
+```
+
+## The Efficient RANSAC algorithm
+
+A [full page](@ref Efficient RANSAC) is dedicated to describe the algorithm and to help to understand the parameters.
