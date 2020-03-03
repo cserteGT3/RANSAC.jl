@@ -6,6 +6,8 @@ Read the algorithm description here to get a full understanding of the algorithm
 
 ## Loading the data
 
+As MeshIO and other softwares had troubles opening the `_input.obj` files, I used [MeshLab]() to open them and export to non-binary encoded PLY.
+
 ## Constructing a `PointCloud`
 
 Currently the package only handles vectors of `Float64`.
