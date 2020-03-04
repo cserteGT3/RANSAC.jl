@@ -275,10 +275,10 @@ end
     # minimal shape size
     τ::Int = 900
     # maximum number of iteration
-    itermax::Int = 20
+    itermax::Int = 1000
     # if the number of enabled points fall under `leftover`,
     # the iteration terminates
-    leftovers::Int = 500
+    leftovers::Int = 1
 
     # threshold of two vectors being parallel (in degrees)
     parallelthrdeg = 1
@@ -318,7 +318,8 @@ end
     jumpback::Bool = false
 
     # shapes that are fitted to the point cloud
-    shape_types::Array{Symbol,1} = [:sphere, :plane, :cylinder, :cone, :translational_surface]
+    #shape_types::Array{Symbol,1} = [:sphere, :plane, :cylinder, :cone, :translational_surface]
+    shape_types::Array{Symbol,1} = [:sphere, :plane, :cylinder, :cone]
 
     # track the number of candidates for the probabilities
     # 1. :lengthC - number of candidates in a given iteration
@@ -346,6 +347,24 @@ function allisdifferent(a::AbstractArray{T, 1}) where {T}
         end
     end
     return true
+end
+
+"""
+    setepsilons(p::RANSACParameters, ϵ)
+
+Set all `ϵ_*` fields to `ϵ`.
+"""
+function setepsilons(p::RANSACParameters, ϵ)
+    RANSACParameters(p, ϵ_plane=ϵ, ϵ_sphere=ϵ, ϵ_cylinder=ϵ, ϵ_cone=ϵ)
+end
+
+"""
+    setalphas(p::RANSACParameters, α)
+
+Set all `α_*` fields to `α`
+"""
+function setalphas(p::RANSACParameters, α)
+    RANSACParameters(p, α_plane=α, α_sphere=α, α_cylinder=α, α_cone=α)
 end
 
 function chooseS(A, k)

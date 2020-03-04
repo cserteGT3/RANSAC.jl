@@ -33,7 +33,9 @@ export  arbitrary_orthogonal,
         prob,
         havesameelement,
         #p2table,
-        RANSACParameters
+        RANSACParameters,
+        setepsilons,
+        setalphas
 
 export  ConfidenceInterval,
         notsoconfident,
