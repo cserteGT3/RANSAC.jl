@@ -1,5 +1,10 @@
 # fitting
 
+"""
+    struct FittedPlane{A<:AbstractArray} <: FittedShape
+
+Plane primitive, defined by one of its point, and its normalvector.
+"""
 struct FittedPlane{A<:AbstractArray} <: FittedShape
     isplane::Bool
     point::A

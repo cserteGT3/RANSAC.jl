@@ -1,8 +1,13 @@
 """
-An abstract type that wraps the fitted shapes.
+An abstract type that supertypes all the fitted shapes.
 """
 abstract type FittedShape end
 
+"""
+    struct ShapeCandidate{S<:FittedShape}
+
+Store a primitive candidate and the octree level, that it is from.
+"""
 struct ShapeCandidate{S<:FittedShape}
     shape::S
     octree_lev::Int
@@ -14,6 +19,12 @@ Base.show(io::IO, x::ShapeCandidate{S}) where {S} =
 Base.show(io::IO, ::MIME"text/plain", x::ShapeCandidate{S}) where {S} =
     print(io, "ShapeCandidate{$S}\n", x, ", octree: $(x.octree_lev)")
 
+"""
+    mutable struct ScoredShape{A<:AbstractArray}
+
+Store a primitive (`ShapeCandidate`) with its score(`ConfidenceInterval`)
+and the points that belong to the shape.
+"""
 mutable struct ScoredShape{A<:AbstractArray}
     candidate::ShapeCandidate
     score::ConfidenceInterval

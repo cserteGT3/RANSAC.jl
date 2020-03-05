@@ -1,9 +1,13 @@
 # Public API
 
 Note, that not all exported functions are considered as part of the public API.
+The private API is not mature yet, expect it to change.
 
 ## Representing a point cloud
 
+```@docs
+PointCloud
+```
 
 
 ## Parameters
@@ -54,4 +58,28 @@ The `RANSACParameters` type collects all the parameters, though its fields are s
     # shapes that are fitted to the point cloud
     shape_types::Array{Symbol,1} = [:sphere, :plane, :cylinder, :cone]
 end
+```
+
+You can use the following functions to set every ``\alpha`` or ``\epsilon`` parameters to a certain value:
+
+```@docs
+setalphas
+setepsilons
+```
+
+## Primitives
+
+```@docs
+FittedShape
+FittedPlane
+FittedSphere
+FittedCylinder
+FittedCone
+```
+
+## Iteration
+
+The `ransac()` function does the iteration.
+```@docs
+ransac
 ```

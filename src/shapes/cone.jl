@@ -1,5 +1,13 @@
 # fitting
 
+"""
+    struct FittedCone{A<:AbstractArray, R<:Real} <: FittedShape
+
+Cone primitive, defined by its apex,
+its axis (that points from the apex towards the opening),
+and its opening angle in radians.
+Also stored, if the normals point outwards of the shape.
+"""
 struct FittedCone{A<:AbstractArray, R<:Real} <: FittedShape
     iscone::Bool
     apex::A

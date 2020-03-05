@@ -1,5 +1,13 @@
 # fitting
 
+"""
+    struct FittedCylinder{A<:AbstractArray, R<:Real} <: FittedShape
+
+Cylinder primitive, defined by its axis direction,
+a point that lies on its axis,
+and its radius.
+Also stored, if the normals point outwards of the shape.
+"""
 struct FittedCylinder{A<:AbstractArray, R<:Real} <: FittedShape
     iscylinder::Bool
     axis::A

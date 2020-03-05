@@ -12,6 +12,16 @@ function getcellandparents(cell::Cell)
     aoc
 end
 
+"""
+    mutable struct PointCloud{A<:AbstractArray, B<:AbstractArray, C<:AbstractArray}
+
+A struct to wrap a point cloud. Stores the vertices, the normals,
+    the subsets (as an array of arrays of vertice indexes),
+    an array to indicate if a point is part of an already extracted primitive,
+    the size of the point cloud (number of vertices),
+    the weight of each octree level (populated during the construction of the octree, by copying the given element),
+    an array to store the sum of the score of already extracted primitives for each octree level.
+"""
 mutable struct PointCloud{A<:AbstractArray, B<:AbstractArray, C<:AbstractArray}
     vertices::A
     normals::A
@@ -32,6 +42,15 @@ Base.show(io::IO, ::MIME"text/plain", x::PointCloud{A,B,C}) where {A,B,C} =
     PointCloud(vertices, normals, subsets, isenabled, size, levelweight, levelscore)
 
 Constructor that converts vertices and normals to array of `SVector{3,Float64}`.
+
+# Arguments
+- `vertices::AbstractArray`: an array of vertices.
+- `normals::AbstractArray`: an array of surface normals.
+- `subsets::AbstractArray`: an array consisting of index-arrays, that describe which point is in which subset.
+- `isenabled::BitArray{1}`: an array indicating if the given point is enabled (`true`) or already has been extracted (`false`).
+- `size::Int`: number of points in the cloud.
+- `levelweight::Vector{Float}`: the weight of every octree level.
+- `levelscore::Vector{Float}`: for every octree level, store the sum of the scores of primitives that have been extracted.
 """
 function PointCloud(vertices, normals, subsets, isenabled, size, levelweight, levelscore)
     vc = [SVector{3,Float64}(v) for v in vertices]
@@ -42,7 +61,9 @@ end
 """
     PointCloud(vertices, normals, subsets, isenabled)
 
-Construct a `PointCloud` with filling it's `size` and `levelweight` fields.
+Construct a `PointCloud` with filling it's `size`, `isenabled` and `levelweight` fields.
+
+`size=length(vertices)`, `levelweight=[1.0]`, `levelscore=[1.0]`
 """
 function PointCloud(vertices, normals, subsets, isenabled)
     return PointCloud(vertices, normals, subsets, isenabled, length(vertices), [1.0], [1.0])
@@ -53,7 +74,7 @@ end
 
 Construct a `PointCloud`, filling it's other fields.
 
-Every point is enabled, and the weight vector defaults to `[1.0]`.
+`size=length(vertices)`, `levelweight=[1.0]`, `levelscore=[1.0]`, `isenabled=trues(length(vertices))`
 """
 function PointCloud(vertices, normals, subsets)
     return PointCloud(vertices, normals, subsets, trues(length(vertices)), length(vertices), [1.0], [1.0])
@@ -62,7 +83,7 @@ end
 """
     PointCloud(vertices, normals, numofsubsets::Int)
 
-Construct a `PointCloud` with `numofsubsets` random subsets.
+Construct a `PointCloud` with `numofsubsets` number of random subsets.
 
 Every point is enabled, and the weight vector defaults to `[1.0]`.
 """
@@ -80,6 +101,14 @@ function PointCloud(vertices, normals, numofsubsets::Int)
     return PointCloud(vertices, normals, subs, trues(length(vertices)), length(vertices), [1.0], [1.0])
 end
 
+"""
+    struct OctreeNode{B<:AbstractArray}
+
+Store the data attached to one cell of the octree.
+Stores the reference of the point cloud,
+the indices of the points that are inside of the cell,
+and its own depth (depth of the root is 1).
+"""
 struct OctreeNode{B<:AbstractArray}
     pointcloud::PointCloud
     incellpoints::B

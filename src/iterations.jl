@@ -1,3 +1,18 @@
+"""
+    ransac(pc, params, setenabled; reset_rand = false)
+
+Run the RANSAC algorithm on a pointcloud with the given parameters.
+
+Returns the candidates (as they are at the end of the iteration),
+the extracted primitives
+and the time it took to run the algorithm (in seconds).
+
+# Arguments
+- `pc::PointCloud`: the point cloud.
+- `params::RANSACParameters`: parameters.
+- `setenabled::Bool`: if `true`: set every point to enabled.
+- `reset_rand::Bool=false`: if `true`, resets the random seed with `Random.seed!(1234)`
+"""
 function ransac(pc, params, setenabled; reset_rand = false)
     if setenabled
         pc.isenabled = trues(pc.size)
@@ -5,6 +20,20 @@ function ransac(pc, params, setenabled; reset_rand = false)
     ransac(pc, params, reset_rand=reset_rand)
 end
 
+"""
+    ransac(pc, params; reset_rand = false)
+
+Run the RANSAC algorithm on a pointcloud with the given parameters.
+
+Returns the candidates (as they are at the end of the iteration),
+the extracted primitives
+and the time it took to run the algorithm (in seconds).
+
+# Arguments
+- `pc::PointCloud`: the point cloud.
+- `params::RANSACParameters`: parameters.
+- `reset_rand::Bool=false`: if `true`, resets the random seed with `Random.seed!(1234)`
+"""
 function ransac(pc, params; reset_rand = false)
     reset_rand && Random.seed!(1234)
 

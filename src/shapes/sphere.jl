@@ -1,5 +1,11 @@
 # fitting
 
+"""
+    struct FittedSphere{A<:AbstractArray, R<:Real} <: FittedShape
+
+Sphere primitive, defined by its center and radius.
+Also stored, if the normals point outwards of the shape.
+"""
 struct FittedSphere{A<:AbstractArray, R<:Real} <: FittedShape
     issphere::Bool
     center::A
