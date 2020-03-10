@@ -7,6 +7,9 @@ The private API is not mature yet, expect it to change.
 
 ```@docs
 PointCloud
+PointCloud(vertices, normals, subsets)
+PointCloud(vertices, normals, subsets, isenabled)
+PointCloud(vertices, normals, subsets, isenabled, size, levelweight, levelscore)
 ```
 
 

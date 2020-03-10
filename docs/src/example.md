@@ -58,4 +58,34 @@ julia> _, extr, _ = ransac(pc, p, true, reset_rand=true);
 
 ## See the results
 
-There's the [RANSACVisualizer](https://github.com/cserteGT3/RANSACVisualizer.jl) package that provides a few utility functions to check the results.
+The [RANSACVisualizer](https://csertegt3.github.io/RANSACVisualizer.jl/stable/) package provides a few utility functions to check the results (check the docs for function signatures).
+
+### Check the input
+
+The `showgeometry()` function shows a mesh and its normal vectors:
+
+```julia
+julia> showgeometry(m, arrow=0.3; show_axis = false)
+```
+
+![](img/showgeometry.png)
+
+### Results colored randomly
+
+The `showshapes()` function provides this functionality.
+
+```julia
+julia> showshapes(pc, extr; show_axis = false)
+```
+
+![](img/showshapes.png)
+
+### Results colored according to their type
+
+The `showbytype()` function provides this functionality.
+
+```julia
+julia> showbytype(pc, extr; show_axis = false)
+```
+
+![](img/bytype.png)

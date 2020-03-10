@@ -29,19 +29,37 @@ Also, only those points are considered that count towards the largest connecting
 
 ## Quick tour
 
-1. Install the package:
+### Install the package
+
 ```julia
 ] add https://github.com/cserteGT3/RANSAC.jl
 ```
-2. Get an example point cloud. Use your own, or download a public dataset (for example the one used in `Schnabel2009`, read more about on the [Example](@ref) page)
-3. You can use [MeshIO.jl](https://github.com/JuliaIO/MeshIO.jl) to load models.
+
+### Load a point cloud
+
+Get an example point cloud. Use your own, or download a public dataset (for example the one used in `Schnabel2009`, read more about on the [Example](@ref) page)
+You can use [MeshIO.jl](https://github.com/JuliaIO/MeshIO.jl) to load models.
+
 ```julia
 using FileIO
 m = load("testm.obj")
+```
+
+### Construct a `PointCloud`
+
+```julia
 using RANSAC
 pc = PointCloud(m, 2)
 rparams = RANSACParameters{Float64}()
 ```
+
+### Run the iteration
+
+```julia
+ _, extr, _ = ransac(pc, p, true);
+```
+
+See the [Example](@ref) page for a detailed tour.
 
 ## Differences from the reference implementation
 
