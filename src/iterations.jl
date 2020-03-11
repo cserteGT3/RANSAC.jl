@@ -175,10 +175,6 @@ function ransac(pc, params; reset_rand = false)
         countcandidates[3] = k*minsubsetN
         # length of the candidate array
 
-        # jumping around translationals
-        happened = false
-        @label badtranslational
-
         countcandidates[1] = size(scoredshapes, 1)
         if ! (size(scoredshapes, 1) < 1)
             # search for the largest score == length(inpoints) (for now)
@@ -196,7 +192,7 @@ function ransac(pc, params; reset_rand = false)
             ppp = prob(best_length*subsetN, s, pc.size, drawN)
 
             #info printing: there's a best
-            if k%notifit == 0 && (! happened)
+            if k%notifit == 0
                 @logmsg IterInf "$k. it, best: $best_length db, score: $scr, prob: $ppp, scored shapes: $(length(scoredshapes)) pcs."
             end
 
@@ -214,21 +210,8 @@ function ransac(pc, params; reset_rand = false)
                     bs = refitcylinder(bestshape, pc, params)
                 elseif bestshape.candidate.shape isa FittedCone
                     bs = refitcone(bestshape, pc, params)
-                elseif bestshape.candidate.shape isa FittedTranslational
-                    bs = refittransl(bestshape, pc, params)
-                else
-                    @warn "Refit not implemented for: $(typeof(bestshape.candidate.shape))"
                 end
-                if bs === nothing
-                    deleteat!(scoredshapes, best.index)
-                    if jumpback
-                        happened && @logmsg IterLow1 "Couldn't extract extruded surface, jumping back."
-                        happened = true
-                        @goto badtranslational
-                    end
-                    @logmsg IterLow1 "Couldn't extract extruded surface, going on."
-                    @goto endofscoring
-                end
+
                 scs = size(bs.inpoints,1)
                 @logmsg IterInf "Extracting best: $(strt(bs.candidate.shape)) score: $scr, refit length: $scs"
                 # invalidate points
@@ -258,7 +241,6 @@ function ransac(pc, params; reset_rand = false)
                 @logmsg IterInf "$k. it, no candidates."
             end
         end
-        @label endofscoring
         # update octree levels
         updatelevelweight(pc)
 
@@ -291,9 +273,6 @@ function rerunleftover!(pc, nofs, params, sofarextr; reset_rand=true)
         scored = extr2[i]
         old_indexes = lftvr_i[scored.inpoints]
         scored.inpoints = old_indexes
-        if scored.candidate.shape isa ExtractedTranslational
-            @warn "Extracted translational at rerun! Found at extr2[$i]"
-        end
     end
 
     # set isenabled to false

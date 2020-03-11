@@ -14,9 +14,6 @@ using UnionFind
 import RegionTrees: AbstractRefinery, needs_refinement, refine_data
 import Base: show
 
-# Delaunay
-using Deldir
-
 # debuuugggggg
 #using Infiltrator
 #using Makie: scatter, vbox
@@ -55,10 +52,6 @@ export  FittedShape,
         FittedSphere,
         FittedCylinder,
         FittedCone,
-        FittedTranslational,
-        dn2contour,
-        dn2shape_outw,
-        dn2shape_contour,
         ShapeCandidate,
         findhighestscore,
         ScoredShape,
@@ -78,8 +71,7 @@ export  sampleplane,
         examplepc3,
         examplepc4,
         examplepc5,
-        examplepc6,
-        showgeometry
+        examplepc6
 
 export  project2plane,
         refitsphere,
@@ -109,13 +101,10 @@ include("shapes/plane.jl")
 include("shapes/sphere.jl")
 include("shapes/cylinder.jl")
 include("shapes/cone.jl")
-include("shapes/profit.jl")
-include("shapes/translational.jl")
 include("sampling.jl")
 #include("parameterspacebitmap.jl")
 include("iterations.jl")
 include("logging.jl")
 include("orientedbox_.jl")
-include("deprecated.jl")
 
 end #module

@@ -98,11 +98,6 @@ function forcefitshapes!(pc, points, normals, parameters, candidates, octree_lev
             fitted = fitcylinder(points, normals, parameters)
         elseif s === :cone
             fitted = fitcone(points, normals, parameters)
-        elseif s === :translational_surface
-            fits = fittranslationalsurface(pc, points, normals, parameters)
-            fits === nothing && continue
-            append!(candidates, [ShapeCandidate(f, octree_lev) for f in fits])
-            continue
         else
             error("$s is not recognized as valid shape type.")
         end

@@ -4,7 +4,6 @@ authors = ["Tamás Cserteg <csertegt@gmail.com>"]
 version = "0.1.1"
 
 [deps]
-Deldir = "64db5801-a3ae-51a7-b7d2-a0a5f0813e47"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
 NearestNeighbors = "b8a86587-4115-5ab1-83bc-aa920d37bbce"
