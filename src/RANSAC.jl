@@ -8,8 +8,6 @@ using StaticArrays: SVector, SMatrix
 using RegionTrees
 #using Images: label_components, component_lengths, component_subscripts
 using Parameters
-using NearestNeighbors: BallTree, inrange, KDTree
-using UnionFind
 
 import RegionTrees: AbstractRefinery, needs_refinement, refine_data
 import Base: show
@@ -76,7 +74,8 @@ export  sampleplane,
 export  project2plane,
         refitsphere,
         refitplane,
-        refitcylinder
+        refitcylinder,
+		refitcone
 
 export  ransac,
         rerunleftover!
