@@ -1,7 +1,7 @@
 name = "RANSAC"
 uuid = "d6bc97e0-a563-11e9-1861-c573f65f3bc3"
 authors = ["Tamás Cserteg <csertegt@gmail.com>"]
-version = "0.1.1"
+version = "0.2.0"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
