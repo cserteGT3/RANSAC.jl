@@ -4,6 +4,11 @@ An abstract type that supertypes all the fitted shapes.
 abstract type FittedShape end
 
 """
+Return a string that tells the type (plane, spehere, etc.) of a `FittedShape`.
+"""
+function strt end
+
+"""
     struct ShapeCandidate{S<:FittedShape}
 
 Store a primitive candidate and the octree level, that it is from.

@@ -14,7 +14,7 @@ Base.show(io::IO, x::FittedPlane) =
     print(io, """plane""")
 
 Base.show(io::IO, ::MIME"text/plain", x::FittedPlane{A}) where {A} =
-    print(io, """FittedPlane{$A}\nplane, normal: $(x.normal), point: $(x.point) """)
+    print(io, """FittedPlane{$A}\nnormal: $(x.normal), point: $(x.point) """)
 
 strt(x::FittedPlane) = "plane"
 

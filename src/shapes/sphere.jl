@@ -16,7 +16,7 @@ Base.show(io::IO, x::FittedSphere) =
     print(io, """sphere, R: $(x.radius)""")
 
 Base.show(io::IO, ::MIME"text/plain", x::FittedSphere{A, R}) where {A, R} =
-    print(io, "FittedSphere{$A, $R}\n", """sphere, center: $(x.center), R: $(x.radius), $(x.outwards ? "outwards" : "inwards" )""")
+    print(io, "FittedSphere{$A, $R}\n", """center: $(x.center), R: $(x.radius), $(x.outwards ? "outwards" : "inwards" )""")
 
 strt(x::FittedSphere) = "sphere"
 

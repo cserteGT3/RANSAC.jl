@@ -22,9 +22,9 @@ Base.show(io::IO, x::FittedCone) =
     print(io, """cone, ω: $(x.opang)""")
 
 Base.show(io::IO, ::MIME"text/plain", x::FittedCone{A, R}) where {A, R} =
-    print(io, """FittedCone{$A, $R}\ncone, apex: $(x.apex), axis: $(x.axis), ω: $(x.opang), $(x.outwards ? "outwards" : "inwards" )""")
+    print(io, """FittedCone{$A, $R}\napex: $(x.apex), axis: $(x.axis), ω: $(x.opang), $(x.outwards ? "outwards" : "inwards" )""")
 
-strt(x::FittedCone) = "Cone"
+strt(x::FittedCone) = "cone"
 
 function setconeOuterity(fc, b)
     FittedCone(fc.apex, fc.axis, fc.opang, b)

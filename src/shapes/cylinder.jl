@@ -19,7 +19,7 @@ Base.show(io::IO, x::FittedCylinder) =
     print(io, """cylinder, R: $(x.radius)""")
 
 Base.show(io::IO, ::MIME"text/plain", x::FittedCylinder{A, R}) where {A, R} =
-    print(io, """FittedCylinder{$A, $R}\ncylinder, center: $(x.center), axis: $(x.axis), R: $(x.radius), $(x.outwards ? "outwards" : "inwards" )""")
+    print(io, """FittedCylinder{$A, $R}\ncenter: $(x.center), axis: $(x.axis), R: $(x.radius), $(x.outwards ? "outwards" : "inwards" )""")
 
 strt(x::FittedCylinder) = "cylinder"
 
