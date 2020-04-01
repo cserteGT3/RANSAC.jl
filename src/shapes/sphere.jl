@@ -7,23 +7,18 @@ Sphere primitive, defined by its center and radius.
 Also stored, if the normals point outwards of the shape.
 """
 struct FittedSphere{A<:AbstractArray, R<:Real} <: FittedShape
-    issphere::Bool
     center::A
     radius::R
     outwards::Bool
 end
 
 Base.show(io::IO, x::FittedSphere) =
-    print(io, """$(x.issphere ? "o" : "x") sphere, R: $(x.radius)""")
+    print(io, """sphere, R: $(x.radius)""")
 
 Base.show(io::IO, ::MIME"text/plain", x::FittedSphere{A, R}) where {A, R} =
-    print(io, "FittedSphere{$A, $R}\n", """$(x.issphere ? "o" : "x") sphere, center: $(x.center), R: $(x.radius), $(x.outwards ? "outwards" : "inwards" )""")
+    print(io, "FittedSphere{$A, $R}\n", """sphere, center: $(x.center), R: $(x.radius), $(x.outwards ? "outwards" : "inwards" )""")
 
-function isshape(shape::FittedSphere)
-    return shape.issphere
-end
-
-strt(x::FittedSphere) = "Sphere"
+strt(x::FittedSphere) = "sphere"
 
 function fit2pointsphere(v, n, params)
     @unpack parallelthrdeg, sphere_par = params
@@ -35,7 +30,7 @@ function fit2pointsphere(v, n, params)
         # parallel normals
         # fit it, if bad, will fall out later
         centerp = (v[1]+v[2])/2
-        return FittedSphere(true, centerp, norm(centerp-v[1]), b)
+        return FittedSphere(centerp, norm(centerp-v[1]), b)
     else
         # not parallel normals
         # first check if they intersect
@@ -54,34 +49,31 @@ function fit2pointsphere(v, n, params)
             c2 = v[2] + dot( (v[1]-v[2]), n1 )/dot( n[2], n1 ) * n[2]
             centerp = (c1+c2)/2
             r = (norm(v[1]-centerp) + norm(v[1]-centerp))/2
-            return FittedSphere(true, centerp, r, b)
+            return FittedSphere(centerp, r, b)
         else
             # intersection
             if dot(h, k) > 0
                 # point the same direction -> +
                 M = v[1] + nh/nk * n1n
-                return FittedSphere(true, M, norm(M-v[1]), b)
+                return FittedSphere(M, norm(M-v[1]), b)
             else
                 # point in different direction -> -
                 M = v[1] - nh/nk * n1n
-                return FittedSphere(true, M, norm(M-v[1]), b)
+                return FittedSphere(M, norm(M-v[1]), b)
             end
         end
     end
 end
 
 function setsphereOuterity(sp, b)
-    FittedSphere(sp.issphere, sp.center, sp.radius, b)
+    FittedSphere(sp.center, sp.radius, b)
 end
 
 """
     fitsphere(p, n, params)
 
 Fit a sphere to 2 points. Additional points and their normals are used to validate the fit.
-
-# Arguments:
-- `epsilon::Real`: maximum distance-difference between the fitted and measured spheres.
-- `alpharad::Real`: maximum difference between the normals (in radians).
+Return `nothing` if points do not fit to a sphere.
 """
 function fitsphere(p, n, params)
     @unpack ϵ_sphere, α_sphere = params
@@ -91,7 +83,7 @@ function fitsphere(p, n, params)
     # "forcefit" a sphere
     sp = fit2pointsphere(p, n, params)
     # check if real sphere
-    sp.issphere || return sp
+    sp === nothing && return nothing
     thr = cos(α_sphere)
     vert_ok = falses(pl)
     norm_ok = falses(pl)
@@ -104,10 +96,10 @@ function fitsphere(p, n, params)
         norm_ok[i] = dotp > thr
         invnorm_ok[i] = dotp < -thr
     end
-    vert_ok == trues(pl) || return FittedSphere(false, NaNVec, 0, false)
+    vert_ok == trues(pl) || return nothing
     norm_ok == trues(pl) && return setsphereOuterity(sp, true)
     invnorm_ok == trues(pl) && return setsphereOuterity(sp, false)
-    return FittedSphere(false, NaNVec, 0, false)
+    return nothing
 end
 
 # bitmapping

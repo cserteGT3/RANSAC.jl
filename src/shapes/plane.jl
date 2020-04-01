@@ -6,32 +6,25 @@
 Plane primitive, defined by one of its point, and its normalvector.
 """
 struct FittedPlane{A<:AbstractArray} <: FittedShape
-    isplane::Bool
     point::A
     normal::A
 end
 
 Base.show(io::IO, x::FittedPlane) =
-    print(io, """$(x.isplane ? "o" : "x") plane""")
+    print(io, """plane""")
 
 Base.show(io::IO, ::MIME"text/plain", x::FittedPlane{A}) where {A} =
-    print(io, """FittedPlane{$A}\n$(x.isplane ? "o" : "x") plane, normal: $(x.normal), point: $(x.point) """)
+    print(io, """FittedPlane{$A}\nplane, normal: $(x.normal), point: $(x.point) """)
 
-strt(x::FittedPlane) = "Plane"
-
-function isshape(shape::FittedPlane)
-    return shape.isplane
-end
+strt(x::FittedPlane) = "plane"
 
 """
     fitplane(p, n, params)
 
 Fit a plane to 3 points. Their and additional point's normals are used to validate the fit.
+Return `nothing` if points do not fit to a plane.
 
 A collinearity check is used to not filter out points on one line.
-# Arguments:
-- `alpharad::Real`: maximum difference between the normals (in radians).
-- `collin_threshold::Real=0.2`: threshold for the collinearity check (lower is stricter).
 """
 function fitplane(p, n, params)
     @unpack α_plane, collin_threshold = params
@@ -45,12 +38,12 @@ function fitplane(p, n, params)
         # solution: use 1 more point
         if length(p) < 4
             # return with false, cause no more points can be used
-            return FittedPlane(false, NaNVec, NaNVec)
+            return nothing
         end
         crossv = normalize(cross(p[2]-p[4], p[3]-p[1]))
         if norm(crossv) < collin_threshold
             # return false, cause these are definitely on one line
-            return FittedPlane(false, NaNVec, NaNVec)
+            return nothing
         end
     end
     # here we have the normal of the theoretical plane
@@ -63,9 +56,9 @@ function fitplane(p, n, params)
         norm_ok[i] = dotp > thr
         invnorm_ok[i] = dotp < -thr
     end
-    norm_ok == trues(lp) && return FittedPlane(true, p[1], crossv)
-    invnorm_ok == trues(lp) && return FittedPlane(true, p[1], -1*crossv)
-    return FittedPlane(false, NaNVec, NaNVec)
+    norm_ok == trues(lp) && return FittedPlane(p[1], crossv)
+    invnorm_ok == trues(lp) && return FittedPlane(p[1], -1*crossv)
+    return nothing
 end
 
 # bitmapping

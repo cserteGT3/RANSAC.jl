@@ -9,7 +9,6 @@ and its opening angle in radians.
 Also stored, if the normals point outwards of the shape.
 """
 struct FittedCone{A<:AbstractArray, R<:Real} <: FittedShape
-    iscone::Bool
     apex::A
     # points from apex towards the opening
     # unit length
@@ -20,19 +19,15 @@ struct FittedCone{A<:AbstractArray, R<:Real} <: FittedShape
 end
 
 Base.show(io::IO, x::FittedCone) =
-    print(io, """$(x.iscone ? "o" : "x") cone, ω: $(x.opang)""")
+    print(io, """cone, ω: $(x.opang)""")
 
 Base.show(io::IO, ::MIME"text/plain", x::FittedCone{A, R}) where {A, R} =
-    print(io, """FittedCone{$A, $R}\n$(x.iscone ? "o" : "x") cone, apex: $(x.apex), axis: $(x.axis), ω: $(x.opang), $(x.outwards ? "outwards" : "inwards" )""")
+    print(io, """FittedCone{$A, $R}\ncone, apex: $(x.apex), axis: $(x.axis), ω: $(x.opang), $(x.outwards ? "outwards" : "inwards" )""")
 
 strt(x::FittedCone) = "Cone"
 
-function isshape(shape::FittedCone)
-    return shape.iscone
-end
-
 function setconeOuterity(fc, b)
-    FittedCone(fc.iscone, fc.apex, fc.axis, fc.opang, b)
+    FittedCone(fc.apex, fc.axis, fc.opang, b)
 end
 
 ## fitting
@@ -43,11 +38,11 @@ function fit3pointcone(psok, nsok)
     n = @view nsok[1:3]
     r = Array{Float64,2}(undef, (3,3))
     for i in 1:3; for j in 1:3; r[i,j] = n[i][j]; end; end
-    rank(r) == 3 || return FittedCone(false, NaNVec, NaNVec, 0.0, false)
+    rank(r) == 3 || return nothing
     ds = [dot(p[i], n[i]) for i in 1:3]
     # rank of the augmented matrix
     rv = hcat(r, -1 .* ds)
-    rank(rv) == 3 || return FittedCone(false, NaNVec, NaNVec, 0.0, false)
+    rank(rv) == 3 || return nothing
     # apex
     ap = SVector{3, Float64}(r\ds)
     # axis
@@ -59,7 +54,7 @@ function fit3pointcone(psok, nsok)
     # opening angle
     angles = [acos(clamp(dot(normalize(p[i]-ap), ax), -1, 1)) for i in 1:3]
     opangle = 2*sum(angles)/3
-    return FittedCone(true, ap, ax, opangle, true)
+    return FittedCone(ap, ax, opangle, true)
 end
 
 """
@@ -91,12 +86,12 @@ function validatecone(cone, ps, ns, params)
     calcs = [project2cone(cone, ps[i]) for i in eachindex(ps)]
     for i in eachindex(calcs)
         if calcs[i][1] > ϵ_cone
-            return FittedCone(false, NaNVec, NaNVec, 0.0, false)
+            return nothing
         end
     end
 
     #cone with small opening angle is filtered
-    cone.opang < minconeopang && return FittedCone(false, NaNVec, NaNVec, 0.0, false)
+    cone.opang < minconeopang && return nothing
 
     lp = size(ps, 1)
     norm_ok = falses(lp)
@@ -111,12 +106,18 @@ function validatecone(cone, ps, ns, params)
 
     norm_ok == trues(lp) && return setconeOuterity(cone, true)
     invnorm_ok == trues(lp) && return setconeOuterity(cone, false)
-    return FittedCone(false, NaNVec, NaNVec, 0.0, false)
+    return nothing
 end
 
+"""
+    fitcone(p, n, params)
+
+Fit a cone to 3 points. Normals are expected to be normalized.
+Return `nothing` if points do not fit to a cone.
+"""
 function fitcone(p, n, params)
     fcone = fit3pointcone(p, n)
-    fcone.iscone || return fcone
+    fcone === nothing && return nothing
     valid_cone = validatecone(fcone, p, n, params)
     return valid_cone
 end

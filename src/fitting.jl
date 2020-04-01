@@ -101,7 +101,7 @@ function forcefitshapes!(pc, points, normals, parameters, candidates, octree_lev
         else
             error("$s is not recognized as valid shape type.")
         end
-        isshape(fitted) && push!(candidates, ShapeCandidate(fitted, octree_lev))
+        fitted === nothing || push!(candidates, ShapeCandidate(fitted, octree_lev))
     end
     return candidates
 end
