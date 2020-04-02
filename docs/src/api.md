@@ -86,3 +86,105 @@ The `ransac()` function does the iteration.
 ```@docs
 ransac
 ```
+
+## Exporting the results
+
+With the help of [JSON.jl](https://github.com/JuliaIO/JSON.jl), the resulted shapes can be easily saved to JSON files.
+For this purpose, the `exportJSON()` function can be used. Note that `io` must be specified, the "default" fallback to `stdout` is not implemented.
+```@docs
+exportJSON
+```
+
+A few examples:
+```julia
+julia> using RANSAC, StaticArrays
+
+julia> s1 = FittedPlane(SVector(0,0,1.), SVector(12.5, 7, 24))
+FittedPlane{SArray{Tuple{3},Float64,1,3}}
+normal: [12.5, 7.0, 24.0], point: [0.0, 0.0, 1.0]
+
+julia> exportJSON(stdout, s1)
+{"point":[0.0,0.0,1.0],"normal":[12.5,7.0,24.0],"type":"plane"}
+
+julia> exportJSON(stdout, s1, 2)
+{
+  "point": [
+    0.0,
+    0.0,
+    1.0
+  ],
+  "normal": [
+    12.5,
+    7.0,
+    24.0
+  ],
+  "type": "plane"
+}
+```
+It is advised to export shapes in an array for easier processing (though I'm not a JSON expert):
+```julia
+julia> exportJSON(stdout, [s1])
+{"primitives":[{"point":[0.0,0.0,1.0],"normal":[12.5,7.0,24.0],"type":"plane"}]}
+
+julia> exportJSON(stdout, [s1], 2)
+{
+  "primitives": [
+    {
+      "point": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "normal": [
+        12.5,
+        7.0,
+        24.0
+      ],
+      "type": "plane"
+    }
+  ]
+}
+```
+
+Works of course for different primitives:
+```julia
+julia> s2 = FittedSphere(SVector(1.2, 3., 5.), 1.5, true)
+FittedSphere{SArray{Tuple{3},Float64,1,3}, Float64}
+center: [1.2, 3.0, 5.0], R: 1.5, outwards
+
+julia> exportJSON(stdout, [s1, s2], 2)
+{
+  "primitives": [
+    {
+      "point": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "normal": [
+        12.5,
+        7.0,
+        24.0
+      ],
+      "type": "plane"
+    },
+    {
+      "outwards": true,
+      "radius": 1.5,
+      "center": [
+        1.2,
+        3.0,
+        5.0
+      ],
+      "type": "sphere"
+    }
+  ]
+}
+```
+
+As can be seen above, in these cases an array of `"primitives"` is printed.
+Under the hood, the `toDict()` function does the job of converting the primitives to `Dict`s.
+```@docs
+RANSAC.toDict(s::FittedShape)
+RANSAC.toDict(::Vector{T}) where {T<:Union{FittedShape,ShapeCandidate,ScoredShape}}
+```

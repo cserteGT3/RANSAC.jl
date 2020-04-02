@@ -9,7 +9,6 @@ and its radius.
 Also stored, if the normals point outwards of the shape.
 """
 struct FittedCylinder{A<:AbstractArray, R<:Real} <: FittedShape
-    iscylinder::Bool
     axis::A
     center::A
     radius::R
@@ -17,26 +16,22 @@ struct FittedCylinder{A<:AbstractArray, R<:Real} <: FittedShape
 end
 
 Base.show(io::IO, x::FittedCylinder) =
-    print(io, """$(x.iscylinder ? "o" : "x") cylinder, R: $(x.radius)""")
+    print(io, """cylinder, R: $(x.radius)""")
 
 Base.show(io::IO, ::MIME"text/plain", x::FittedCylinder{A, R}) where {A, R} =
-    print(io, """FittedCylinder{$A, $R}\n$(x.iscylinder ? "o" : "x") cylinder, center: $(x.center), axis: $(x.axis), R: $(x.radius), $(x.outwards ? "outwards" : "inwards" )""")
+    print(io, """FittedCylinder{$A, $R}\ncenter: $(x.center), axis: $(x.axis), R: $(x.radius), $(x.outwards ? "outwards" : "inwards" )""")
 
-strt(x::FittedCylinder) = "Cylinder"
-
-function isshape(shape::FittedCylinder)
-    return shape.iscylinder
-end
+strt(x::FittedCylinder) = "cylinder"
 
 function setcylinderOuterity(fc, b)
-    FittedCylinder(fc.iscylinder, fc.axis, fc.center, fc.radius, b)
+    FittedCylinder(fc.axis, fc.center, fc.radius, b)
 end
 
 function fit2pointcylinder(p, n, params)
     @unpack α_cylinder, ϵ_cylinder, parallelthrdeg = params
     # the normals are too parallel so cannot fit cylinder to it
     if abs(dot(n[1], n[2])) > cosd(parallelthrdeg)
-        return FittedCylinder(false, NaNVec, NaNVec, 0, false)
+        return nothing
     end
 
     an = normalize(n[1] × n[2])
@@ -119,7 +114,7 @@ function fit2pointcylinder(p, n, params)
 
     outw = dot(p12proj-p11proj, p11proj-interc) > 0
 
-    return FittedCylinder(true, an, c, R, outw)
+    return FittedCylinder(an, c, R, outw)
 end
 
 """
@@ -127,10 +122,7 @@ end
 
 Fit a cylinder to 2 points. Additional points and their normals are used to validate the fit.
 Normals are expected to be normalized.
-
-# Arguments:
-- `epsilon::Real`: maximum distance-difference between the fitted and measured spheres.
-- `alpharad::Real`: maximum difference between the normals (in radians).
+Return `nothing` if points do not fit to a cylinder.
 """
 function fitcylinder(p, n, params)
     @unpack ϵ_cylinder, α_cylinder, parallelthrdeg = params
@@ -141,7 +133,7 @@ function fitcylinder(p, n, params)
     # "forcefit" a cylinder
     fc = fit2pointcylinder(p, n, params)
 
-    fc.iscylinder || return fc
+    fc === nothing && return nothing
 
 
     thr = cos(α_cylinder)
@@ -158,10 +150,10 @@ function fitcylinder(p, n, params)
         norm_ok[i] = dotp > thr
         invnorm_ok[i] = dotp < -thr
     end
-    vert_ok == trues(pl) || return FittedCylinder(false, NaNVec, NaNVec, 0, false)
+    vert_ok == trues(pl) || return nothing
     norm_ok == trues(pl) && return setcylinderOuterity(fc, true)
     invnorm_ok == trues(pl) && return setcylinderOuterity(fc, false)
-    return FittedCylinder(false, NaNVec, NaNVec, 0, false)
+    return nothing
 end
 
 # bitmapping

@@ -25,6 +25,6 @@
     hcone = RANSAC.fitcone(cps[rrr], cns[rrr], p)
     hcone2 = RANSAC.fitcone(cps[rrr2], cns[rrr2], p)
 
-    @test hcone.iscone
-    @test hcone2.iscone
+    @test hcone isa FittedCone
+    @test hcone2 isa FittedCone
 end
