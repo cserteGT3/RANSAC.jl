@@ -2,6 +2,7 @@ using RANSAC
 using Test
 using LinearAlgebra
 using StaticArrays: SVector
+import JSON
 
 @testset "iswithinrectangle test" begin
     include("rectangletest.jl")
@@ -17,6 +18,10 @@ end
 
 @testset "cone" begin
     include("cone.jl")
+end
+
+@testset "json export" begin
+    include("json.jl")
 end
 
 #=

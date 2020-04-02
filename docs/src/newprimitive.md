@@ -5,7 +5,7 @@
 
 A primitive must define the following functions:
 - `strt()`
-- a constructor that acceppts a dictionary with string keys, which keys match the fieldnames.
+- (a constructor that accepts a dictionary with string keys, which keys match the fieldnames.)
 
 ```@docs
 RANSAC.strt
