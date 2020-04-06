@@ -281,11 +281,11 @@ end
     leftovers::Int = 1
 
     # threshold of two vectors being parallel (in degrees)
-    parallelthrdeg = 1
+    parallelthrdeg = 1.
     # threshold of points being collinear
     collin_threshold = 0.2
     # bitmap resolution
-    β = 1
+    β = 1.
     # parameter in sphere fitting
     sphere_par = 0.02
 
