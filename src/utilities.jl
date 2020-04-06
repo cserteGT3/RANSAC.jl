@@ -353,6 +353,8 @@ end
     setepsilons(p::RANSACParameters, ϵ)
 
 Set all `ϵ_*` fields to `ϵ`.
+
+Sets `ϵ_plane`, `ϵ_sphere`, `ϵ_cylinder`, `ϵ_cone`.
 """
 function setepsilons(p::RANSACParameters, ϵ)
     RANSACParameters(p, ϵ_plane=ϵ, ϵ_sphere=ϵ, ϵ_cylinder=ϵ, ϵ_cone=ϵ)
@@ -361,7 +363,9 @@ end
 """
     setalphas(p::RANSACParameters, α)
 
-Set all `α_*` fields to `α`
+Set all `α_*` fields to `α`.
+
+Sets `α_plane`, `α_sphere`, `α_cylinder`, `α_cone`.
 """
 function setalphas(p::RANSACParameters, α)
     RANSACParameters(p, α_plane=α, α_sphere=α, α_cylinder=α, α_cone=α)
