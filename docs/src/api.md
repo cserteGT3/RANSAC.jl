@@ -47,12 +47,9 @@ The `RANSACParameters` type collects all the parameters, though its fields are s
     τ::Int = 900
     # maximum number of iteration
     itermax::Int = 1000
-    # if the number of enabled points fall under `leftover`,
-    # the iteration terminates
-    leftovers::Int = 1
 
     # threshold of two vectors being parallel (in degrees)
-    parallelthrdeg = 1
+    parallelthrdeg = 1.
     # threshold of points being collinear
     collin_threshold = 0.2
     # parameter in sphere fitting

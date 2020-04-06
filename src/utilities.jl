@@ -256,12 +256,8 @@ end
 
     ϵ_cone = 0.3
     α_cone = deg2rad(5)
+    # filter those cones, whose opening angle is less than `minconeopang` radians
     minconeopang = deg2rad(2)
-
-    ϵ_transl = 0.3
-    α_transl = deg2rad(5)
-    # max deviaton of the normal being perpendicular to the translation direction
-    α_perpend = cosd(89)
 
     ϵ_torus = 0.3
     α_torus = deg2rad(5)
@@ -276,9 +272,6 @@ end
     τ::Int = 900
     # maximum number of iteration
     itermax::Int = 1000
-    # if the number of enabled points fall under `leftover`,
-    # the iteration terminates
-    leftovers::Int = 1
 
     # threshold of two vectors being parallel (in degrees)
     parallelthrdeg = 1.
@@ -289,36 +282,10 @@ end
     # parameter in sphere fitting
     sphere_par = 0.02
 
-    ## translational fitting parameters
-    # ???
-    diagthr = 0.1
     # conntectivity on the bitmap - not used currently
     transl_conn::Symbol = :eight
-    # maximum number of contours on a plane
-    #TODO: delete this
-    max_group_num::Int = 3
-    # maximum number of iterations of tryíng
-    # to find < max_group_num number for contour patches
-    #TODO: delete this
-    max_contour_it::Int = 5
-    thinning_par = 2.0
-    # minimum % of the normals must be the same
-    min_normal_num = 0.9
-    # extract translational surface even though normals are not ok
-    force_transl::Bool = false
-    # thinning method: :slow/:fast/:deldir
-    thin_method::Symbol = :slow
-    # how close must they be to consider them as the same point?
-    samep = Float64(eps(Float32))
-    # check side parameter
-    checksidepar = 0.04
-    # "disabled by default"
-    max_end_d = 10000.0
-    # skip or jumpback
-    jumpback::Bool = false
 
     # shapes that are fitted to the point cloud
-    #shape_types::Array{Symbol,1} = [:sphere, :plane, :cylinder, :cone, :translational_surface]
     shape_types::Array{Symbol,1} = [:sphere, :plane, :cylinder, :cone]
 
     # track the number of candidates for the probabilities
