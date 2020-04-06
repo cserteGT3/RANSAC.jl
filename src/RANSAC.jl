@@ -108,6 +108,6 @@ include("sampling.jl")
 include("iterations.jl")
 include("logging.jl")
 include("orientedbox_.jl")
-include("json.jl")
+include("json-yaml.jl")
 
 end #module
