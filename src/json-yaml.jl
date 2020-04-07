@@ -71,9 +71,9 @@ Read a config file to a parameter sruct type of `paramtype` (`RANSACParameters` 
 - `paramtype=RANSACParameters`: type of the parameter struct. One must be able to instantiate it with keyword arguments only (eg. `paramtype()` should work).
 """
 function readconfig(fname, paramtype=RANSACParameters)
-    fdict = YAML.load(open(fname))
-    # get element type; defaults to Float64
-    #ftype = get(fdict, "eltype", "Float64") == "Float32" ? Float32 : Float64
+    fio = open(fname, "r")
+    fdict = YAML.load(fio)
+    close(fio)
 
     # field names of paramtype
     field_names = fieldnames(paramtype)
