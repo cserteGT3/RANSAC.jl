@@ -24,6 +24,10 @@ end
     include("json.jl")
 end
 
+@testset "yaml import" begin
+    include("yaml.jl")
+end
+
 #=
 @testset "parameterspace bitmap" begin
     include("parameterspacebitmap.jl")

@@ -9,6 +9,7 @@ using RegionTrees
 #using Images: label_components, component_lengths, component_subscripts
 using Parameters
 import JSON
+import YAML
 
 import RegionTrees: AbstractRefinery, needs_refinement, refine_data
 import Base: show
@@ -93,7 +94,8 @@ export  nosource_debuglogger,
         nosource_Errorlog,
         nosource_metafmt
 
-export  exportJSON
+export  exportJSON,
+        readconfig
 
 include("utilities.jl")
 include("confidenceintervals.jl")

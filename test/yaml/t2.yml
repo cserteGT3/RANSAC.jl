@@ -1,0 +1,14 @@
+ϵ_plane: 0.35
+α_plane: 1.0872
+
+# maximum number of iteration
+itermax: 100
+
+# threshold of two vectors being parallel (in degrees)
+parallelthrdeg: 1.2
+# threshold of points being collinear
+collin_threshold: 0.22
+# bitmap resolution
+β: 1.001
+# parameter in sphere fitting
+sphere_par: 0.025
