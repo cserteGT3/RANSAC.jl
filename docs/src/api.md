@@ -17,6 +17,9 @@ PointCloud(vertices, normals, subsets, isenabled, size, levelweight, levelscore)
 
 With the help of [Parameters.jl](https://github.com/mauro3/Parameters.jl) it's easy to parameterize the algorithm.
 The `RANSACParameters` type collects all the parameters, though its fields are subject to change, the current fields and default values are listed below.
+Note that fields that are float types must use float literals (so `1.0` is ok, but `1` is not).
+
+### Constructing from code
 
 ```julia
 @with_kw struct RANSACParameters{R<:Real} @deftype R
@@ -65,6 +68,97 @@ You can use the following functions to set every ``\alpha`` or ``\epsilon`` para
 ```@docs
 setalphas
 setepsilons
+```
+
+### Parse from YAML file
+
+With the help of [YAML.jl](https://github.com/BioJulia/YAML.jl) one can easily read the parameters from a YAML file.
+As shown below, you can specify which parameters you want to change (the others are going to be the default ones).
+Note, that in the YAML file, you must specify fields with float types as float-literals.
+
+An example file (`config.yml`):
+```yml
+# ϵ_plane is float, so it can't be `1`
+ϵ_plane: 1.0
+α_plane: 0.0872
+
+# maximum number of iteration
+itermax: 100
+
+# threshold of two vectors being parallel (in degrees)
+parallelthrdeg: 1.2
+# threshold of points being collinear
+collin_threshold: 0.22
+# parameter in sphere fitting
+sphere_par: 0.025
+
+# shapes that are fitted to the point cloud
+# must be an array
+shape_types:
+  - plane
+  - cone
+```
+Then you can use the `readconfig` function to read the file:
+```julia
+julia> readconfig("config.yml")
+RANSACParameters{Float64}
+  ϵ_plane: Float64 1.0
+  α_plane: Float64 0.0872
+  ϵ_sphere: Float64 0.3
+  α_sphere: Float64 0.08726646259971647
+  ϵ_cylinder: Float64 0.3
+  α_cylinder: Float64 0.08726646259971647
+  ϵ_cone: Float64 0.3
+  α_cone: Float64 0.08726646259971647
+  minconeopang: Float64 0.03490658503988659
+  ϵ_torus: Float64 0.3
+  α_torus: Float64 0.08726646259971647
+  drawN: Int64 3
+  minsubsetN: Int64 15
+  prob_det: Float64 0.9
+  τ: Int64 900
+  itermax: Int64 100
+  parallelthrdeg: Float64 1.2
+  collin_threshold: Float64 0.22
+  β: Float64 1.0
+  sphere_par: Float64 0.025
+  transl_conn: Symbol eight
+  shape_types: Array{Symbol}((2,))
+  extract_s: Symbol nofminset
+  terminate_s: Symbol nofminset
+```
+You can also specify the type of the parameter struct (can be `Float32` as well).
+```julia
+julia> readconfig("config.yml", RANSACParameters{Float32})
+RANSACParameters{Float32}
+  ϵ_plane: Float32 1.0f0
+  α_plane: Float32 0.0872f0
+  ϵ_sphere: Float32 0.3f0
+  α_sphere: Float32 0.08726646f0
+  ϵ_cylinder: Float32 0.3f0
+  α_cylinder: Float32 0.08726646f0
+  ϵ_cone: Float32 0.3f0
+  α_cone: Float32 0.08726646f0
+  minconeopang: Float32 0.034906585f0
+  ϵ_torus: Float32 0.3f0
+  α_torus: Float32 0.08726646f0
+  drawN: Int64 3
+  minsubsetN: Int64 15
+  prob_det: Float32 0.9f0
+  τ: Int64 900
+  itermax: Int64 100
+  parallelthrdeg: Float32 1.2f0
+  collin_threshold: Float32 0.22f0
+  β: Float32 1.0f0
+  sphere_par: Float32 0.025f0
+  transl_conn: Symbol eight
+  shape_types: Array{Symbol}((2,))
+  extract_s: Symbol nofminset
+  terminate_s: Symbol nofminset
+```
+
+```@docs
+readconfig
 ```
 
 ## Primitives
