@@ -38,8 +38,8 @@ function ransac(pc, params; reset_rand = false)
     reset_rand && Random.seed!(1234)
 
     @unpack drawN, minsubsetN, prob_det, τ = params
-    @unpack itermax, leftovers, shape_types = params
-    @unpack extract_s, terminate_s, jumpback = params
+    @unpack itermax, shape_types = params
+    @unpack extract_s, terminate_s = params
     start_time = time_ns()
 
     # build an octree

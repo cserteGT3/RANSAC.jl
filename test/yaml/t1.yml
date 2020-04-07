@@ -1,0 +1,40 @@
+ϵ_plane: 0.1
+α_plane: 0.01
+
+ϵ_sphere: 0.2
+α_sphere: 0.05
+
+ϵ_cylinder: 0.3
+α_cylinder: 0.0872
+
+ϵ_cone: 1.
+α_cone: 3.14
+# filter those cones, whose opening angle is less than `minconeopang` radians
+minconeopang: 1.
+
+ϵ_torus: 0.3
+α_torus: 0.0872
+
+# number of points to be sampled (length of a minimal subset)
+drawN: 5
+# number of minimal sets sampled in one iteration
+minsubsetN: 2
+# probability of detection
+prob_det: 0.99
+# minimal shape size
+τ: 10000
+# maximum number of iteration
+itermax: 100000
+
+# threshold of two vectors being parallel (in degrees)
+parallelthrdeg: 0.5
+# threshold of points being collinear
+collin_threshold: 0.3
+# bitmap resolution
+β: 1.
+# parameter in sphere fitting
+sphere_par: 0.01
+
+# shapes that are fitted to the point cloud
+shape_types:
+  - plane
