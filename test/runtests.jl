@@ -16,10 +16,6 @@ end
     include("utilitytests.jl")
 end
 
-@testset "cone" begin
-    include("cone.jl")
-end
-
 @testset "json export" begin
     include("json.jl")
 end

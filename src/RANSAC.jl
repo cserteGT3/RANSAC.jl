@@ -58,21 +58,6 @@ export  FittedShape,
         largestshape,
         forcefitshapes
 
-export  sampleplane,
-        sampleplanefromcorner,
-        samplecylinder,
-        samplesphere,
-        samplecone,
-        normalsforplot,
-        noisifyvertices,
-        noisifynormals,
-        makemeanexample,
-        examplepc2,
-        examplepc3,
-        examplepc4,
-        examplepc5,
-        examplepc6
-
 export  project2plane,
         refitsphere,
         refitplane,
@@ -105,7 +90,6 @@ include("shapes/plane.jl")
 include("shapes/sphere.jl")
 include("shapes/cylinder.jl")
 include("shapes/cone.jl")
-include("sampling.jl")
 #include("parameterspacebitmap.jl")
 include("iterations.jl")
 include("logging.jl")
