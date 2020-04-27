@@ -70,7 +70,7 @@ function project2cone(cone, p)
     rot_ax = normalize(cross(cone.axis, to_pointn))
     # normal: from the rotation axis and the axis fo the cone
     # need to be rotated to get the normal of the cone
-    comp_n = normalize(cross(rot_ax, cone.axis))
+    comp_n = normalize(cross(cone.axis, rot_ax))
     # rotation matrix from the rotation axis and opening angle
     rM = rodriguesrad(rot_ax, -cone.opang/2)
     # normal of the cone at the point
