@@ -68,11 +68,6 @@ function largestshape(A)
     return (index = bestind, size = bestscore)
 end
 
-"""
-This is "dummy" vector for type stability.
-"""
-const NaNVec = SVector(0.0,0.0,0.0)
-
 function forcefitshapes!(pc, points, normals, parameters, candidates, level_array, octree_lev)
     @unpack shape_types = parameters
     for s in shape_types
@@ -94,6 +89,12 @@ function forcefitshapes!(pc, points, normals, parameters, candidates, level_arra
     return nothing
 end
 
+"""
+    scorecandidates!(pc, scored_cands, candidates, subsetID, params, octree_levels)
+
+Call `scorecandidate` for all candidates.
+Reset candidate, and octree level lists (`candidates` and `octree_levels` respectively).
+"""
 function scorecandidates!(pc, scored_cands, candidates, subsetID, params, octree_levels)
     for i in eachindex(candidates)
         sc = scorecandidate(pc, candidates[i], subsetID, params)
@@ -102,5 +103,36 @@ function scorecandidates!(pc, scored_cands, candidates, subsetID, params, octree
     end
     empty!(candidates)
     empty!(octree_levels)
+    return nothing
+end
+
+"""
+    invalidate_indexes!(pc, shape)
+
+Invalidate indexes of the to-be-extracted shape's points.
+"""
+function invalidate_indexes!(pc, shape)
+    for a in shape.inpoints
+        pc.isenabled[a] = false
+    end
+    return nothing
+end
+
+"""
+    removeinvalidshapes!(pc, shapelist)
+
+Remove shapes from `shapelist`, which are invalid, say have points that are not enabled.
+"""
+function removeinvalidshapes!(pc, shapelist)
+    toremove = Int[]
+    for i in eachindex(shapelist)
+        for a in shapelist[i].inpoints
+            if ! pc.isenabled[a]
+                push!(toremove, i)
+                break
+            end
+        end
+    end
+    deleteat!(shapelist, toremove)
     return nothing
 end

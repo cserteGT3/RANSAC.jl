@@ -175,19 +175,13 @@ function ransac(pc, params; reset_rand = false)
         scorecandidates!(pc, scoredshapes, candidates, which_, params, shape_octree_level)
         # by now every candidate is scored into scoredshapes
 
-
         # considered so far k*minsubsetN pcs. minimal sets
         countcandidates[3] = k*minsubsetN
         # length of the candidate array
 
         countcandidates[1] = size(scoredshapes, 1)
         if ! (size(scoredshapes, 1) < 1)
-            # search for the largest score == length(inpoints) (for now)
-            best_shape = largestshape(scoredshapes)
             best = findhighestscore(scoredshapes)
-            if best.index != best_shape.index
-                @logmsg IterLow1 "best: $(best.index), best_shape: $(best_shape.index)"
-            end
             bestshape = scoredshapes[best.index]
             # TODO: refine if best.overlap
             scr = E(bestshape.score)
@@ -209,28 +203,14 @@ function ransac(pc, params; reset_rand = false)
                 # refit on the whole pointcloud
                 refit!(bestshape, pc, params)
                 
-                scs = size(bestshape.inpoints,1)
-                @logmsg IterInf "Extracting best: $(strt(bestshape.candidate.shape)) score: $scr, refit length: $scs"
-                # invalidate points
-                for a in bestshape.inpoints
-                    pc.isenabled[a] = false
-                end
+                @logmsg IterInf "Extracting best: $(strt(bestshape.shape)) score: $scr, size: $(size(bestshape.inpoints,1)) ps."
+                # invalidate indexes
+                invalidate_indexes!(pc, bestshape)
                 # extract the shape and delete from scoredshapes
                 push!(extracted, bestshape)
                 deleteat!(scoredshapes, best.index)
-                # mark scoredshapes that have invalid points
-                toremove = Int[]
-                for i in eachindex(scoredshapes)
-                    for a in scoredshapes[i].inpoints
-                        if ! pc.isenabled[a]
-                            push!(toremove, i)
-                            break
-                        end
-                    end
-                end
-
-                # remove scoredshapes that have invalid points
-                deleteat!(scoredshapes, toremove)
+                # remove invalid shapes
+                removeinvalidshapes!(pc, scoredshapes)
             end # if extract shape
         else
             #info printing: not best
