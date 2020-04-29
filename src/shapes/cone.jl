@@ -138,19 +138,18 @@ function compatiblesCone(cone, points, normals, params)
     return c2
 end
 
-function scorecandidate(pc, candidate::ShapeCandidate{T}, subsetID, params) where {T<:FittedCone}
+function scorecandidate(pc, candidate::FittedCone, subsetID, params)
     ps = @view pc.vertices[pc.subsets[subsetID]]
     ns = @view pc.normals[pc.subsets[subsetID]]
     ens = @view pc.isenabled[pc.subsets[subsetID]]
 
-    cp = compatiblesCone(candidate.shape, ps, ns, params)
+    cp = compatiblesCone(candidate, ps, ns, params)
     # verti: összes pont indexe, ami enabled és kompatibilis
     # lenne, ha működne, de inkább a boolean indexelést machináljuk
     inder = cp.&ens
     inpoints = (pc.subsets[subsetID])[inder]
     score = estimatescore(length(pc.subsets[subsetID]), pc.size, length(inpoints))
-    pc.levelscore[candidate.octree_lev] += E(score)
-    return ScoredShape(candidate, score, inpoints)
+    return ShapeCandidate(candidate, score, inpoints)
 end
 
 ## refit
@@ -164,7 +163,8 @@ function refitcone(s, pc, params)
     # TODO: use octree for that
     p = @view pc.vertices[pc.isenabled]
     n = @view pc.normals[pc.isenabled]
-    cp = compatiblesCone(s.candidate.shape, p, n, params)
-    s.inpoints = ((1:pc.size)[pc.isenabled])[cp]
+    cp = compatiblesCone(s.shape, p, n, params)
+    empty!(s.inpoints)
+    append!(s.inpoints, ((1:pc.size)[pc.isenabled])[cp])
     s
 end

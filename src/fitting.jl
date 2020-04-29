@@ -11,38 +11,19 @@ function strt end
 """
     struct ShapeCandidate{S<:FittedShape}
 
-Store a primitive candidate and the octree level, that it is from.
+Store a primitive (`ShapeCandidate`) with its score(`ConfidenceInterval`)
+and the points that belong to the shape as `Vector{Int}`.
 """
 struct ShapeCandidate{S<:FittedShape}
     shape::S
-    octree_lev::Int
-end
-
-Base.show(io::IO, x::ShapeCandidate{S}) where {S} =
-    print(io, "Cand: (", x.shape, ")")
-
-Base.show(io::IO, ::MIME"text/plain", x::ShapeCandidate{S}) where {S} =
-    print(io, "ShapeCandidate{$S}\n", x, ", octree: $(x.octree_lev)")
-
-"""
-    mutable struct ScoredShape{A<:AbstractArray}
-
-Store a primitive (`ShapeCandidate`) with its score(`ConfidenceInterval`)
-and the points that belong to the shape.
-"""
-mutable struct ScoredShape{A<:AbstractArray}
-    candidate::ShapeCandidate
     score::ConfidenceInterval
-    inpoints::A
+    inpoints::Vector{Int}
 end
 
-Base.show(io::IO, x::ScoredShape{A}) where {A} =
-    print(io, "Scored: (", x.candidate, "), $(length(x.inpoints)) ps")
+Base.show(io::IO, x::ShapeCandidate{A}) where {A} =
+    print(io, "Cand: (", x.shape, "), $(length(x.inpoints)) ps")
 
-Base.show(io::IO, ::MIME"text/plain", x::ScoredShape{A}) where {A} =
-    print(io, "ScoredShape{$A}\n", x, ", score: ($(x.score))")
-
-getscore(scoredshape::ScoredShape) = scoredshape.score
+getscore(shapecandidate::ShapeCandidate) = shapecandidate.score
 
 """
     findhighestscore(A)
@@ -92,7 +73,7 @@ This is "dummy" vector for type stability.
 """
 const NaNVec = SVector(0.0,0.0,0.0)
 
-function forcefitshapes!(pc, points, normals, parameters, candidates, octree_lev)
+function forcefitshapes!(pc, points, normals, parameters, candidates, level_array, octree_lev)
     @unpack shape_types = parameters
     for s in shape_types
         if s === :plane
@@ -106,7 +87,20 @@ function forcefitshapes!(pc, points, normals, parameters, candidates, octree_lev
         else
             error("$s is not recognized as valid shape type.")
         end
-        fitted === nothing || push!(candidates, ShapeCandidate(fitted, octree_lev))
+        fitted === nothing && continue
+        push!(candidates, fitted)
+        push!(level_array, octree_lev)
     end
-    return candidates
+    return nothing
+end
+
+function scorecandidates!(pc, scored_cands, candidates, subsetID, params, octree_levels)
+    for i in eachindex(candidates)
+        sc = scorecandidate(pc, candidates[i], subsetID, params)
+        pc.levelscore[octree_levels[i]] += E(sc.score)
+        push!(scored_cands, sc)
+    end
+    empty!(candidates)
+    empty!(octree_levels)
+    return nothing
 end

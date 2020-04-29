@@ -158,18 +158,17 @@ end
 
 # bitmapping
 
-function scorecandidate(pc, candidate::ShapeCandidate{T}, subsetID, params) where {T<:FittedCylinder}
+function scorecandidate(pc, candidate::FittedCylinder, subsetID, params)
     ps = @view pc.vertices[pc.subsets[subsetID]]
     ns = @view pc.normals[pc.subsets[subsetID]]
     ens = @view pc.isenabled[pc.subsets[subsetID]]
 
-    cp, pp = compatiblesCylinder(candidate.shape, ps, ns, params)
+    cp = compatiblesCylinder(candidate, ps, ns, params)
     inder = cp.&ens
     inpoints = (pc.subsets[subsetID])[inder]
     #inpoints = ((pc.subsets[1])[ens])[cp]
     score = estimatescore(length(pc.subsets[subsetID]), pc.size, length(inpoints))
-    pc.levelscore[candidate.octree_lev] += E(score)
-    return ScoredShape(candidate, score, inpoints)
+    return ShapeCandidate(candidate, score, inpoints)
 end
 
 """
@@ -189,7 +188,6 @@ function compatiblesCylinder(cylinder, points, normals, params)
     a = cylinder.axis
 
     comp = falses(length(points))
-    pars = fill(SVector(0.0,0.0), length(points))
 
     for i in 1:length(points)
         curr_norm = points[i] - a*dot( a, points[i]-c ) - c
@@ -205,7 +203,7 @@ function compatiblesCylinder(cylinder, points, normals, params)
         # playing with parameters:
         #TODO: implement it
     end
-    return comp, pars
+    return comp
 end
 
 """
@@ -215,7 +213,8 @@ Refit cylinder. Only s.inpoints is updated.
 """
 function refitcylinder(s, pc, params)
     # TODO: use octree for that
-    cp, _ = compatiblesCylinder(s.candidate.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], params)
-    s.inpoints = ((1:pc.size)[pc.isenabled])[cp]
+    cp = compatiblesCylinder(s.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], params)
+    empty!(s.inpoints)
+    append!(s.inpoints, ((1:pc.size)[pc.isenabled])[cp])
     s
 end

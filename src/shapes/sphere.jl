@@ -104,12 +104,12 @@ end
 
 # bitmapping
 
-function scorecandidate(pc, candidate::ShapeCandidate{T}, subsetID, params) where {T<:FittedSphere}
+function scorecandidate(pc, candidate::FittedSphere, subsetID, params)
     ps = @view pc.vertices[pc.subsets[subsetID]]
     ns = @view pc.normals[pc.subsets[subsetID]]
     ens = @view pc.isenabled[pc.subsets[subsetID]]
 
-    cpl, uo, sp = compatiblesSphere(candidate.shape, ps, ns, params)
+    cpl, _, _ = compatiblesSphere(candidate, ps, ns, params)
     # verti: összes pont indexe, ami enabled és kompatibilis
     # lenne, ha működne, de inkább a boolean indexelést machináljuk
     verti = pc.subsets[subsetID]
@@ -119,8 +119,7 @@ function scorecandidate(pc, candidate::ShapeCandidate{T}, subsetID, params) wher
     #inpoints = count(underEn) >= count(overEn) ? verti[underEn] : verti[overEn]
     inpoints = verti[cpl]
     score = estimatescore(length(pc.subsets[subsetID]), pc.size, length(inpoints))
-    pc.levelscore[candidate.octree_lev] += E(score)
-    return ScoredShape(candidate, score, inpoints)
+    return ShapeCandidate(candidate, score, inpoints)
 end
 
 """
@@ -168,12 +167,13 @@ Refit sphere. Only s.inpoints is updated.
 """
 function refitsphere(s, pc, params)
     # TODO: use octree for that
-    cpl, uo, sp = compatiblesSphere(s.candidate.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], params)
+    cpl, _, _ = compatiblesSphere(s.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], params)
     # verti: összes pont indexe, ami enabled és kompatibilis
     verti = (1:pc.size)[pc.isenabled]
     #underEn = uo.under .& cpl
     #overEn = uo.over .& cpl
     #s.inpoints = count(underEn) >= count(overEn) ? verti[underEn] : verti[overEn]
-    s.inpoints = verti[cpl]
+    empty!(s.inpoints)
+    append!(s.inpoints, verti[cpl])
     s
 end

@@ -56,11 +56,18 @@ function ransac(pc, params; reset_rand = false)
     fill!(pc.levelscore, zero(eltype(pc.levelscore)))
 
     random_points = randperm(pc.size)
-    candidates = ShapeCandidate[]
-    scoredshapes = ScoredShape[]
-    extracted = ScoredShape[]
+    
+    # FittedShape[] is abstract array, which is bad
+    candidates = FittedShape[]
+    scoredshapes = ShapeCandidate[]
+    extracted = ShapeCandidate[]
+    
+    # save octree level of a FittedShape
+    shape_octree_level = Int[]
+    
     # smallest distance in the pointcloud
     #lsd = smallestdistance(pc.vertices)
+    
     # allocate for the random selected points
     sd = Vector{Int}(undef, drawN)
     @logmsg IterInf "Iteration begins."
@@ -156,20 +163,18 @@ function ransac(pc, params; reset_rand = false)
             f_v = @view pc.vertices[sd]
             f_n = @view pc.normals[sd]
 
-            forcefitshapes!(pc, f_v, f_n, params, candidates, curr_level)
+            forcefitshapes!(pc, f_v, f_n, params, candidates, shape_octree_level, curr_level)
         end # for t
 
         # evaluate the compatible points, currently used as score
         # TODO: do something with octree levels and scores
         which_ = 1
-
-        for c in candidates
-            sc = scorecandidate(pc, c, which_, params)
-            push!(scoredshapes, sc)
-            countcandidates[2] += 1
-        end # for c
+        
+        # update number of candidates
+        countcandidates[2] += size(candidates,1)
+        scorecandidates!(pc, scoredshapes, candidates, which_, params, shape_octree_level)
         # by now every candidate is scored into scoredshapes
-        empty!(candidates)
+
 
         # considered so far k*minsubsetN pcs. minimal sets
         countcandidates[3] = k*minsubsetN
@@ -202,13 +207,13 @@ function ransac(pc, params; reset_rand = false)
                 # TODO: proper refit, not only getting the points that fit to that shape
                 # what do you mean by refit?
                 # refit on the whole pointcloud
-                if bestshape.candidate.shape isa FittedPlane
+                if bestshape.shape isa FittedPlane
                     bs = refitplane(bestshape, pc, params)
-                elseif bestshape.candidate.shape isa FittedSphere
+                elseif bestshape.shape isa FittedSphere
                     bs = refitsphere(bestshape, pc, params)
-                elseif bestshape.candidate.shape isa FittedCylinder
+                elseif bestshape.shape isa FittedCylinder
                     bs = refitcylinder(bestshape, pc, params)
-                elseif bestshape.candidate.shape isa FittedCone
+                elseif bestshape.shape isa FittedCone
                     bs = refitcone(bestshape, pc, params)
                 end
 

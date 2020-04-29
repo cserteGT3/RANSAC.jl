@@ -17,15 +17,13 @@ end
 
 toDict(sc::ShapeCandidate) = toDict(sc.shape)
 
-toDict(scs::ScoredShape) = toDict(scs.candidate.shape)
-
 """
-    toDict(a::Vector{T}) where {T<:Union{FittedShape,ShapeCandidate,ScoredShape}}
+    toDict(a::Vector{T}) where {T<:Union{FittedShape,ShapeCandidate}}
 
 Convert a vector of shapes to a `Dict{String,Any}`. The top key is a "primitive", whose value is the array of the shapes.
 See the documentation for examples.
 """
-function toDict(a::Vector{T}) where {T<:Union{FittedShape,ShapeCandidate,ScoredShape}}
+function toDict(a::Vector{T}) where {T<:Union{FittedShape,ShapeCandidate}}
     ad = toDict.(a)
     return Dict("primitives"=>ad)
 end
@@ -48,7 +46,7 @@ end
 """
     printJSON(io::IO, s)
 
-Print a `FittedShape`, `ShapeCandidate`, `ScoredShape` or a vector of them to `io` as a compact JSON string.
+Print a `FittedShape`, `ShapeCandidate` or a vector of them to `io` as a compact JSON string.
 
 # Arguments:
 - `io::IO`: must be specified, use `stdout` for interactive purposes.
