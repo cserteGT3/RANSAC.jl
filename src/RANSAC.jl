@@ -54,15 +54,11 @@ export  FittedShape,
         FittedCone,
         ShapeCandidate,
         findhighestscore,
-        ScoredShape,
         largestshape,
-        forcefitshapes
+        forcefitshapes!
 
 export  project2plane,
-        refitsphere,
-        refitplane,
-        refitcylinder,
-		refitcone
+        refit!
 
 export  ransac,
         rerunleftover!

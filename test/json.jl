@@ -38,7 +38,6 @@
     sc1 = ShapeCandidate(s_plane, ConfidenceInterval(0.5,0.9), [1])
     @test RANSAC.toDict(sc1) == d_plane
 
-    ## ScoredShape
     ss1 = ShapeCandidate(s_cone, ConfidenceInterval(0,1.0), [1,2,3])
     @test RANSAC.toDict(ss1) == d_cone
 

@@ -28,7 +28,7 @@ getscore(shapecandidate::ShapeCandidate) = shapecandidate.score
 """
     findhighestscore(A)
 
-Find the largest expected value in an array of `ScoredShape`s.
+Find the largest expected value in an array of `ShapeCandidate`s.
 
 Indicate if there's an overlap.
 """
@@ -54,7 +54,7 @@ end
 """
     largestshape(A)
 
-Find the largest shape in an array of `ScoredShape`s.
+Find the largest shape in an array of `ShapeCandidate`s.
 """
 function largestshape(A)
     length(A) < 1 && return (index = 0, size = 0)

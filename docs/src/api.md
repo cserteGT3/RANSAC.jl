@@ -277,5 +277,5 @@ As can be seen above, in these cases an array of `"primitives"` is printed.
 Under the hood, the `toDict()` function does the job of converting the primitives to `Dict`s.
 ```@docs
 RANSAC.toDict(s::FittedShape)
-RANSAC.toDict(::Vector{T}) where {T<:Union{FittedShape,ShapeCandidate,ScoredShape}}
+RANSAC.toDict(::Vector{T}) where {T<:Union{FittedShape,ShapeCandidate}}
 ```

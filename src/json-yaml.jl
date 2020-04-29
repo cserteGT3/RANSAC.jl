@@ -31,12 +31,12 @@ end
 """
     printJSON(io::IO, s, indent)
 
-Print a `FittedShape`, `ShapeCandidate`, `ScoredShape` or a vector of them to `io` as a JSON string.
+Print a `FittedShape`, `ShapeCandidate` or a vector of them to `io` as a JSON string.
 With `indent` given, it prints a representation with newlines and indents.
 
 # Arguments:
 - `io::IO`: must be specified, use `stdout` for interactive purposes.
-- `s`: a `FittedShape`, `ShapeCandidate`, `ScoredShape` or a vector of one of them.
+- `s`: a `FittedShape`, `ShapeCandidate` or a vector of one of them.
 - `indent::Int`: indentation level.
 """
 function exportJSON(io::IO, s, indent)
@@ -50,7 +50,7 @@ Print a `FittedShape`, `ShapeCandidate` or a vector of them to `io` as a compact
 
 # Arguments:
 - `io::IO`: must be specified, use `stdout` for interactive purposes.
-- `s`: a `FittedShape`, `ShapeCandidate`, `ScoredShape` or a vector of one of them.
+- `s`: a `FittedShape`, `ShapeCandidate` or a vector of one of them.
 """
 function exportJSON(io::IO, s)
     JSON.print(io, toDict(s))
