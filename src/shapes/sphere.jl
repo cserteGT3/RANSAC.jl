@@ -161,11 +161,11 @@ function compatiblesSphere(sphere, points, normals, params)
 end
 
 """
-    refit(s, pc, ϵ, α)
+    refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedSphere}
 
 Refit sphere. Only s.inpoints is updated.
 """
-function refitsphere(s, pc, params)
+function refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedSphere}
     # TODO: use octree for that
     cpl, _, _ = compatiblesSphere(s.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], params)
     # verti: összes pont indexe, ami enabled és kompatibilis
@@ -175,5 +175,5 @@ function refitsphere(s, pc, params)
     #s.inpoints = count(underEn) >= count(overEn) ? verti[underEn] : verti[overEn]
     empty!(s.inpoints)
     append!(s.inpoints, verti[cpl])
-    s
+    return nothing
 end

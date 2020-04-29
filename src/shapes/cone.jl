@@ -155,16 +155,16 @@ end
 ## refit
 
 """
-    refitcone(s, pc, params)
+    refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedCone}
 
 Refit cone. Only s.inpoints is updated.
 """
-function refitcone(s, pc, params)
+function refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedCone}
     # TODO: use octree for that
     p = @view pc.vertices[pc.isenabled]
     n = @view pc.normals[pc.isenabled]
     cp = compatiblesCone(s.shape, p, n, params)
     empty!(s.inpoints)
     append!(s.inpoints, ((1:pc.size)[pc.isenabled])[cp])
-    s
+    return nothing
 end

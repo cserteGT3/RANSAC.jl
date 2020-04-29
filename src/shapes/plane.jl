@@ -122,14 +122,14 @@ function compatiblesPlane(plane, points, normals, params)
 end
 
 """
-    refit(s, pc, ϵ, α)
+    refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedPlane}
 
 Refit plane. Only s.inpoints is updated.
 """
-function refitplane(s, pc, params)
+function refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedPlane}
     # TODO: use octree for that
     cp, _ = compatiblesPlane(s.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], params)
     empty!(s.inpoints)
     append!(s.inpoints, ((1:pc.size)[pc.isenabled])[cp])
-    s
+    return nothing
 end

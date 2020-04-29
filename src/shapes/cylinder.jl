@@ -207,14 +207,14 @@ function compatiblesCylinder(cylinder, points, normals, params)
 end
 
 """
-    refit(s, pc, ϵ, α)
+    refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedCylinder}
 
 Refit cylinder. Only s.inpoints is updated.
 """
-function refitcylinder(s, pc, params)
+function refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedCylinder}
     # TODO: use octree for that
     cp = compatiblesCylinder(s.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], params)
     empty!(s.inpoints)
     append!(s.inpoints, ((1:pc.size)[pc.isenabled])[cp])
-    s
+    return nothing
 end

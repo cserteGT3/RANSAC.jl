@@ -207,24 +207,16 @@ function ransac(pc, params; reset_rand = false)
                 # TODO: proper refit, not only getting the points that fit to that shape
                 # what do you mean by refit?
                 # refit on the whole pointcloud
-                if bestshape.shape isa FittedPlane
-                    bs = refitplane(bestshape, pc, params)
-                elseif bestshape.shape isa FittedSphere
-                    bs = refitsphere(bestshape, pc, params)
-                elseif bestshape.shape isa FittedCylinder
-                    bs = refitcylinder(bestshape, pc, params)
-                elseif bestshape.shape isa FittedCone
-                    bs = refitcone(bestshape, pc, params)
-                end
-
-                scs = size(bs.inpoints,1)
-                @logmsg IterInf "Extracting best: $(strt(bs.candidate.shape)) score: $scr, refit length: $scs"
+                refit!(bestshape, pc, params)
+                
+                scs = size(bestshape.inpoints,1)
+                @logmsg IterInf "Extracting best: $(strt(bestshape.candidate.shape)) score: $scr, refit length: $scs"
                 # invalidate points
-                for a in bs.inpoints
+                for a in bestshape.inpoints
                     pc.isenabled[a] = false
                 end
                 # extract the shape and delete from scoredshapes
-                push!(extracted, bs)
+                push!(extracted, bestshape)
                 deleteat!(scoredshapes, best.index)
                 # mark scoredshapes that have invalid points
                 toremove = Int[]
