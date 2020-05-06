@@ -9,7 +9,7 @@ and the time it took to run the algorithm (in seconds).
 
 # Arguments
 - `pc::PointCloud`: the point cloud.
-- `params::RANSACParameters`: parameters.
+- `params::NamedTuple`: parameters.
 - `setenabled::Bool`: if `true`: set every point to enabled.
 - `reset_rand::Bool=false`: if `true`, resets the random seed with `Random.seed!(1234)`
 """
@@ -31,15 +31,20 @@ and the time it took to run the algorithm (in seconds).
 
 # Arguments
 - `pc::PointCloud`: the point cloud.
-- `params::RANSACParameters`: parameters.
+- `params::NamedTuple`: parameters.
 - `reset_rand::Bool=false`: if `true`, resets the random seed with `Random.seed!(1234)`
 """
 function ransac(pc, params; reset_rand = false)
     reset_rand && Random.seed!(1234)
 
-    @unpack drawN, minsubsetN, prob_det, τ = params
-    @unpack itermax, shape_types = params
-    @unpack extract_s, terminate_s = params
+    @extract params : iter_params=iteration
+    @extract iter_params : drawN minsubsetN prob_det τ
+    @extract iter_params : itermax shape_types
+    @extract iter_params : extract_s terminate_s
+
+    # @unpack drawN, minsubsetN, prob_det, τ = params
+    # @unpack itermax, shape_types = params
+    # @unpack extract_s, terminate_s = params
     start_time = time_ns()
 
     # build an octree

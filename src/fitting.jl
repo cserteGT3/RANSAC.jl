@@ -9,6 +9,12 @@ Return a string that tells the type (plane, spehere, etc.) of a `FittedShape`.
 function strt end
 
 """
+Return the default parameters as a `NamedTuple` for the given of a `FittedSpahe`.
+Example definition for `MyShape<:FittedShape`: `defaultshapeparameters(::Type{MyShape})=(myshape=(ϵ=1),)`
+"""
+function defaultshapeparameters end
+
+"""
     struct ShapeCandidate{S<:FittedShape}
 
 Store a primitive (`ShapeCandidate`) with its score(`ConfidenceInterval`)
@@ -69,19 +75,9 @@ function largestshape(A)
 end
 
 function forcefitshapes!(pc, points, normals, parameters, candidates, level_array, octree_lev)
-    @unpack shape_types = parameters
+    @extract parameters.iteration : shape_types
     for s in shape_types
-        if s === :plane
-            fitted = fitplane(points, normals, parameters)
-        elseif s === :sphere
-            fitted = fitsphere(points, normals, parameters)
-        elseif s === :cylinder
-            fitted = fitcylinder(points, normals, parameters)
-        elseif s === :cone
-            fitted = fitcone(points, normals, parameters)
-        else
-            error("$s is not recognized as valid shape type.")
-        end
+        fitted = fit(s, points, normals, parameters)
         fitted === nothing && continue
         push!(candidates, fitted)
         push!(level_array, octree_lev)

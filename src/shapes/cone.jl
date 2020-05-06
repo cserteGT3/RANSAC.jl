@@ -26,6 +26,10 @@ Base.show(io::IO, ::MIME"text/plain", x::FittedCone{A, R}) where {A, R} =
 
 strt(x::FittedCone) = "cone"
 
+function defaultshapeparameters(::Type{FittedCone})
+    return (cone=(ϵ=0.3, α=deg2rad(5), minconeopang=deg2rad(2)),)
+end
+
 function setconeOuterity(fc, b)
     FittedCone(fc.apex, fc.axis, fc.opang, b)
 end
@@ -82,7 +86,9 @@ function project2cone(cone, p)
 end
 
 function validatecone(cone, ps, ns, params)
-    @unpack α_cone, ϵ_cone, minconeopang = params
+    #@unpack α_cone, ϵ_cone, minconeopang = params
+    @extract params : params_cone=cone
+    @extract params_cone : α_cone=α ϵ_cone=ϵ minconeopang
     calcs = [project2cone(cone, ps[i]) for i in eachindex(ps)]
     for i in eachindex(calcs)
         if calcs[i][1] > ϵ_cone
@@ -110,12 +116,12 @@ function validatecone(cone, ps, ns, params)
 end
 
 """
-    fitcone(p, n, params)
+    fit(::Type{FittedCone}, p, n, params)
 
 Fit a cone to 3 points. Normals are expected to be normalized.
 Return `nothing` if points do not fit to a cone.
 """
-function fitcone(p, n, params)
+function fit(::Type{FittedCone}, p, n, params)
     fcone = fit3pointcone(p, n)
     fcone === nothing && return nothing
     valid_cone = validatecone(fcone, p, n, params)
@@ -125,7 +131,9 @@ end
 ## scoring
 
 function compatiblesCone(cone, points, normals, params)
-    @unpack α_cone, ϵ_cone = params
+    #@unpack α_cone, ϵ_cone = params
+    @extract params : params_cone=cone
+    @extract params_cone : α_cone=α ϵ_cone=ϵ
     calcs = [project2cone(cone, points[i]) for i in eachindex(points)]
 
     # eps check

@@ -2,7 +2,6 @@
     rodrigues(nv, Θ)
 
 Create a rotation matrix from a normalized axis and an angle (in radian).
-Near-zero elements will be chopped to zero.
 """
 function rodrigues(nv, Θ)
     et = eltype(nv)
@@ -244,60 +243,6 @@ function havesameelement(A, B)
     false
 end
 
-@with_kw struct RANSACParameters{R<:Real} @deftype R
-    ϵ_plane = 0.3
-    α_plane = deg2rad(5)
-
-    ϵ_sphere = 0.3
-    α_sphere = deg2rad(5)
-
-    ϵ_cylinder = 0.3
-    α_cylinder = deg2rad(5)
-
-    ϵ_cone = 0.3
-    α_cone = deg2rad(5)
-    # filter those cones, whose opening angle is less than `minconeopang` radians
-    minconeopang = deg2rad(2)
-
-    ϵ_torus = 0.3
-    α_torus = deg2rad(5)
-
-    # number of points to be sampled (length of a minimal subset)
-    drawN::Int = 3; @assert drawN>2
-    # number of minimal sets sampled in one iteration
-    minsubsetN::Int = 15; @assert minsubsetN>0
-    # probability of detection
-    prob_det = 0.9
-    # minimal shape size
-    τ::Int = 900
-    # maximum number of iteration
-    itermax::Int = 1000
-
-    # threshold of two vectors being parallel (in degrees)
-    parallelthrdeg = 1.
-    # threshold of points being collinear
-    collin_threshold = 0.2
-    # bitmap resolution
-    β = 1.
-    # parameter in sphere fitting
-    sphere_par = 0.02
-
-    # conntectivity on the bitmap - not used currently
-    transl_conn::Symbol = :eight
-
-    # shapes that are fitted to the point cloud
-    shape_types::Array{Symbol,1} = [:sphere, :plane, :cylinder, :cone]
-
-    # track the number of candidates for the probabilities
-    # 1. :lengthC - number of candidates in a given iteration
-    # 2. :allcand - number of candidates that have been ever scored
-    # 3. :nofminset - number of minimal sets that have been drawn so far
-    # which to use for extracting the best candidate
-    extract_s::Symbol = :nofminset
-    # which to use to terminate the algorithm
-    terminate_s::Symbol = :nofminset
-end
-
 """
     allisdifferent(a::AbstractArray{T, 1}) where {T}
 
@@ -316,68 +261,110 @@ function allisdifferent(a::AbstractArray{T, 1}) where {T}
     return true
 end
 
-"""
-    setepsilons(p::RANSACParameters, ϵ)
-
-Set all `ϵ_*` fields to `ϵ`.
-
-Sets `ϵ_plane`, `ϵ_sphere`, `ϵ_cylinder`, `ϵ_cone`.
-"""
-function setepsilons(p::RANSACParameters, ϵ)
-    RANSACParameters(p, ϵ_plane=ϵ, ϵ_sphere=ϵ, ϵ_cylinder=ϵ, ϵ_cone=ϵ)
-end
-
-"""
-    setalphas(p::RANSACParameters, α)
-
-Set all `α_*` fields to `α`.
-
-Sets `α_plane`, `α_sphere`, `α_cylinder`, `α_cone`.
-"""
-function setalphas(p::RANSACParameters, α)
-    RANSACParameters(p, α_plane=α, α_sphere=α, α_cylinder=α, α_cone=α)
-end
-
 function chooseS(A, k)
     symtoint = Dict(:lengthC=>1, :allcand=>2, :nofminset=>3)
     return A[symtoint[k]]
 end
 
-#=
-"""
-    p2table(p)
 
-Format a parameter into latex table.
-"""
-function p2table(p, fname, pre=true)
-    b = IOBuffer()
-    if pre
-        println(b, """
-        \\begin{table}[h]
-        \\centering
-        \\caption{Parameters for the segmentation for \\emph{Example ?}. (description of values: \\ref{tab:ransacpars})}
-        """)
-    end
-    println(b,"""	\\begin{tabular}{ c | c | c | c }
-		Parameter & Description & Parameter & Description \\\\
-		\\hline
-		\\hline
-		\$N\$ & \$?\$ & \$p_t\$ & \$$(p.prob_det)\%\$\\\\
-		\$\\tau\$ & \$$(p.τ)\$ & \$k\$ & \$3\$ \\\\
-		\$d\$ & \$?\$& \$t\$ & \$$(p.minsubsetN)\$ \\\\
-		\$r\$ & \$?\$ & - & - \\\\
-		\$\\epsilon_{plane}\$ & \$$(p.ϵ_plane)\$ & \$\\alpha_{plane}\$  & \$$(p.α_plane)^{\\circ}\$\\\\
-		\$\\epsilon_{sphere}\$ & \$$(p.ϵ_sphere)\$ & \$\\alpha_{sphere}\$  & \$$(p.α_sphere)^{\\circ}\$\\\\
-		\$\\epsilon_{cylinder}\$ & \$$(p.ϵ_cylinder)\$ & \$\\alpha_{cylinder}\$  & \$$(p.α_cylinder)^{\\circ}\$\\\\
-		\$\\epsilon_{cone}\$ & \$$(p.ϵ_cone)\$ & \$\\alpha_{cone}\$  & \$$(p.α_cone)^{\\circ}\$\\\\
-        \$\\epsilon_{translational}\$ & \$$(p.ϵ_transl)\$ & \$\\alpha_{translational}\$  & \$$(p.α_transl)^{\\circ}\$\\\\
-        \\end{tabular}""")
-    if pre
-        println(b, """	\\label{tab:ex1pars}
-                    \\end{table}""")
-    end
-    open(fname, "w") do io
-        println(io, b)
-    end
+function defaultiterationparameters(shape_types)
+    # `drawN`: number of points to be sampled (length of a minimal subset)
+    # `minsubsetN`: number of minimal sets sampled in one iteration
+    # `prob_det`: probability of detection
+    # `τ`: minimal shape size
+    # `itermax`: maximum number of iteration
+    # `shape_types`: shapes that are fitted to the point cloud (array of types)
+    # `extract_s`, `terminate_s`:
+        # track the number of candidates for the probabilities
+        # which to use to terminate the algorithm
+    # 1. :lengthC - number of candidates in a given iteration
+    # 2. :allcand - number of candidates that have been ever scored
+    # 3. :nofminset - number of minimal sets that have been drawn so far
+    ip = (drawN=3, minsubsetN=15, prob_det=0.9, shape_types=shape_types, τ=900, itermax=1000, extract_s=:nofminset, terminate_s=:nofminset)
+    return (iteration=ip,)
 end
-=#
+
+"""
+    defaultcommonparameters()
+
+Construct a `NamedTuple` with the default common parameters.
+
+# Examples
+```julia-repl
+julia> defaultcommonparameters()
+(common = (collin_threshold = 0.2, parallelthrdeg = 1.0),)
+```
+"""
+function defaultcommonparameters()
+    #`collin_threshold`: threshold of points being collinear
+    # `parallelthrdeg`: threshold of two vectors being parallel (in degrees)
+    cp = (collin_threshold = 0.2, parallelthrdeg = 1.)
+    return (common=cp,)
+end
+
+"""
+    defaultparameters(shape_types::Vector{UnionAll})
+
+Construct a `NamedTuple` with the given shape types and the default parameters.
+
+# Examples
+```julia-repl
+julia> defaultparameters([FittedSphere, FittedPlane])
+(iteration = (drawN = 3, minsubsetN = 15, prob_det = 0.9, shape_types = UnionAll[FittedSphere, FittedPlane], τ = 900, itermax = 1000, extract_s = :nofminset, terminate_s = :nofminset), common = (collin_threshold = 0.2, parallelthrdeg = 1.0), sphere = (ϵ = 0.3, α = 0.08726646259971647, sphere_par = 0.02), plane = (ϵ = 0.3, 
+α = 0.08726646259971647))
+```
+"""
+function defaultparameters(shape_types::Vector{UnionAll})
+    def_iter_pars = defaultiterationparameters(shape_types)
+    def_iter_pars = merge(def_iter_pars, defaultcommonparameters())
+    def_pars = defaultshapeparameters.(shape_types)
+    for a in def_pars
+        def_iter_pars = merge(def_iter_pars, a)
+    end
+    def_iter_pars
+end
+
+"""
+    ransacparameters(p::T=DEFAULT_PARAMETERS; kwargs...) where {T<:NamedTuple}
+
+Construct a `NamedTuple` based on a previous one, defaulting to `DEFAULT_PARAMETERS` and override it with the kwargs.
+Check the docs and examples for more.
+
+# Examples
+```julia-repl
+julia> p1 = ransacparameters()
+(iteration = (drawN = 3, minsubsetN = 15, prob_det = 0.9), plane = (ϵ = 0.3, α = 0.08726646259971647), cone = (ϵ = 0.3, α = 0.08726646259971647, minconeopang = 0.03490658503988659), cylinder = (ϵ = 0.3, α = 0.08726646259971647), sphere = (ϵ = 0.3, α = 0.08726646259971647, sphere_par = 0.1))
+
+julia> p2 = ransacparameters(p1; sphere=(ϵ=0.9, α=deg2rad(1),), plane=(ϵ=1.0,))
+(iteration = (drawN = 3, minsubsetN = 15, prob_det = 0.9), plane = (ϵ = 1.0, α = 0.08726646259971647), cone = (ϵ = 0.3, α = 0.08726646259971647, minconeopang = 0.03490658503988659), cylinder = (ϵ = 0.3, α = 0.08726646259971647), sphere = (ϵ = 0.9, α = 0.017453292519943295, sphere_par = 0.1))
+```
+"""
+function ransacparameters(p::T=DEFAULT_PARAMETERS; kwargs...) where {T<:NamedTuple}
+    newp = p
+    for a in keys(kwargs)
+        oldpar = get(p, a, kwargs[a])
+        newpar = merge(oldpar, kwargs[a])
+        newp = merge(newp, (a=>newpar,))
+    end
+    return newp
+end
+
+"""
+    ransacparameters(p::Array{T}; kwargs...) where {T<:UnionAll}
+
+Construct a `NamedTuple` for a given types of shapes using [`defaultparameters()`](@ref) and override it with the kwargs.
+Check the docs and examples for more.
+
+# Examples
+```julia-repl
+julia> p1 = ransacparameters([FittedSphere, FittedCylinder])
+(iteration = (drawN = 3, minsubsetN = 15, prob_det = 0.9, shape_types = UnionAll[FittedSphere, FittedCylinder], τ = 900, itermax = 1000, extract_s = :nofminset, terminate_s = :nofminset), common = (collin_threshold = 0.2, parallelthrdeg = 1.0), sphere = (ϵ = 0.3, α = 0.08726646259971647, sphere_par = 0.02), cylinder = (ϵ = 0.3, α = 0.08726646259971647))
+
+julia> p2 = ransacparameters([FittedSphere, FittedCylinder], sphere=(ϵ=0.01,), cylinder=(α=0.02,))
+(iteration = (drawN = 3, minsubsetN = 15, prob_det = 0.9, shape_types = UnionAll[FittedSphere, FittedCylinder], τ = 900, itermax = 1000, extract_s = :nofminset, terminate_s = :nofminset), common = (collin_threshold = 0.2, parallelthrdeg = 1.0), sphere = (ϵ = 0.01, α = 0.08726646259971647, sphere_par = 0.02), cylinder = (ϵ = 0.3, α = 0.02))
+```
+"""
+function ransacparameters(p::Array{T}; kwargs...) where {T<:UnionAll}
+    dpars = defaultparameters(p)
+    return ransacparameters(dpars; kwargs...)
+end

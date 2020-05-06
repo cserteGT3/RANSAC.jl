@@ -4,6 +4,8 @@ using LinearAlgebra
 using StaticArrays: SVector
 import JSON
 
+include("testhelpers.jl")
+
 @testset "iswithinrectangle test" begin
     include("rectangletest.jl")
 end

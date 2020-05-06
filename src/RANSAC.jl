@@ -7,7 +7,7 @@ using Logging: default_logcolor
 using StaticArrays: SVector, SMatrix
 using RegionTrees
 #using Images: label_components, component_lengths, component_subscripts
-using Parameters
+using ExtractMacro
 import JSON
 import YAML
 
@@ -28,11 +28,8 @@ export  arbitrary_orthogonal,
         unitdisk2square,
         smallestdistance,
         prob,
-        havesameelement,
+        havesameelement
         #p2table,
-        RANSACParameters,
-        setepsilons,
-        setalphas
 
 export  ConfidenceInterval,
         notsoconfident,
@@ -55,7 +52,8 @@ export  FittedShape,
         ShapeCandidate,
         findhighestscore,
         largestshape,
-        forcefitshapes!
+        forcefitshapes!,
+        ransacparameters
 
 export  project2plane,
         refit!
@@ -91,5 +89,8 @@ include("iterations.jl")
 include("logging.jl")
 include("orientedbox_.jl")
 include("json-yaml.jl")
+
+const DEFAULT_PARAMETERS = defaultparameters([FittedPlane, FittedCone, FittedCylinder, FittedSphere])
+const DEFAULT_SHAPE_DICT = Dict("plane"=>FittedPlane, "cone"=>FittedCone, "cylinder"=>FittedCylinder, "sphere"=>FittedSphere)
 
 end #module

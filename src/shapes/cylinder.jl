@@ -23,12 +23,19 @@ Base.show(io::IO, ::MIME"text/plain", x::FittedCylinder{A, R}) where {A, R} =
 
 strt(x::FittedCylinder) = "cylinder"
 
+function defaultshapeparameters(::Type{FittedCylinder})
+    return (cylinder=(ϵ=0.3, α=deg2rad(5)),)
+end
+
 function setcylinderOuterity(fc, b)
     FittedCylinder(fc.axis, fc.center, fc.radius, b)
 end
 
 function fit2pointcylinder(p, n, params)
-    @unpack α_cylinder, ϵ_cylinder, parallelthrdeg = params
+    #@unpack α_cylinder, ϵ_cylinder, parallelthrdeg = params
+    @extract params : params_sphere=sphere
+    @extract params_sphere : ϵ_cylinder=ϵ α_cylinder=α
+    @extract params.common : parallelthrdeg
     # the normals are too parallel so cannot fit cylinder to it
     if abs(dot(n[1], n[2])) > cosd(parallelthrdeg)
         return nothing
@@ -118,14 +125,17 @@ function fit2pointcylinder(p, n, params)
 end
 
 """
-    fitcylinder(p, n, params)
+    fit(::Type{FittedCylinder}, p, n, params)
 
 Fit a cylinder to 2 points. Additional points and their normals are used to validate the fit.
 Normals are expected to be normalized.
 Return `nothing` if points do not fit to a cylinder.
 """
-function fitcylinder(p, n, params)
-    @unpack ϵ_cylinder, α_cylinder, parallelthrdeg = params
+function fit(::Type{FittedCylinder}, p, n, params)
+    #@unpack ϵ_cylinder, α_cylinder, parallelthrdeg = params
+    @extract params : params_sphere=sphere
+    @extract params_sphere : ϵ_cylinder=ϵ α_cylinder=α
+    @extract params.common : parallelthrdeg
     pl = length(p)
     @assert pl == length(n) "Size must be the same."
     @assert pl > 2 "Size must be at least 3."
@@ -180,7 +190,9 @@ Give back the projected points too for parameter space magic.
 Compatibility is measured with an `eps` distance to the cylinder and an `alpharad` angle to it's normal.
 """
 function compatiblesCylinder(cylinder, points, normals, params)
-    @unpack ϵ_cylinder, α_cylinder = params
+    #@unpack ϵ_cylinder, α_cylinder = params
+    @extract params : params_sphere=sphere
+    @extract params_sphere : ϵ_cylinder=ϵ α_cylinder=α
     @assert length(points) == length(normals) "Size must be the same."
 
     c = cylinder.center
