@@ -63,7 +63,7 @@ end
     p1 = ransacparameters()
     p1 = ransacparameters(p1,; sphere=(ϵ=0.2, α=0.05, sphere_par=0.01,), plane=(ϵ=0.1, α=0.01,))
     p1 = ransacparameters(p1,; cylinder=(α=0.0872,), cone=(ϵ=1, α=3.14, minconeopang=1.,))
-    p1 = ransacparameters(p1,; iteration=(drawN=9, minsubsetN=2, prob_det=0.999,τ=10000, itermax=100000, shape_types=[FittedPlane,FittedSphere],))
+    p1 = ransacparameters(p1,; iteration=(drawN=9, minsubsetN=2, prob_det=0.999,τ=10000, itermax=100000, shape_types=[FittedPlane, FittedSphere],))
     p1 = ransacparameters(p1,; common=(parallelthrdeg=0.5, collin_threshold=0.3,))
 
     @test isntequal(conf1, p1)

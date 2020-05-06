@@ -24,7 +24,7 @@ return true
 end
 
 """
-isntequal(a, b)
+    isntequal(a, b)
 
 Define for any type, using default `isequal`.
 It is used when a value is not `NamedTuple` in recursive calls.
