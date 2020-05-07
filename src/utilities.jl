@@ -75,7 +75,8 @@ end
 """
     isparallel(v1, v2, alpharad)
 
-Check if `v1` and `v2` are parallel in an `alpharad` angle and point towards the same direction.
+Check if `v1` and `v2` are parallel in an `alpharad` angle
+    and point towards the same direction.
 
 The vectors considered to be normalized.
 """
@@ -270,16 +271,21 @@ end
     defaultiterationparameters(shape_types)
 
 Construct a named tuple with the default iteration parameters.
-`shape_types` is an array of `FittedShape`s, that controls which primitives you want to fit to the point cloud.
+`shape_types` is an array of `FittedShape`s,
+that controls which primitives you want to fit to the point cloud.
 
 # Examples
 
 ```julia-repl
 julia> RANSAC.defaultiterationparameters([FittedPlane])
-(iteration = (drawN = 3, minsubsetN = 15, prob_det = 0.9, shape_types = UnionAll[FittedPlane], τ = 900, itermax = 1000, extract_s = :nofminset, terminate_s = :nofminset),)
+(iteration = (drawN = 3, minsubsetN = 15, prob_det = 0.9,
+shape_types = UnionAll[FittedPlane], τ = 900, itermax = 1000,
+extract_s = :nofminset, terminate_s = :nofminset),)
 
 julia> RANSAC.defaultiterationparameters([FittedPlane, FittedSphere, FittedCone])
-(iteration = (drawN = 3, minsubsetN = 15, prob_det = 0.9, shape_types = UnionAll[FittedPlane, FittedSphere, FittedCone], τ = 900, itermax = 1000, extract_s = :nofminset, terminate_s = :nofminset),)
+(iteration = (drawN = 3, minsubsetN = 15, prob_det = 0.9,
+shape_types = UnionAll[FittedPlane, FittedSphere, FittedCone], τ = 900, itermax = 1000,
+extract_s = :nofminset, terminate_s = :nofminset),)
 ```
 
 # Implementation
@@ -321,8 +327,9 @@ julia> defaultcommonparameters()
 
 # Implementation
 This section describes the role of the common parameters.
-- `collin_threshold`: 3 points can be nearly collinear, in some cases they must be filtered.
-    See the code of: ` fit(::Type{FittedPlane}, p, n, params)`.
+- `collin_threshold`: 3 points can be nearly collinear,
+    in some cases they must be filtered. See the code of:
+    ` fit(::Type{FittedPlane}, p, n, params)`.
 - `parallelthrdeg`: threshold for two vectos being parallel, in degrees.
     If `abs(dot(a,b))>cosd(parallelthrdeg)`, `a` and `b` are considered to be parallel.
 """
@@ -341,8 +348,12 @@ Construct a `NamedTuple` with the given shape types and the default parameters.
 # Examples
 ```julia-repl
 julia> defaultparameters([FittedSphere, FittedPlane])
-(iteration = (drawN = 3, minsubsetN = 15, prob_det = 0.9, shape_types = UnionAll[FittedSphere, FittedPlane], τ = 900, itermax = 1000, extract_s = :nofminset, terminate_s = :nofminset), common = (collin_threshold = 0.2, parallelthrdeg = 1.0), sphere = (ϵ = 0.3, α = 0.08726646259971647, sphere_par = 0.02), plane = (ϵ = 0.3, 
-α = 0.08726646259971647))
+(iteration = (drawN = 3, minsubsetN = 15, prob_det = 0.9,
+shape_types = UnionAll[FittedSphere, FittedPlane], τ = 900, itermax = 1000,
+extract_s = :nofminset, terminate_s = :nofminset),
+common = (collin_threshold = 0.2, parallelthrdeg = 1.0),
+sphere = (ϵ = 0.3, α = 0.08726646259971647, sphere_par = 0.02),
+plane = (ϵ = 0.3, α = 0.08726646259971647))
 ```
 """
 function defaultparameters(shape_types::Vector{UnionAll})
@@ -358,16 +369,25 @@ end
 """
     ransacparameters(p::T=DEFAULT_PARAMETERS; kwargs...) where {T<:NamedTuple}
 
-Construct a `NamedTuple` based on a previous one, defaulting to `DEFAULT_PARAMETERS` and override it with the kwargs.
+Construct a `NamedTuple` based on a previous one,
+defaulting to `DEFAULT_PARAMETERS` and override it with the kwargs.
 Check the docs and examples for more.
 
 # Examples
 ```julia-repl
 julia> p1 = ransacparameters()
-(iteration = (drawN = 3, minsubsetN = 15, prob_det = 0.9), plane = (ϵ = 0.3, α = 0.08726646259971647), cone = (ϵ = 0.3, α = 0.08726646259971647, minconeopang = 0.03490658503988659), cylinder = (ϵ = 0.3, α = 0.08726646259971647), sphere = (ϵ = 0.3, α = 0.08726646259971647, sphere_par = 0.1))
+(iteration = (drawN = 3, minsubsetN = 15, prob_det = 0.9),
+plane = (ϵ = 0.3, α = 0.08726646259971647),
+cone = (ϵ = 0.3, α = 0.08726646259971647, minconeopang = 0.03490658503988659),
+cylinder = (ϵ = 0.3, α = 0.08726646259971647),
+sphere = (ϵ = 0.3, α = 0.08726646259971647, sphere_par = 0.1))
 
 julia> p2 = ransacparameters(p1; sphere=(ϵ=0.9, α=deg2rad(1),), plane=(ϵ=1.0,))
-(iteration = (drawN = 3, minsubsetN = 15, prob_det = 0.9), plane = (ϵ = 1.0, α = 0.08726646259971647), cone = (ϵ = 0.3, α = 0.08726646259971647, minconeopang = 0.03490658503988659), cylinder = (ϵ = 0.3, α = 0.08726646259971647), sphere = (ϵ = 0.9, α = 0.017453292519943295, sphere_par = 0.1))
+(iteration = (drawN = 3, minsubsetN = 15, prob_det = 0.9),
+plane = (ϵ = 1.0, α = 0.08726646259971647),
+cone = (ϵ = 0.3, α = 0.08726646259971647, minconeopang = 0.03490658503988659),
+cylinder = (ϵ = 0.3, α = 0.08726646259971647),
+sphere = (ϵ = 0.9, α = 0.017453292519943295, sphere_par = 0.1))
 ```
 """
 function ransacparameters(p::T=DEFAULT_PARAMETERS; kwargs...) where {T<:NamedTuple}
@@ -383,16 +403,27 @@ end
 """
     ransacparameters(p::Array{T}; kwargs...) where {T<:UnionAll}
 
-Construct a `NamedTuple` for a given types of shapes using [`defaultparameters()`](@ref) and override it with the kwargs.
+Construct a `NamedTuple` for a given types of shapes 
+using [`defaultparameters()`](@ref) and override it with the kwargs.
 Check the docs and examples for more.
 
 # Examples
 ```julia-repl
 julia> p1 = ransacparameters([FittedSphere, FittedCylinder])
-(iteration = (drawN = 3, minsubsetN = 15, prob_det = 0.9, shape_types = UnionAll[FittedSphere, FittedCylinder], τ = 900, itermax = 1000, extract_s = :nofminset, terminate_s = :nofminset), common = (collin_threshold = 0.2, parallelthrdeg = 1.0), sphere = (ϵ = 0.3, α = 0.08726646259971647, sphere_par = 0.02), cylinder = (ϵ = 0.3, α = 0.08726646259971647))
+(iteration = (drawN = 3, minsubsetN = 15, prob_det = 0.9,
+shape_types = UnionAll[FittedSphere, FittedCylinder], τ = 900, itermax = 1000,
+extract_s = :nofminset, terminate_s = :nofminset),
+common = (collin_threshold = 0.2, parallelthrdeg = 1.0),
+sphere = (ϵ = 0.3, α = 0.08726646259971647, sphere_par = 0.02),
+cylinder = (ϵ = 0.3, α = 0.08726646259971647))
 
 julia> p2 = ransacparameters([FittedSphere, FittedCylinder], sphere=(ϵ=0.01,), cylinder=(α=0.02,))
-(iteration = (drawN = 3, minsubsetN = 15, prob_det = 0.9, shape_types = UnionAll[FittedSphere, FittedCylinder], τ = 900, itermax = 1000, extract_s = :nofminset, terminate_s = :nofminset), common = (collin_threshold = 0.2, parallelthrdeg = 1.0), sphere = (ϵ = 0.01, α = 0.08726646259971647, sphere_par = 0.02), cylinder = (ϵ = 0.3, α = 0.02))
+(iteration = (drawN = 3, minsubsetN = 15, prob_det = 0.9,
+shape_types = UnionAll[FittedSphere, FittedCylinder], τ = 900, itermax = 1000,
+extract_s = :nofminset, terminate_s = :nofminset),
+common = (collin_threshold = 0.2, parallelthrdeg = 1.0),
+sphere = (ϵ = 0.01, α = 0.08726646259971647, sphere_par = 0.02),
+cylinder = (ϵ = 0.3, α = 0.02))
 ```
 """
 function ransacparameters(p::Array{T}; kwargs...) where {T<:UnionAll}

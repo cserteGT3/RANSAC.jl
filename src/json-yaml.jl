@@ -20,7 +20,8 @@ toDict(sc::ShapeCandidate) = toDict(sc.shape)
 """
     toDict(a::Vector{T}) where {T<:Union{FittedShape,ShapeCandidate}}
 
-Convert a vector of shapes to a `Dict{String,Any}`. The top key is a "primitive", whose value is the array of the shapes.
+Convert a vector of shapes to a `Dict{String,Any}`.
+The top key is a "primitive", whose value is the array of the shapes.
 See the documentation for examples.
 """
 function toDict(a::Vector{T}) where {T<:Union{FittedShape,ShapeCandidate}}
@@ -46,7 +47,8 @@ end
 """
     printJSON(io::IO, s)
 
-Print a `FittedShape`, `ShapeCandidate` or a vector of them to `io` as a compact JSON string.
+Print a `FittedShape`, `ShapeCandidate`
+or a vector of them to `io` as a compact JSON string.
 
 # Arguments:
 - `io::IO`: must be specified, use `stdout` for interactive purposes.
@@ -63,14 +65,18 @@ end
     readconfig(fname; toextend=DEFAULT_PARAMETERS, shapedict=DEFAULT_SHAPE_DICT)
 
 Read a config file to a `NamedTuple`.
-A "base" ntuple is expected, that gets overwritten/extended with the values in the config file.
-A `Dict{String,FittedShape}` dictionary is also expected, that translates the string primitive types to julia types.
+A "base" ntuple is expected, that gets overwritten/extended
+with the values in the config file.
+A `Dict{String,FittedShape}` dictionary is also expected,
+that translates the string primitive types to julia types.
 
 # Arguments
 
 - `fname`: name of the config file.
-- `toextend=DEFAULT_PARAMETERS`: a named tuple, that will be overwritten/extended with the values from the config file.
-- `shapedict=DEFAULT_SHAPE_DICT`: a dictionary that translates the string primitive names to julia types.
+- `toextend=DEFAULT_PARAMETERS`: a named tuple,
+    that will be overwritten/extended with the values from the config file.
+- `shapedict=DEFAULT_SHAPE_DICT`: a dictionary that
+    translates the string primitive names to julia types.
 """
 function readconfig(fname; toextend=DEFAULT_PARAMETERS, shapedict=DEFAULT_SHAPE_DICT)
     fio = open(fname, "r")

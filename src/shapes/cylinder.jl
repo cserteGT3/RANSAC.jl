@@ -127,7 +127,8 @@ end
 """
     fit(::Type{FittedCylinder}, p, n, params)
 
-Fit a cylinder to 2 points. Additional points and their normals are used to validate the fit.
+Fit a cylinder to 2 points.
+Additional points and their normals are used to validate the fit.
 Normals are expected to be normalized.
 Return `nothing` if points do not fit to a cylinder.
 """
@@ -187,7 +188,8 @@ end
 Create a bool-indexer array for those points that are compatible to the cylinder.
 Give back the projected points too for parameter space magic.
 
-Compatibility is measured with an `eps` distance to the cylinder and an `alpharad` angle to it's normal.
+Compatibility is measured with an `eps` distance to the cylinder
+and an `alpharad` angle to it's normal.
 """
 function compatiblesCylinder(cylinder, points, normals, params)
     #@unpack ϵ_cylinder, α_cylinder = params

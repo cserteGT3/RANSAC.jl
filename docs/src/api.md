@@ -29,13 +29,16 @@ ransacparameters
 As the docstring shows, you can construct a new one based on an old one, and give keyword arguments that will overwrite the old values.
 Note, that the key-values that are in the keyword arguments will be overwritten, not the named tuple itself (so the values not listed in the keyword argument will not change).
 
-As you can see in the above examples, the parameter must have two fields: `iteration`, `common` and the primitive types that you want to fit (`sphere`, `plane`, etc.).
+As you can see in the above examples, the parameter must have two fields:`iteration`, `common` and the primitive types that you want to fit (`sphere`, `plane`, etc.).
 Note, that `p.iteration.shape_types` field controls which primitives are fitted.
 Another important thing regarding the `ransacparameter()` function, that the keyword named tuple must have a trailing comma, so this is good:
+
 ```julia
 p2 = ransacparameters([FittedSphere, FittedCylinder], sphere=(ϵ=0.01,))
 ```
+
 , but the following is NOT:
+
 ```julia
 p2 = ransacparameters([FittedSphere, FittedCylinder], sphere=(ϵ=0.01))
 ```
@@ -112,7 +115,13 @@ Then you can use the `readconfig` function to read the file:
 
 ```julia
 julia> readconfig("config.yml")
-(iteration = (drawN = 9, minsubsetN = 2, prob_det = 0.999, shape_types = UnionAll[FittedPlane, FittedSphere, FittedCone], τ = 10000, itermax = 100000, extract_s = :nofminset, terminate_s = :nofminset), common = (collin_threshold = 0.3, parallelthrdeg = 0.5), plane = (ϵ = 0.1, α = 0.01), cone = (ϵ = 1.0, α = 3.14, minconeopang = 1.0), cylinder = (ϵ = 0.3, α = 0.08726646259971647), sphere = (ϵ = 0.2, α = 0.05, sphere_par = 0.01))
+(iteration = (drawN = 9, minsubsetN = 2, prob_det = 0.999,
+shape_types = UnionAll[FittedPlane, FittedSphere, FittedCone], τ = 10000,
+itermax = 100000, extract_s = :nofminset, terminate_s = :nofminset),
+common = (collin_threshold = 0.3, parallelthrdeg = 0.5),
+plane = (ϵ = 0.1, α = 0.01), cone = (ϵ = 1.0, α = 3.14, minconeopang = 1.0),
+cylinder = (ϵ = 0.3, α = 0.08726646259971647),
+sphere = (ϵ = 0.2, α = 0.05, sphere_par = 0.01))
 ```
 
 ```@docs
@@ -134,6 +143,7 @@ FittedCone
 ## Iteration
 
 The `ransac()` function does the iteration.
+
 ```@docs
 ransac
 ```
@@ -141,12 +151,15 @@ ransac
 ## Exporting the results
 
 With the help of [JSON.jl](https://github.com/JuliaIO/JSON.jl), the resulted shapes can be easily saved to JSON files.
-For this purpose, the `exportJSON()` function can be used. Note that `io` must be specified, the "default" fallback to `stdout` is not implemented.
+For this purpose, the `exportJSON()` function can be used.
+Note that `io` must be specified, the "default" fallback to `stdout` is not implemented.
+
 ```@docs
 exportJSON
 ```
 
 A few examples:
+
 ```julia
 julia> using RANSAC, StaticArrays
 

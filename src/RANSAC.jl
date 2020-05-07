@@ -71,7 +71,7 @@ export  nosource_debuglogger,
         nosource_Compute1log,
         nosource_Compute2log,
         nosource_Errorlog,
-        nosource_metafmt
+        ns_mfmt
 
 export  exportJSON,
         readconfig
@@ -91,12 +91,14 @@ include("orientedbox_.jl")
 include("json-yaml.jl")
 
 """
-`const DEFAULT_PARAMETERS = defaultparameters([FittedPlane, FittedCone, FittedCylinder, FittedSphere])`
+`const DEFAULT_PARAMETERS = 
+    defaultparameters([FittedPlane, FittedCone, FittedCylinder, FittedSphere])`
 """
 const DEFAULT_PARAMETERS = defaultparameters([FittedPlane, FittedCone, FittedCylinder, FittedSphere])
 
 """
-`const DEFAULT_SHAPE_DICT = Dict("plane"=>FittedPlane, "cone"=>FittedCone, "cylinder"=>FittedCylinder, "sphere"=>FittedSphere)`
+`const DEFAULT_SHAPE_DICT = Dict("plane"=>FittedPlane,
+    "cone"=>FittedCone, "cylinder"=>FittedCylinder, "sphere"=>FittedSphere)`
 """
 const DEFAULT_SHAPE_DICT = Dict("plane"=>FittedPlane, "cone"=>FittedCone, "cylinder"=>FittedCylinder, "sphere"=>FittedSphere)
 

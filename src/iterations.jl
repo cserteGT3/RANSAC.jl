@@ -51,7 +51,7 @@ function ransac(pc, params; reset_rand = false)
     subsetN = length(pc.subsets)
     @logmsg IterLow1 "Building octree."
     minV, maxV = findAABB(pc.vertices)
-    octree = Cell(SVector{3}(minV), SVector{3}(maxV), OctreeNode(pc, collect(1:pc.size), 1))
+    octree=Cell(SVector{3}(minV), SVector{3}(maxV), OctreeNode(pc, collect(1:pc.size), 1))
     r = OctreeRefinery(8)
     adaptivesampling!(octree, r)
     @logmsg IterLow1 "Octree finished."

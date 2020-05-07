@@ -139,9 +139,9 @@ function compatiblesCone(cone, points, normals, params)
     # eps check
     c1 = [abs(calcs[i][1]) < ϵ_cone for i in eachindex(calcs)]
     if cone.outwards
-        c2 = [isparallel(calcs[i][2], normals[i], α_cone) && c1[i] for i in eachindex(calcs)]
+        c2=[isparallel(calcs[i][2], normals[i], α_cone) && c1[i] for i in eachindex(calcs)]
     else
-        c2 = [isparallel(-calcs[i][2], normals[i], α_cone) && c1[i] for i in eachindex(calcs)]
+        c2=[isparallel(-calcs[i][2], normals[i], α_cone) && c1[i] for i in eachindex(calcs)]
     end
     return c2
 end

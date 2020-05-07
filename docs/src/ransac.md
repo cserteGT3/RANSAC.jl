@@ -2,7 +2,6 @@
 
 This is a longer description of the RANSAC paradigm, shamelessly copied from [my master's thesis](https://gitlab.com/cserteGT3/masterthesis) (still based on `Schnabel2007`).
 
-
 The [Short description](@ref) section introduces the concept and the steps of the algorithm (which are also shown in the following picture).
 Hereby we describe the steps in more details.
 ![](img/ransac_alg.png)
@@ -88,6 +87,7 @@ Then for every level, the score (``\sigma_l``) of previously scored candidates t
 ```math
 \hat{P}_l = x\frac{\sigma_l}{w P_l} + (1-x)\frac{1}{d},
 ```
+
 where ``w = \sum_{i=1}^{d} \frac{\sigma_i}{P_i}``.
 During the iteration, the distribution is continuously changing as more and more shapes are extracted from the point cloud.
 Setting ``x=0.9`` ensures that ``10\%`` of the samples are always uniformly distributed among the levels.
@@ -100,6 +100,7 @@ This is because sampling is computationally cheap compared to the rest of the it
 The ``\sigma`` score measures the quality of a given shape candidate.
 The score is equal to the number of compatible point-normal pairs.
 A point is compatible if it satisfies all the following requirements:
+
 * It must be in the ``\epsilon`` radius band of the surface of the candidate.
 * The normal must not deviate from the surface normal at the point more than an ``\alpha`` angle.
 * The point must be part of the largest connected component in the parameter space bitmap of the shape.
@@ -149,6 +150,7 @@ The termination condition is similar, ``P(\tau,s)`` is observed, where ``\tau`` 
 
 Implementation of these conditions seems straightforward, but based on the paper it is not clear what ``s`` exactly denotes.
 It can mean two things:
+
 * The number of candidates that are in set ``C`` at that given iteration.
 * The number of minimal sets that have been drawn. At the ``i``-th iteration, this equals to ``i \cdot t``.
 

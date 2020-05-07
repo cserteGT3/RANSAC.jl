@@ -114,7 +114,8 @@ end
 Create a bool-indexer array for those points that are compatible to the plane.
 Give back the projected points too for parameter space magic.
 
-Compatibility is measured with an `eps` distance to the plane and an `alpharad` angle to it's normal.
+Compatibility is measured with an `eps` distance to the plane
+and an `alpharad` angle to it's normal.
 """
 function compatiblesPlane(plane, points, normals, params)
     #@unpack ϵ_plane, α_plane = params
