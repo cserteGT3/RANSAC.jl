@@ -7,7 +7,7 @@ using Logging: default_logcolor
 using StaticArrays: SVector, SMatrix
 using RegionTrees
 #using Images: label_components, component_lengths, component_subscripts
-using Parameters
+using ExtractMacro
 import JSON
 import YAML
 
@@ -28,11 +28,7 @@ export  arbitrary_orthogonal,
         unitdisk2square,
         smallestdistance,
         prob,
-        havesameelement,
-        #p2table,
-        RANSACParameters,
-        setepsilons,
-        setalphas
+        havesameelement
 
 export  ConfidenceInterval,
         notsoconfident,
@@ -40,12 +36,8 @@ export  ConfidenceInterval,
         E
 
 export  OctreeNode,
-        iswithinrectangle,
         OctreeRefinery,
-        PointCloud,
-        getcellandparents,
-        octreedepth,
-        updatelevelweight
+        PointCloud
 
 export  FittedShape,
         FittedPlane,
@@ -53,16 +45,10 @@ export  FittedShape,
         FittedCylinder,
         FittedCone,
         ShapeCandidate,
-        findhighestscore,
-        ScoredShape,
-        largestshape,
-        forcefitshapes
+        ransacparameters
 
 export  project2plane,
-        refitsphere,
-        refitplane,
-        refitcylinder,
-		refitcone
+        refit!
 
 export  ransac,
         rerunleftover!
@@ -76,8 +62,7 @@ export  nosource_debuglogger,
         nosource_IterLow2log,
         nosource_Compute1log,
         nosource_Compute2log,
-        nosource_Errorlog,
-        nosource_metafmt
+        nosource_Errorlog
 
 export  exportJSON,
         readconfig
@@ -95,5 +80,17 @@ include("iterations.jl")
 include("logging.jl")
 include("orientedbox_.jl")
 include("json-yaml.jl")
+
+"""
+`const DEFAULT_PARAMETERS = 
+    defaultparameters([FittedPlane, FittedCone, FittedCylinder, FittedSphere])`
+"""
+const DEFAULT_PARAMETERS = defaultparameters([FittedPlane, FittedCone, FittedCylinder, FittedSphere])
+
+"""
+`const DEFAULT_SHAPE_DICT = Dict("plane"=>FittedPlane,
+    "cone"=>FittedCone, "cylinder"=>FittedCylinder, "sphere"=>FittedSphere)`
+"""
+const DEFAULT_SHAPE_DICT = Dict("plane"=>FittedPlane, "cone"=>FittedCone, "cylinder"=>FittedCylinder, "sphere"=>FittedSphere)
 
 end #module

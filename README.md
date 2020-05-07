@@ -23,8 +23,26 @@ Paper can be found [here](https://cg.cs.uni-bonn.de/en/publications/paper-detail
 
 ## Efficient RANSAC
 
-The efficient RANSAC algorithm is used to detect primitive shapes in point clouds.
-Primitive shapes can be: plane, sphere, cylinder, cone and torus, though torus is not implemented yet.
+The efficient RANSAC algorithm is used to segment and fit primitive shapes (sphere, plane, cylinder, torus, cone) to point clouds.
+Up to now mostly C++ and Python implementations have been published, this is the first one in Julia (as far as I know).
+
+### Main features
+
+* easy-to-use primitive recognition
+* extensible: it's easy to add new primitive shapes
+* fast (to be honest, it's not yet comparable with the reference and CGAL implementations)
+
+### Differences from the reference implementation
+
+* no bitmap
+* separate parameters for each shape
+* no tori
+
+Install the package by:
+
+```julia
+] add https://github.com/cserteGT3/RANSAC.jl
+```
 
 The input of the algorithm is a point cloud with associated surface normals.
 The output is a set of primitive shapes with corresponding sets of points, and the rest of the points that do not belong to any primitives.

@@ -26,6 +26,10 @@ Base.show(io::IO, ::MIME"text/plain", x::FittedCone{A, R}) where {A, R} =
 
 strt(x::FittedCone) = "cone"
 
+function defaultshapeparameters(::Type{FittedCone})
+    return (cone=(ϵ=0.3, α=deg2rad(5), minconeopang=deg2rad(2)),)
+end
+
 function setconeOuterity(fc, b)
     FittedCone(fc.apex, fc.axis, fc.opang, b)
 end
@@ -82,7 +86,9 @@ function project2cone(cone, p)
 end
 
 function validatecone(cone, ps, ns, params)
-    @unpack α_cone, ϵ_cone, minconeopang = params
+    #@unpack α_cone, ϵ_cone, minconeopang = params
+    @extract params : params_cone=cone
+    @extract params_cone : α_cone=α ϵ_cone=ϵ minconeopang
     calcs = [project2cone(cone, ps[i]) for i in eachindex(ps)]
     for i in eachindex(calcs)
         if calcs[i][1] > ϵ_cone
@@ -110,12 +116,12 @@ function validatecone(cone, ps, ns, params)
 end
 
 """
-    fitcone(p, n, params)
+    fit(::Type{FittedCone}, p, n, params)
 
 Fit a cone to 3 points. Normals are expected to be normalized.
 Return `nothing` if points do not fit to a cone.
 """
-function fitcone(p, n, params)
+function fit(::Type{FittedCone}, p, n, params)
     fcone = fit3pointcone(p, n)
     fcone === nothing && return nothing
     valid_cone = validatecone(fcone, p, n, params)
@@ -125,46 +131,48 @@ end
 ## scoring
 
 function compatiblesCone(cone, points, normals, params)
-    @unpack α_cone, ϵ_cone = params
+    #@unpack α_cone, ϵ_cone = params
+    @extract params : params_cone=cone
+    @extract params_cone : α_cone=α ϵ_cone=ϵ
     calcs = [project2cone(cone, points[i]) for i in eachindex(points)]
 
     # eps check
     c1 = [abs(calcs[i][1]) < ϵ_cone for i in eachindex(calcs)]
     if cone.outwards
-        c2 = [isparallel(calcs[i][2], normals[i], α_cone) && c1[i] for i in eachindex(calcs)]
+        c2=[isparallel(calcs[i][2], normals[i], α_cone) && c1[i] for i in eachindex(calcs)]
     else
-        c2 = [isparallel(-calcs[i][2], normals[i], α_cone) && c1[i] for i in eachindex(calcs)]
+        c2=[isparallel(-calcs[i][2], normals[i], α_cone) && c1[i] for i in eachindex(calcs)]
     end
     return c2
 end
 
-function scorecandidate(pc, candidate::ShapeCandidate{T}, subsetID, params) where {T<:FittedCone}
+function scorecandidate(pc, candidate::FittedCone, subsetID, params)
     ps = @view pc.vertices[pc.subsets[subsetID]]
     ns = @view pc.normals[pc.subsets[subsetID]]
     ens = @view pc.isenabled[pc.subsets[subsetID]]
 
-    cp = compatiblesCone(candidate.shape, ps, ns, params)
+    cp = compatiblesCone(candidate, ps, ns, params)
     # verti: összes pont indexe, ami enabled és kompatibilis
     # lenne, ha működne, de inkább a boolean indexelést machináljuk
     inder = cp.&ens
     inpoints = (pc.subsets[subsetID])[inder]
     score = estimatescore(length(pc.subsets[subsetID]), pc.size, length(inpoints))
-    pc.levelscore[candidate.octree_lev] += E(score)
-    return ScoredShape(candidate, score, inpoints)
+    return ShapeCandidate(candidate, score, inpoints)
 end
 
 ## refit
 
 """
-    refitcone(s, pc, params)
+    refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedCone}
 
 Refit cone. Only s.inpoints is updated.
 """
-function refitcone(s, pc, params)
+function refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedCone}
     # TODO: use octree for that
     p = @view pc.vertices[pc.isenabled]
     n = @view pc.normals[pc.isenabled]
-    cp = compatiblesCone(s.candidate.shape, p, n, params)
-    s.inpoints = ((1:pc.size)[pc.isenabled])[cp]
-    s
+    cp = compatiblesCone(s.shape, p, n, params)
+    empty!(s.inpoints)
+    append!(s.inpoints, ((1:pc.size)[pc.isenabled])[cp])
+    return nothing
 end

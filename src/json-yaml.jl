@@ -17,15 +17,14 @@ end
 
 toDict(sc::ShapeCandidate) = toDict(sc.shape)
 
-toDict(scs::ScoredShape) = toDict(scs.candidate.shape)
-
 """
-    toDict(a::Vector{T}) where {T<:Union{FittedShape,ShapeCandidate,ScoredShape}}
+    toDict(a::Vector{T}) where {T<:Union{FittedShape,ShapeCandidate}}
 
-Convert a vector of shapes to a `Dict{String,Any}`. The top key is a "primitive", whose value is the array of the shapes.
+Convert a vector of shapes to a `Dict{String,Any}`.
+The top key is a "primitive", whose value is the array of the shapes.
 See the documentation for examples.
 """
-function toDict(a::Vector{T}) where {T<:Union{FittedShape,ShapeCandidate,ScoredShape}}
+function toDict(a::Vector{T}) where {T<:Union{FittedShape,ShapeCandidate}}
     ad = toDict.(a)
     return Dict("primitives"=>ad)
 end
@@ -33,12 +32,12 @@ end
 """
     printJSON(io::IO, s, indent)
 
-Print a `FittedShape`, `ShapeCandidate`, `ScoredShape` or a vector of them to `io` as a JSON string.
+Print a `FittedShape`, `ShapeCandidate` or a vector of them to `io` as a JSON string.
 With `indent` given, it prints a representation with newlines and indents.
 
 # Arguments:
 - `io::IO`: must be specified, use `stdout` for interactive purposes.
-- `s`: a `FittedShape`, `ShapeCandidate`, `ScoredShape` or a vector of one of them.
+- `s`: a `FittedShape`, `ShapeCandidate` or a vector of one of them.
 - `indent::Int`: indentation level.
 """
 function exportJSON(io::IO, s, indent)
@@ -48,11 +47,12 @@ end
 """
     printJSON(io::IO, s)
 
-Print a `FittedShape`, `ShapeCandidate`, `ScoredShape` or a vector of them to `io` as a compact JSON string.
+Print a `FittedShape`, `ShapeCandidate`
+or a vector of them to `io` as a compact JSON string.
 
 # Arguments:
 - `io::IO`: must be specified, use `stdout` for interactive purposes.
-- `s`: a `FittedShape`, `ShapeCandidate`, `ScoredShape` or a vector of one of them.
+- `s`: a `FittedShape`, `ShapeCandidate` or a vector of one of them.
 """
 function exportJSON(io::IO, s)
     JSON.print(io, toDict(s))
@@ -62,37 +62,48 @@ end
 ## import yaml config file
 
 """
-    readconfig(fname, paramtype=RANSACParameters)
+    readconfig(fname; toextend=DEFAULT_PARAMETERS, shapedict=DEFAULT_SHAPE_DICT)
 
-Read a config file to a parameter sruct type of `paramtype` (`RANSACParameters` is the default).
+Read a config file to a `NamedTuple`.
+A "base" ntuple is expected, that gets overwritten/extended
+with the values in the config file.
+A `Dict{String,FittedShape}` dictionary is also expected,
+that translates the string primitive types to julia types.
 
-# Arguments:
-- `fname`: file name.
-- `paramtype=RANSACParameters`: type of the parameter struct. One must be able to instantiate it with keyword arguments only (eg. `paramtype()` should work).
+# Arguments
+
+- `fname`: name of the config file.
+- `toextend=DEFAULT_PARAMETERS`: a named tuple,
+    that will be overwritten/extended with the values from the config file.
+- `shapedict=DEFAULT_SHAPE_DICT`: a dictionary that
+    translates the string primitive names to julia types.
 """
-function readconfig(fname, paramtype=RANSACParameters)
+function readconfig(fname; toextend=DEFAULT_PARAMETERS, shapedict=DEFAULT_SHAPE_DICT)
     fio = open(fname, "r")
     fdict = YAML.load(fio)
     close(fio)
 
-    # field names of paramtype
-    field_names = fieldnames(paramtype)
-    vals = []
-    def_struct = paramtype()
-
-    for f_n in field_names
-        # `shape_types` is an array of symbols, must be handled differently
-        if f_n === :shape_types
-            if ! (get(fdict, "shape_types", nothing) === nothing)
-                push!(vals, Symbol.(fdict["shape_types"]))
-                continue
-            end
+    newnd = ((;Symbol(k)=>dict2nt(v)) for (k,v) in pairs(fdict))
+    for v in newnd
+        if haskey(v[1], :shape_types)
+            nv = merge(v[1], (shape_types=[shapedict[k] for k in v[1].shape_types],))
+            toextend = ransacparameters(toextend; iteration=nv)
+        else
+            toextend = ransacparameters(toextend; v...)
         end
-        # default value
-        def_val = getproperty(def_struct, f_n)
-        # fdict uses string keys
-        param_val = get(fdict, String(f_n), def_val)
-        push!(vals, param_val)
     end
-    return paramtype(;zip(field_names, Tuple(vals))...)
+    return toextend
+end
+
+function dict2nt(dict)
+    dd = [NamedTuple{Tuple(Symbol.(keys(d)))}(values(d)) for d in dict]
+    if length(dd) < 2
+        return dd[1]
+    end
+    newd = dd[1]
+    for i in eachindex(dd)
+        i == 1 && continue
+        newd = merge(newd, dd[i])
+    end
+    return newd
 end

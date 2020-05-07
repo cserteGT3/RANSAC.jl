@@ -9,7 +9,7 @@ and the time it took to run the algorithm (in seconds).
 
 # Arguments
 - `pc::PointCloud`: the point cloud.
-- `params::RANSACParameters`: parameters.
+- `params::NamedTuple`: parameters.
 - `setenabled::Bool`: if `true`: set every point to enabled.
 - `reset_rand::Bool=false`: if `true`, resets the random seed with `Random.seed!(1234)`
 """
@@ -31,22 +31,27 @@ and the time it took to run the algorithm (in seconds).
 
 # Arguments
 - `pc::PointCloud`: the point cloud.
-- `params::RANSACParameters`: parameters.
+- `params::NamedTuple`: parameters.
 - `reset_rand::Bool=false`: if `true`, resets the random seed with `Random.seed!(1234)`
 """
 function ransac(pc, params; reset_rand = false)
     reset_rand && Random.seed!(1234)
 
-    @unpack drawN, minsubsetN, prob_det, τ = params
-    @unpack itermax, shape_types = params
-    @unpack extract_s, terminate_s = params
+    @extract params : iter_params=iteration
+    @extract iter_params : drawN minsubsetN prob_det τ
+    @extract iter_params : itermax shape_types
+    @extract iter_params : extract_s terminate_s
+
+    # @unpack drawN, minsubsetN, prob_det, τ = params
+    # @unpack itermax, shape_types = params
+    # @unpack extract_s, terminate_s = params
     start_time = time_ns()
 
     # build an octree
     subsetN = length(pc.subsets)
     @logmsg IterLow1 "Building octree."
     minV, maxV = findAABB(pc.vertices)
-    octree = Cell(SVector{3}(minV), SVector{3}(maxV), OctreeNode(pc, collect(1:pc.size), 1))
+    octree=Cell(SVector{3}(minV), SVector{3}(maxV), OctreeNode(pc, collect(1:pc.size), 1))
     r = OctreeRefinery(8)
     adaptivesampling!(octree, r)
     @logmsg IterLow1 "Octree finished."
@@ -56,11 +61,18 @@ function ransac(pc, params; reset_rand = false)
     fill!(pc.levelscore, zero(eltype(pc.levelscore)))
 
     random_points = randperm(pc.size)
-    candidates = ShapeCandidate[]
-    scoredshapes = ScoredShape[]
-    extracted = ScoredShape[]
+    
+    # FittedShape[] is abstract array, which is bad
+    candidates = FittedShape[]
+    scoredshapes = ShapeCandidate[]
+    extracted = ShapeCandidate[]
+    
+    # save octree level of a FittedShape
+    shape_octree_level = Int[]
+    
     # smallest distance in the pointcloud
     #lsd = smallestdistance(pc.vertices)
+    
     # allocate for the random selected points
     sd = Vector{Int}(undef, drawN)
     @logmsg IterInf "Iteration begins."
@@ -156,20 +168,17 @@ function ransac(pc, params; reset_rand = false)
             f_v = @view pc.vertices[sd]
             f_n = @view pc.normals[sd]
 
-            forcefitshapes!(pc, f_v, f_n, params, candidates, curr_level)
+            forcefitshapes!(pc, f_v, f_n, params, candidates, shape_octree_level, curr_level)
         end # for t
 
         # evaluate the compatible points, currently used as score
         # TODO: do something with octree levels and scores
         which_ = 1
-
-        for c in candidates
-            sc = scorecandidate(pc, c, which_, params)
-            push!(scoredshapes, sc)
-            countcandidates[2] += 1
-        end # for c
+        
+        # update number of candidates
+        countcandidates[2] += size(candidates,1)
+        scorecandidates!(pc, scoredshapes, candidates, which_, params, shape_octree_level)
         # by now every candidate is scored into scoredshapes
-        empty!(candidates)
 
         # considered so far k*minsubsetN pcs. minimal sets
         countcandidates[3] = k*minsubsetN
@@ -177,12 +186,7 @@ function ransac(pc, params; reset_rand = false)
 
         countcandidates[1] = size(scoredshapes, 1)
         if ! (size(scoredshapes, 1) < 1)
-            # search for the largest score == length(inpoints) (for now)
-            best_shape = largestshape(scoredshapes)
             best = findhighestscore(scoredshapes)
-            if best.index != best_shape.index
-                @logmsg IterLow1 "best: $(best.index), best_shape: $(best_shape.index)"
-            end
             bestshape = scoredshapes[best.index]
             # TODO: refine if best.overlap
             scr = E(bestshape.score)
@@ -202,38 +206,16 @@ function ransac(pc, params; reset_rand = false)
                 # TODO: proper refit, not only getting the points that fit to that shape
                 # what do you mean by refit?
                 # refit on the whole pointcloud
-                if bestshape.candidate.shape isa FittedPlane
-                    bs = refitplane(bestshape, pc, params)
-                elseif bestshape.candidate.shape isa FittedSphere
-                    bs = refitsphere(bestshape, pc, params)
-                elseif bestshape.candidate.shape isa FittedCylinder
-                    bs = refitcylinder(bestshape, pc, params)
-                elseif bestshape.candidate.shape isa FittedCone
-                    bs = refitcone(bestshape, pc, params)
-                end
-
-                scs = size(bs.inpoints,1)
-                @logmsg IterInf "Extracting best: $(strt(bs.candidate.shape)) score: $scr, refit length: $scs"
-                # invalidate points
-                for a in bs.inpoints
-                    pc.isenabled[a] = false
-                end
+                refit!(bestshape, pc, params)
+                
+                @logmsg IterInf "Extracting best: $(strt(bestshape.shape)) score: $scr, size: $(size(bestshape.inpoints,1)) ps."
+                # invalidate indexes
+                invalidate_indexes!(pc, bestshape)
                 # extract the shape and delete from scoredshapes
-                push!(extracted, bs)
+                push!(extracted, bestshape)
                 deleteat!(scoredshapes, best.index)
-                # mark scoredshapes that have invalid points
-                toremove = Int[]
-                for i in eachindex(scoredshapes)
-                    for a in scoredshapes[i].inpoints
-                        if ! pc.isenabled[a]
-                            push!(toremove, i)
-                            break
-                        end
-                    end
-                end
-
-                # remove scoredshapes that have invalid points
-                deleteat!(scoredshapes, toremove)
+                # remove invalid shapes
+                removeinvalidshapes!(pc, scoredshapes)
             end # if extract shape
         else
             #info printing: not best

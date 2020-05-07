@@ -20,8 +20,17 @@ Base.show(io::IO, ::MIME"text/plain", x::FittedSphere{A, R}) where {A, R} =
 
 strt(x::FittedSphere) = "sphere"
 
+function defaultshapeparameters(::Type{FittedSphere})
+    # `sphere_par`: parameter in sphere fitting
+    sp = (ϵ=0.3, α=deg2rad(5), sphere_par=0.02)
+    return (sphere=sp,)
+end
+
 function fit2pointsphere(v, n, params)
-    @unpack parallelthrdeg, sphere_par = params
+    #@unpack parallelthrdeg, sphere_par = params
+    @extract params : params_sphere=sphere
+    @extract params_sphere : sphere_par
+    @extract params.common : parallelthrdeg
     n1n = normalize(n[1])
     n2n = normalize(n[2])
 
@@ -70,13 +79,15 @@ function setsphereOuterity(sp, b)
 end
 
 """
-    fitsphere(p, n, params)
+    fit(::Type{FittedSphere}, p, n, params)
 
 Fit a sphere to 2 points. Additional points and their normals are used to validate the fit.
 Return `nothing` if points do not fit to a sphere.
 """
-function fitsphere(p, n, params)
-    @unpack ϵ_sphere, α_sphere = params
+function fit(::Type{FittedSphere}, p, n, params)
+    #@unpack ϵ_sphere, α_sphere = params
+    @extract params : params_sphere=sphere
+    @extract params_sphere : α_sphere=α ϵ_sphere=ϵ
     pl = length(p)
     @assert pl == length(n) "Size must be the same."
     @assert pl > 2 "Size must be at least 3."
@@ -104,12 +115,12 @@ end
 
 # bitmapping
 
-function scorecandidate(pc, candidate::ShapeCandidate{T}, subsetID, params) where {T<:FittedSphere}
+function scorecandidate(pc, candidate::FittedSphere, subsetID, params)
     ps = @view pc.vertices[pc.subsets[subsetID]]
     ns = @view pc.normals[pc.subsets[subsetID]]
     ens = @view pc.isenabled[pc.subsets[subsetID]]
 
-    cpl, uo, sp = compatiblesSphere(candidate.shape, ps, ns, params)
+    cpl, _, _ = compatiblesSphere(candidate, ps, ns, params)
     # verti: összes pont indexe, ami enabled és kompatibilis
     # lenne, ha működne, de inkább a boolean indexelést machináljuk
     verti = pc.subsets[subsetID]
@@ -119,8 +130,7 @@ function scorecandidate(pc, candidate::ShapeCandidate{T}, subsetID, params) wher
     #inpoints = count(underEn) >= count(overEn) ? verti[underEn] : verti[overEn]
     inpoints = verti[cpl]
     score = estimatescore(length(pc.subsets[subsetID]), pc.size, length(inpoints))
-    pc.levelscore[candidate.octree_lev] += E(score)
-    return ScoredShape(candidate, score, inpoints)
+    return ShapeCandidate(candidate, score, inpoints)
 end
 
 """
@@ -130,10 +140,13 @@ Create a bool-indexer array for those points that are compatible to the sphere.
 Give back the projected points too for parameter space magic.
 Return a bool indexer for (under,over) too.
 
-Compatibility is measured with an `eps` distance to the sphere and an `alpharad` angle to it's normal.
+Compatibility is measured with an `eps` distance to the sphere
+and an `alpharad` angle to it's normal.
 """
 function compatiblesSphere(sphere, points, normals, params)
-    @unpack ϵ_sphere, α_sphere = params
+    #@unpack ϵ_sphere, α_sphere = params
+    @extract params : params_sphere=sphere
+    @extract params_sphere : α_sphere=α ϵ_sphere=ϵ
     @assert length(points) == length(normals) "Size must be the same."
     # eps check
     o = sphere.center
@@ -141,9 +154,9 @@ function compatiblesSphere(sphere, points, normals, params)
     c1 = [abs(norm(a-o)-R) < ϵ_sphere for a in points]
     # alpha check
     if sphere.outwards
-        c2 = [isparallel(normalize(points[i]-o), normals[i], α_sphere) && c1[i] for i in eachindex(points)]
+        c2=[isparallel(normalize(points[i]-o), normals[i], α_sphere) && c1[i] for i in eachindex(points)]
     else
-        c2 = [isparallel(normalize(o-points[i]), normals[i], α_sphere) && c1[i] for i in eachindex(points)]
+        c2=[isparallel(normalize(o-points[i]), normals[i], α_sphere) && c1[i] for i in eachindex(points)]
     end
 
     under = falses(length(points))
@@ -162,18 +175,19 @@ function compatiblesSphere(sphere, points, normals, params)
 end
 
 """
-    refit(s, pc, ϵ, α)
+    refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedSphere}
 
 Refit sphere. Only s.inpoints is updated.
 """
-function refitsphere(s, pc, params)
+function refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedSphere}
     # TODO: use octree for that
-    cpl, uo, sp = compatiblesSphere(s.candidate.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], params)
+    cpl, _, _ = compatiblesSphere(s.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], params)
     # verti: összes pont indexe, ami enabled és kompatibilis
     verti = (1:pc.size)[pc.isenabled]
     #underEn = uo.under .& cpl
     #overEn = uo.over .& cpl
     #s.inpoints = count(underEn) >= count(overEn) ? verti[underEn] : verti[overEn]
-    s.inpoints = verti[cpl]
-    s
+    empty!(s.inpoints)
+    append!(s.inpoints, verti[cpl])
+    return nothing
 end

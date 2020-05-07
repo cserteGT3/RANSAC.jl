@@ -23,12 +23,19 @@ Base.show(io::IO, ::MIME"text/plain", x::FittedCylinder{A, R}) where {A, R} =
 
 strt(x::FittedCylinder) = "cylinder"
 
+function defaultshapeparameters(::Type{FittedCylinder})
+    return (cylinder=(ϵ=0.3, α=deg2rad(5)),)
+end
+
 function setcylinderOuterity(fc, b)
     FittedCylinder(fc.axis, fc.center, fc.radius, b)
 end
 
 function fit2pointcylinder(p, n, params)
-    @unpack α_cylinder, ϵ_cylinder, parallelthrdeg = params
+    #@unpack α_cylinder, ϵ_cylinder, parallelthrdeg = params
+    @extract params : params_sphere=sphere
+    @extract params_sphere : ϵ_cylinder=ϵ α_cylinder=α
+    @extract params.common : parallelthrdeg
     # the normals are too parallel so cannot fit cylinder to it
     if abs(dot(n[1], n[2])) > cosd(parallelthrdeg)
         return nothing
@@ -118,14 +125,18 @@ function fit2pointcylinder(p, n, params)
 end
 
 """
-    fitcylinder(p, n, params)
+    fit(::Type{FittedCylinder}, p, n, params)
 
-Fit a cylinder to 2 points. Additional points and their normals are used to validate the fit.
+Fit a cylinder to 2 points.
+Additional points and their normals are used to validate the fit.
 Normals are expected to be normalized.
 Return `nothing` if points do not fit to a cylinder.
 """
-function fitcylinder(p, n, params)
-    @unpack ϵ_cylinder, α_cylinder, parallelthrdeg = params
+function fit(::Type{FittedCylinder}, p, n, params)
+    #@unpack ϵ_cylinder, α_cylinder, parallelthrdeg = params
+    @extract params : params_sphere=sphere
+    @extract params_sphere : ϵ_cylinder=ϵ α_cylinder=α
+    @extract params.common : parallelthrdeg
     pl = length(p)
     @assert pl == length(n) "Size must be the same."
     @assert pl > 2 "Size must be at least 3."
@@ -158,18 +169,17 @@ end
 
 # bitmapping
 
-function scorecandidate(pc, candidate::ShapeCandidate{T}, subsetID, params) where {T<:FittedCylinder}
+function scorecandidate(pc, candidate::FittedCylinder, subsetID, params)
     ps = @view pc.vertices[pc.subsets[subsetID]]
     ns = @view pc.normals[pc.subsets[subsetID]]
     ens = @view pc.isenabled[pc.subsets[subsetID]]
 
-    cp, pp = compatiblesCylinder(candidate.shape, ps, ns, params)
+    cp = compatiblesCylinder(candidate, ps, ns, params)
     inder = cp.&ens
     inpoints = (pc.subsets[subsetID])[inder]
     #inpoints = ((pc.subsets[1])[ens])[cp]
     score = estimatescore(length(pc.subsets[subsetID]), pc.size, length(inpoints))
-    pc.levelscore[candidate.octree_lev] += E(score)
-    return ScoredShape(candidate, score, inpoints)
+    return ShapeCandidate(candidate, score, inpoints)
 end
 
 """
@@ -178,10 +188,13 @@ end
 Create a bool-indexer array for those points that are compatible to the cylinder.
 Give back the projected points too for parameter space magic.
 
-Compatibility is measured with an `eps` distance to the cylinder and an `alpharad` angle to it's normal.
+Compatibility is measured with an `eps` distance to the cylinder
+and an `alpharad` angle to it's normal.
 """
 function compatiblesCylinder(cylinder, points, normals, params)
-    @unpack ϵ_cylinder, α_cylinder = params
+    #@unpack ϵ_cylinder, α_cylinder = params
+    @extract params : params_sphere=sphere
+    @extract params_sphere : ϵ_cylinder=ϵ α_cylinder=α
     @assert length(points) == length(normals) "Size must be the same."
 
     c = cylinder.center
@@ -189,7 +202,6 @@ function compatiblesCylinder(cylinder, points, normals, params)
     a = cylinder.axis
 
     comp = falses(length(points))
-    pars = fill(SVector(0.0,0.0), length(points))
 
     for i in 1:length(points)
         curr_norm = points[i] - a*dot( a, points[i]-c ) - c
@@ -205,17 +217,18 @@ function compatiblesCylinder(cylinder, points, normals, params)
         # playing with parameters:
         #TODO: implement it
     end
-    return comp, pars
+    return comp
 end
 
 """
-    refit(s, pc, ϵ, α)
+    refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedCylinder}
 
 Refit cylinder. Only s.inpoints is updated.
 """
-function refitcylinder(s, pc, params)
+function refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedCylinder}
     # TODO: use octree for that
-    cp, _ = compatiblesCylinder(s.candidate.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], params)
-    s.inpoints = ((1:pc.size)[pc.isenabled])[cp]
-    s
+    cp = compatiblesCylinder(s.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], params)
+    empty!(s.inpoints)
+    append!(s.inpoints, ((1:pc.size)[pc.isenabled])[cp])
+    return nothing
 end

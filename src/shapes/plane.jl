@@ -18,16 +18,23 @@ Base.show(io::IO, ::MIME"text/plain", x::FittedPlane{A}) where {A} =
 
 strt(x::FittedPlane) = "plane"
 
+function defaultshapeparameters(::Type{FittedPlane})
+    return (plane=(ϵ=0.3, α=deg2rad(5)),)
+end
+
 """
-    fitplane(p, n, params)
+    fit(::Type{FittedPlane}, p, n, params)
 
 Fit a plane to 3 points. Their and additional point's normals are used to validate the fit.
 Return `nothing` if points do not fit to a plane.
 
 A collinearity check is used to not filter out points on one line.
 """
-function fitplane(p, n, params)
-    @unpack α_plane, collin_threshold = params
+function fit(::Type{FittedPlane}, p, n, params)
+    #@unpack α_plane, collin_threshold = params
+    @extract params : params_plane=plane
+    @extract params_plane : α_plane=α
+    @extract params.common : collin_threshold
     lp = length(p)
     @assert length(p) > 2 "At least 3 point is needed."
     @assert lp == length(n) "Size must be the same."
@@ -63,17 +70,16 @@ end
 
 # bitmapping
 
-function scorecandidate(pc, candidate::ShapeCandidate{T}, subsetID, params) where {T<:FittedPlane}
+function scorecandidate(pc, candidate::FittedPlane, subsetID, params)
     ps = @view pc.vertices[pc.subsets[subsetID]]
     ns = @view pc.normals[pc.subsets[subsetID]]
     ens = @view pc.isenabled[pc.subsets[subsetID]]
 
-    cp, pp = compatiblesPlane(candidate.shape, ps, ns, params)
+    cp, _ = compatiblesPlane(candidate, ps, ns, params)
     inder = cp.&ens
     inpoints = (pc.subsets[subsetID])[inder]
     score = estimatescore(length(pc.subsets[subsetID]), pc.size, length(inpoints))
-    pc.levelscore[candidate.octree_lev] += E(score)
-    return ScoredShape(candidate, score, inpoints)
+    return ShapeCandidate(candidate, score, inpoints)
 end
 
 """
@@ -108,10 +114,13 @@ end
 Create a bool-indexer array for those points that are compatible to the plane.
 Give back the projected points too for parameter space magic.
 
-Compatibility is measured with an `eps` distance to the plane and an `alpharad` angle to it's normal.
+Compatibility is measured with an `eps` distance to the plane
+and an `alpharad` angle to it's normal.
 """
 function compatiblesPlane(plane, points, normals, params)
-    @unpack ϵ_plane, α_plane = params
+    #@unpack ϵ_plane, α_plane = params
+    @extract params : params_plane=plane
+    @extract params_plane : α_plane=α ϵ_plane=ϵ
     @assert length(points) == length(normals) "Size must be the same."
     projecteds = project2plane(plane, points)
     # eps check
@@ -123,13 +132,14 @@ function compatiblesPlane(plane, points, normals, params)
 end
 
 """
-    refit(s, pc, ϵ, α)
+    refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedPlane}
 
 Refit plane. Only s.inpoints is updated.
 """
-function refitplane(s, pc, params)
+function refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedPlane}
     # TODO: use octree for that
-    cp, _ = compatiblesPlane(s.candidate.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], params)
-    s.inpoints = ((1:pc.size)[pc.isenabled])[cp]
-    s
+    cp, _ = compatiblesPlane(s.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], params)
+    empty!(s.inpoints)
+    append!(s.inpoints, ((1:pc.size)[pc.isenabled])[cp])
+    return nothing
 end
