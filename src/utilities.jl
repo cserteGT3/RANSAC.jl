@@ -341,7 +341,7 @@ function defaultcommonparameters()
 end
 
 """
-    defaultparameters(shape_types::Vector{UnionAll})
+    defaultparameters(shape_types::Vector{T}) where {T}
 
 Construct a `NamedTuple` with the given shape types and the default parameters.
 
@@ -356,7 +356,7 @@ sphere = (ϵ = 0.3, α = 0.08726646259971647, sphere_par = 0.02),
 plane = (ϵ = 0.3, α = 0.08726646259971647))
 ```
 """
-function defaultparameters(shape_types::Vector{UnionAll})
+function defaultparameters(shape_types::Vector{T}) where {T}
     def_iter_pars = defaultiterationparameters(shape_types)
     def_iter_pars = merge(def_iter_pars, defaultcommonparameters())
     def_pars = defaultshapeparameters.(shape_types)
@@ -404,7 +404,7 @@ end
     ransacparameters(p::Array{T}; kwargs...) where {T<:UnionAll}
 
 Construct a `NamedTuple` for a given types of shapes 
-using [`defaultparameters()`](@ref) and override it with the kwargs.
+using [`defaultparameters`](@ref) and override it with the kwargs.
 Check the docs and examples for more.
 
 # Examples

@@ -2,7 +2,7 @@
 
 This is a longer description of the RANSAC paradigm, shamelessly copied from [my master's thesis](https://gitlab.com/cserteGT3/masterthesis) (still based on `Schnabel2007`).
 
-The [Short description](@ref) section introduces the concept and the steps of the algorithm (which are also shown in the following picture).
+The [Short algorithm description](@ref) section introduces the concept and the steps of the algorithm (which are also shown in the following picture).
 Hereby we describe the steps in more details.
 ![](img/ransac_alg.png)
 

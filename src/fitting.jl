@@ -1,22 +1,76 @@
+# primitive fitting API
+
 """
 An abstract type that supertypes all the fitted shapes.
 """
 abstract type FittedShape end
 
 """
-Return a string that tells the "human-readable" type
-    (plane, spehere, etc.) of a `FittedShape`.
-"""
-function strt end
-
-"""
-Return the default parameters as a `NamedTuple` for the given `FittedShape`.
+Return the default parameters as a `NamedTuple` for the passed `FittedShape`.
 
 # Implementation
 Example definition for `MyShape<:FittedShape`:
-    `defaultshapeparameters(::Type{MyShape})=(myshape=(ϵ=1, α=deg2rad(5),),)`.
+`defaultshapeparameters(::Type{MyShape})=(myshape=(ϵ=1, α=deg2rad(5),),)`.
 """
 function defaultshapeparameters end
+
+"""
+Fit a primitive shape to point-normal pairs
+(passed as an array of points and an array of normals).
+The type of the primitive and a parameter named tuple is also passed.
+Return `nothing`, if can't fit the shape to the points.
+
+# Implementation
+Signature: `fit(::Type{MyShape}, p, n, params)`.
+
+It should return an instance of `MyShape` or `nothing`.
+"""
+function fit end
+
+"""
+Compute the score of a candidate and return a `ShapeCandidate`.
+
+# Implementation
+Signature: `scorecandidate(pc, candidate::MyShape, subsetID, params)`.
+
+`subsetID` is the index of the subset that is used to estimate the score.
+You must count the compatible points (that are enabled) in the given subset.
+You can get the points by: `pc.vertices[pc.subsets[subsetID]]` and normals similarly.
+Use the [`estimatescore`](@ref) function to estimate a score,
+then return a `ShapeCandidate`: `ShapeCandidate(candidate, score, inpoints)`,
+where `inpoints` is the indexes of the points, that are counted.
+"""
+function scorecandidate end
+
+"""
+Refit a primitive to thw whole point cloud, say search for all the compatible points
+in the point cloud.
+
+# Implementation
+Signature: `refit!(s::ShapeCandidate{T}, pc, params) where {T<:MyShape}`.
+
+Search all the compatible (and enabled) points in the whole point cloud.
+After finding the indexes, update `s.inpoints` by:
+
+```julia
+empty!(s.inpoints)
+append!(s.inpoints, newindexes)
+```
+
+Return `nothing`.
+"""
+function refit! end
+        
+"""
+Return a string that tells the "human-readable" type
+(plane, spehere, etc.) of a `FittedShape`.
+
+# Implementation
+`strt(s::MyShape) = "myshape"`
+"""
+function strt end
+
+# functions to work with primitives
 
 """
     struct ShapeCandidate{S<:FittedShape}
@@ -92,7 +146,7 @@ end
 """
     scorecandidates!(pc, scored_cands, candidates, subsetID, params, octree_levels)
 
-Call `scorecandidate` for all candidates.
+Call [`scorecandidate`](@ref) for all candidates.
 Reset candidate, and octree level lists (`candidates` and `octree_levels` respectively).
 """
 function scorecandidates!(pc, scored_cands, candidates, subsetID, params, octree_levels)

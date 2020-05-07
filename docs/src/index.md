@@ -11,23 +11,22 @@ Paper can be found here: [`Schnabel2007`](https://cg.cs.uni-bonn.de/en/publicati
 A full page ([Efficient RANSAC](@ref)) is dedicated to describe the algorithm and to help to understand the parameters.
 If something is not clear, please open an issue or check the original paper.
 
-## Short description
-
-The input of the algorithm is a point cloud of size ``N`` with points and associated surface normals.
-The output is a set of primitive shapes with corresponding sets of points, and the rest of the points that do not belong to any primitives.
-Primitive shapes can be: plane, sphere, cylinder, cone and torus (though torus is not implemented yet).
-
-In every iteration, new shape candidates are created by fitting primitives to randomly sampled minimal sets.
-Every shape primitive is generated for every minimal set and the valid ones are continuously collected in set ``C``.
-Then every candidate is scored and the one with the highest score is considered the best.
-A candidate is only extracted if the probability (``p_t``) that no better candidates are in ``C`` is high enough.
-If the best candidate is chosen to be extracted, its points are removed from the point cloud, and every other candidate that has a removed point is also deleted from ``C``.
-The iteration continues until the probability that every at least ``\tau`` sized shape is found is larger than a parameter threshold.
-The score of a candidate is defined by the number of compatible points.
-A point is compatible if it is in the ``\epsilon`` band of the shape, and its normal does not deviate from the surface normal more than an ``\alpha`` angle.
-Also, only those points are considered that count towards the largest connecting component in the parameter space bitmap of the shape.
-
 ## Quick tour
+
+The efficient RANSAC algorithm is used to segment and fit primitive shapes (sphere, plane, cylinder, torus, cone) to point clouds.
+Up to now mostly C++ and Python implementations have been published, this is the first one in Julia (as far as I know).
+
+### Main features
+
+* easy-to-use primitive recognition
+* extensible: it's easy to add new primitive shapes
+* fast (to be honest, it's not yet comparable with the reference and PCL implementations)
+
+### Differences from the reference implementation
+
+* no bitmap
+* separate parameters for each shape
+* no tori
 
 ### Install the package
 
@@ -61,8 +60,18 @@ rparams = ransacparameters()
 
 See the [Example](@ref) page for a detailed tour.
 
-## Differences from the reference implementation
+## Short algorithm description
 
-* no bitmap
-* separate parameters for each shape
-* no tori
+The input of the algorithm is a point cloud of size ``N`` with points and associated surface normals.
+The output is a set of primitive shapes with corresponding sets of points, and the rest of the points that do not belong to any primitives.
+Primitive shapes can be: plane, sphere, cylinder, cone and torus (though torus is not implemented yet).
+
+In every iteration, new shape candidates are created by fitting primitives to randomly sampled minimal sets.
+Every shape primitive is generated for every minimal set and the valid ones are continuously collected in set ``C``.
+Then every candidate is scored and the one with the highest score is considered the best.
+A candidate is only extracted if the probability (``p_t``) that no better candidates are in ``C`` is high enough.
+If the best candidate is chosen to be extracted, its points are removed from the point cloud, and every other candidate that has a removed point is also deleted from ``C``.
+The iteration continues until the probability that every at least ``\tau`` sized shape is found is larger than a parameter threshold.
+The score of a candidate is defined by the number of compatible points.
+A point is compatible if it is in the ``\epsilon`` band of the shape, and its normal does not deviate from the surface normal more than an ``\alpha`` angle.
+Also, only those points are considered that count towards the largest connecting component in the parameter space bitmap of the shape.

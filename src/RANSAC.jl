@@ -29,7 +29,6 @@ export  arbitrary_orthogonal,
         smallestdistance,
         prob,
         havesameelement
-        #p2table,
 
 export  ConfidenceInterval,
         notsoconfident,
@@ -37,12 +36,8 @@ export  ConfidenceInterval,
         E
 
 export  OctreeNode,
-        iswithinrectangle,
         OctreeRefinery,
-        PointCloud,
-        getcellandparents,
-        octreedepth,
-        updatelevelweight
+        PointCloud
 
 export  FittedShape,
         FittedPlane,
@@ -50,9 +45,6 @@ export  FittedShape,
         FittedCylinder,
         FittedCone,
         ShapeCandidate,
-        findhighestscore,
-        largestshape,
-        forcefitshapes!,
         ransacparameters
 
 export  project2plane,
@@ -70,8 +62,7 @@ export  nosource_debuglogger,
         nosource_IterLow2log,
         nosource_Compute1log,
         nosource_Compute2log,
-        nosource_Errorlog,
-        ns_mfmt
+        nosource_Errorlog
 
 export  exportJSON,
         readconfig

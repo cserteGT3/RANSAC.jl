@@ -58,6 +58,11 @@ end
     estimatescore(S1length, Plength, σS1)
 
 Give an estimate score for the whole pointcloud.
+
+# Arguments
+- `S1length`: number of points that are searched for compatible points (size of a subset).
+- `Plength`: size of the whole point cloud.
+- `σS1`: number of compatible points.
 """
 function estimatescore(S1length, Plength, σS1)
     gd = hypergeomdev(-2-S1length, -2-Plength, -1-σS1)

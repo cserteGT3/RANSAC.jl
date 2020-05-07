@@ -48,8 +48,9 @@ The `ransacparameters()` function uses the not exported `default...parameters()`
 ```@docs
 RANSAC.defaultcommonparameters
 RANSAC.defaultiterationparameters
-RANSAC.defaultshapeparameters
 ```
+
+Check [`RANSAC.defaultshapeparameters`](@ref) as well.
 
 The `defaultparameters` function joins these together:
 

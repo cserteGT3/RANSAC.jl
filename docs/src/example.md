@@ -32,7 +32,7 @@ julia> pc = PointCloud(m.position, m.normals, 8);
 
 ## Set the parameters
 
-Check the [Short description](@ref) and [Parameters](@ref) pages to understand the parameters.
+Check the [Short algorithm description](@ref) and [Parameters](@ref) pages to understand the parameters.
 
 ```julia
 julia> p = ransacparameters()
