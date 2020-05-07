@@ -4,13 +4,17 @@ An abstract type that supertypes all the fitted shapes.
 abstract type FittedShape end
 
 """
-Return a string that tells the type (plane, spehere, etc.) of a `FittedShape`.
+Return a string that tells the "human-readable" type
+    (plane, spehere, etc.) of a `FittedShape`.
 """
 function strt end
 
 """
-Return the default parameters as a `NamedTuple` for the given of a `FittedSpahe`.
-Example definition for `MyShape<:FittedShape`: `defaultshapeparameters(::Type{MyShape})=(myshape=(ϵ=1),)`
+Return the default parameters as a `NamedTuple` for the given `FittedShape`.
+
+# Implementation
+Example definition for `MyShape<:FittedShape`:
+    `defaultshapeparameters(::Type{MyShape})=(myshape=(ϵ=1, α=deg2rad(5),),)`.
 """
 function defaultshapeparameters end
 

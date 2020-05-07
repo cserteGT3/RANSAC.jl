@@ -90,7 +90,14 @@ include("logging.jl")
 include("orientedbox_.jl")
 include("json-yaml.jl")
 
+"""
+`const DEFAULT_PARAMETERS = defaultparameters([FittedPlane, FittedCone, FittedCylinder, FittedSphere])`
+"""
 const DEFAULT_PARAMETERS = defaultparameters([FittedPlane, FittedCone, FittedCylinder, FittedSphere])
+
+"""
+`const DEFAULT_SHAPE_DICT = Dict("plane"=>FittedPlane, "cone"=>FittedCone, "cylinder"=>FittedCylinder, "sphere"=>FittedSphere)`
+"""
 const DEFAULT_SHAPE_DICT = Dict("plane"=>FittedPlane, "cone"=>FittedCone, "cylinder"=>FittedCylinder, "sphere"=>FittedSphere)
 
 end #module

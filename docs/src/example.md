@@ -39,13 +39,14 @@ PointCloud of size 8935 & 8 subsets
 Check the [Short description](@ref) and [Parameters](@ref) pages to understand the parameters.
 
 ```julia
-julia> p = RANSACParameters{Float64}();
+julia> p = ransacparameters()
+(iteration = (drawN = 3, minsubsetN = 15, prob_det = 0.9, shape_types = UnionAll[FittedPlane, FittedCone, FittedCylinder, FittedSphere], τ = 900, itermax = 1000, extract_s = :nofminset, terminate_s = :nofminset), common = (collin_threshold = 0.2, parallelthrdeg = 1.0), plane = (ϵ = 0.3, α = 0.08726646259971647), cone = (ϵ = 0.3, α = 0.08726646259971647, minconeopang = 0.03490658503988659), cylinder = (ϵ = 0.3, α = 0.08726646259971647), sphere = (ϵ = 0.3, α = 0.08726646259971647, sphere_par = 0.02))
 
-julia> p = setalphas(p, deg2rad(10));
+julia> newparams = (ϵ=0.05, α=deg2rad(10),)
+(ϵ = 0.05, α = 0.17453292519943295)
 
-julia> p = setepsilons(p, 0.05);
-
-julia> p = RANSACParameters(p, τ=50, itermax=100_000);
+julia> p = ransacparameters(p, sphere=newparams, cone=newparams, plane=newparams, cylinder=newparams, iteration=(τ=50, itermax=100_000,))
+(iteration = (drawN = 3, minsubsetN = 15, prob_det = 0.9, shape_types = UnionAll[FittedPlane, FittedCone, FittedCylinder, FittedSphere], τ = 50, itermax = 100000, extract_s = :nofminset, terminate_s = :nofminset), common = (collin_threshold = 0.2, parallelthrdeg = 1.0), plane = (ϵ = 0.05, α = 0.17453292519943295), cone = (ϵ = 0.05, α = 0.17453292519943295, minconeopang = 0.03490658503988659), cylinder = (ϵ = 0.05, α = 0.17453292519943295), sphere = (ϵ = 0.05, α = 0.17453292519943295, sphere_par = 0.02))
 ```
 
 ## Run!

@@ -266,7 +266,31 @@ function chooseS(A, k)
     return A[symtoint[k]]
 end
 
+"""
+    defaultiterationparameters(shape_types)
 
+Construct a named tuple with the default iteration parameters.
+`shape_types` is an array of `FittedShape`s, that controls which primitives you want to fit to the point cloud.
+
+# Examples
+
+```julia-repl
+julia> RANSAC.defaultiterationparameters([FittedPlane])
+(iteration = (drawN = 3, minsubsetN = 15, prob_det = 0.9, shape_types = UnionAll[FittedPlane], τ = 900, itermax = 1000, extract_s = :nofminset, terminate_s = :nofminset),)
+
+julia> RANSAC.defaultiterationparameters([FittedPlane, FittedSphere, FittedCone])
+(iteration = (drawN = 3, minsubsetN = 15, prob_det = 0.9, shape_types = UnionAll[FittedPlane, FittedSphere, FittedCone], τ = 900, itermax = 1000, extract_s = :nofminset, terminate_s = :nofminset),)
+```
+
+# Implementation
+- `drawN`: number of points to be sampled (length of a minimal subset).
+- `minsubsetN`: number of minimal sets sampled in one iteration.
+- `prob_det`: probability of detection.
+- `τ`: minimal shape size.
+- `itermax`: maximum number of iteration.
+- `shape_types`: shapes that are fitted to the point cloud (array of types).
+- `extract_s`, `terminate_s`: they are for easier testing, do not delete or modify it.
+"""
 function defaultiterationparameters(shape_types)
     # `drawN`: number of points to be sampled (length of a minimal subset)
     # `minsubsetN`: number of minimal sets sampled in one iteration
@@ -294,6 +318,13 @@ Construct a `NamedTuple` with the default common parameters.
 julia> defaultcommonparameters()
 (common = (collin_threshold = 0.2, parallelthrdeg = 1.0),)
 ```
+
+# Implementation
+This section describes the role of the common parameters.
+- `collin_threshold`: 3 points can be nearly collinear, in some cases they must be filtered.
+    See the code of: ` fit(::Type{FittedPlane}, p, n, params)`.
+- `parallelthrdeg`: threshold for two vectos being parallel, in degrees.
+    If `abs(dot(a,b))>cosd(parallelthrdeg)`, `a` and `b` are considered to be parallel.
 """
 function defaultcommonparameters()
     #`collin_threshold`: threshold of points being collinear

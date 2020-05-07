@@ -50,13 +50,13 @@ m = load("testm.obj")
 ```julia
 using RANSAC
 pc = PointCloud(m, 2)
-rparams = RANSACParameters{Float64}()
+rparams = ransacparameters()
 ```
 
 ### Run the iteration
 
 ```julia
- _, extr, _ = ransac(pc, p, true);
+ _, extr, _ = ransac(pc, rparams, true);
 ```
 
 See the [Example](@ref) page for a detailed tour.
