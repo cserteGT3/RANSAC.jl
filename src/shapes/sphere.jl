@@ -120,7 +120,7 @@ function scorecandidate(pc, candidate::FittedSphere, subsetID, params)
     ns = @view pc.normals[pc.subsets[subsetID]]
     ens = @view pc.isenabled[pc.subsets[subsetID]]
 
-    cpl, _, _ = compatiblesSphere(candidate, ps, ns, params)
+    cpl = compatiblesSphere(candidate, ps, ns, params)
     # verti: összes pont indexe, ami enabled és kompatibilis
     # lenne, ha működne, de inkább a boolean indexelést machináljuk
     verti = pc.subsets[subsetID]
@@ -137,8 +137,6 @@ end
     compatiblesSphere(plane, points, normals, eps, alpharad)
 
 Create a bool-indexer array for those points that are compatible to the sphere.
-Give back the projected points too for parameter space magic.
-Return a bool indexer for (under,over) too.
 
 Compatibility is measured with an `eps` distance to the sphere
 and an `alpharad` angle to it's normal.
@@ -159,19 +157,10 @@ function compatiblesSphere(sphere, points, normals, params)
         c2=[isparallel(normalize(o-points[i]), normals[i], α_sphere) && c1[i] for i in eachindex(points)]
     end
 
-    under = falses(length(points))
-    over = falses(length(points))
-    for i in eachindex(points)
-        if points[i][3] <= o[3]
-            under[i] = true
-        else
-            over[i] = true
-        end
-    end
     # TODO
     # normalize by it's own length or maximum length??? r+3ϵ
-    param_points = [unitdisk2square(normalize(a[1:2]-o[1:2])) for a in points]
-    return c2, (under=under, over=over), param_points
+    # param_points = [unitdisk2square(normalize(a[1:2]-o[1:2])) for a in points]
+    return c2
 end
 
 """
@@ -181,7 +170,7 @@ Refit sphere. Only s.inpoints is updated.
 """
 function refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedSphere}
     # TODO: use octree for that
-    cpl, _, _ = compatiblesSphere(s.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], params)
+    cpl = compatiblesSphere(s.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], params)
     # verti: összes pont indexe, ami enabled és kompatibilis
     verti = (1:pc.size)[pc.isenabled]
     #underEn = uo.under .& cpl
