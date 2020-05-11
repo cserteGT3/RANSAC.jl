@@ -13,6 +13,25 @@ function getcellandparents(cell::Cell)
 end
 
 """
+    getnthcell(c::Cell, n)
+
+Get the cell at the n-th level (at the depth `n`) from the parents of a cell.
+If `n` is larger than the depth of `c`, return nothing
+(it means, that the asked depth is below the current level).
+Also return nothing, if the asked level is below the minimum level, currently set to 1.
+"""
+function getnthcell(c::Cell, n)
+    #n < 1 && throw(BoundsError(c, n))
+    n < 1 && return
+    maxd = c.data.depth
+    n == maxd && return c
+    for cell in allparents(c)
+        cell.data.depth == n && return cell
+    end
+    return nothing
+end
+
+"""
     mutable struct PointCloud{A<:AbstractArray, B<:AbstractArray, C<:AbstractArray}
 
 A struct to wrap a point cloud. Stores the vertices, the normals,
@@ -179,10 +198,10 @@ function updatelevelweight(pc, x = 0.9)
     end
 end
 
-function octreedepth(pc)
+function octreedepth(pc, n::Int=8)
     minV, maxV = findAABB(pc.vertices)
     octree=Cell(SVector{3}(minV), SVector{3}(maxV), OctreeNode(pc, collect(1:pc.size), 1))
-    r = OctreeRefinery(8)
+    r = OctreeRefinery(n)
     adaptivesampling!(octree, r)
     alll = allleaves(octree)
     maxdepth = 0

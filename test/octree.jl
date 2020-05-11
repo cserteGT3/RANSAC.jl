@@ -3,6 +3,7 @@
 using RANSAC: iswithinrectangle
 
 using RegionTrees: HyperRectangle, vertices
+using RegionTrees: Cell, findleaf, adaptivesampling!
 
 rectangle = HyperRectangle(SVector(0.0,0,0), SVector(1.0,1,1))
 
@@ -110,4 +111,27 @@ end
     for vo in vout
         @test iswithinrectangle(rectangle, vo) == false
     end
+end
+
+@testset "getnthcell tests" begin
+    ps = [SVector(i, j, k)/3 for i in 0:5 for j in 0:5 for k in 0:5]
+    pc = PointCloud(ps, ps, 1)
+    minV, maxV = RANSAC.findAABB(pc.vertices)
+    octree=Cell(SVector{3}(minV), SVector{3}(maxV), OctreeNode(pc, collect(1:pc.size), 1))
+    r = OctreeRefinery(2)
+    adaptivesampling!(octree, r)
+    
+    l = findleaf(octree, ps[117])
+
+    @test l.data.depth == 3
+    @test RANSAC.getnthcell(l, l.data.depth) == l
+    @test RANSAC.getnthcell(l, 3) == l
+    @test RANSAC.getnthcell(l, 2) == parent(l)
+    @test RANSAC.getnthcell(l, 1) == parent(parent(l))
+    @test RANSAC.getnthcell(l, 1) == octree
+    
+    @test RANSAC.getnthcell(l, -1) === nothing
+    @test RANSAC.getnthcell(l, 0) === nothing
+    @test RANSAC.getnthcell(l, 4) === nothing
+    @test RANSAC.getnthcell(l, 5) === nothing
 end

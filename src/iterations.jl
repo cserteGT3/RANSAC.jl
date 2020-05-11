@@ -110,15 +110,14 @@ function ransac(pc, params; reset_rand = false)
             end
             # search for r1 in octree
             current_leaf = findleaf(octree, pc.vertices[r1])
-            # get all the parents
-            cs = getcellandparents(current_leaf)
-            # revese the order, cause it's easier to map with levelweight
-            reverse!(cs)
-            # chosse the level with the highest score
-            # if multiple maximum, the first=largest cell will be used
-            curr_level = argmax(pc.levelweight[1:length(cs)])
-            #an indexer array for random indexing
-            cell_ind = cs[curr_level].data.incellpoints
+            # get the depth
+            max_depth = current_leaf.data.depth
+            # get the best level index == best depth
+            curr_level_i = argmax(pc.levelweight[1:max_depth])
+            # get the best cell, based on the index
+            curr_cell = getnthcell(current_leaf, curr_level_i)
+            # an indexer array for random indexing
+            cell_ind = curr_cell.data.incellpoints
             # frome the above, those that are enabled
             bool_cell_ind = @view pc.isenabled[cell_ind]
             enabled_inds = cell_ind[bool_cell_ind]
@@ -168,7 +167,7 @@ function ransac(pc, params; reset_rand = false)
             f_v = @view pc.vertices[sd]
             f_n = @view pc.normals[sd]
 
-            forcefitshapes!(pc, f_v, f_n, params, candidates, shape_octree_level, curr_level)
+            forcefitshapes!(pc, f_v, f_n, params, candidates, shape_octree_level, curr_level_i)
         end # for t
 
         # evaluate the compatible points, currently used as score
