@@ -190,14 +190,14 @@ function ransac(pc, params; reset_rand = false)
             bestshape = scoredshapes[best.index]
             # TODO: refine if best.overlap
             scr = E(bestshape.score)
-            best_length = size(bestshape.inpoints, 1)
+            #best_length = size(bestshape.inpoints, 1)
 
             s = chooseS(countcandidates, extract_s)
-            ppp = prob(best_length*subsetN, s, pc.size, drawN)
+            ppp = prob(scr, s, pc.size, drawN)
 
             #info printing: there's a best
             if k%notifit == 0
-                @logmsg IterInf "$k. it, best: $best_length db, score: $scr, prob: $ppp, scored shapes: $(length(scoredshapes)) pcs."
+                @logmsg IterInf "$k. it, best: $scr score, prob: $ppp, scored shapes: $(length(scoredshapes)) pcs."
             end
 
             # if the probability is large enough, extract the shape
