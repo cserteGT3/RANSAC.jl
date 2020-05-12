@@ -55,11 +55,11 @@ function ransac(pc, params; reset_rand = false)
     r = OctreeRefinery(8)
     adaptivesampling!(octree, r)
     @logmsg IterLow1 "Octree finished."
-    # initialize levelweight vector to 1/d
     # initialize levelscore vector to 0
+    # initialize levelweight vector to 1/d
     octree_d = octreedepth(octree)
-    pc.levelweight = fill(1/octree_d, (octree_d,))
-    pc.levelscore = zeros(eltype(pc.vertices), (octree_d,))
+    pc.levelscore = zeros(eltype(eltype(pc.vertices)), (octree_d,))
+    pc.levelweight = fill!(similar(pc.levelscore), 1/octree_d)
 
     random_points = randperm(pc.size)
     
