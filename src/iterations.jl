@@ -3,9 +3,7 @@
 
 Run the RANSAC algorithm on a pointcloud with the given parameters.
 
-Returns the candidates (as they are at the end of the iteration),
-the extracted primitives
-and the time it took to run the algorithm (in seconds).
+Return the extracted primitives and the time it took to run the algorithm (in seconds).
 
 # Arguments
 - `pc::PointCloud`: the point cloud.
@@ -25,9 +23,7 @@ end
 
 Run the RANSAC algorithm on a pointcloud with the given parameters.
 
-Returns the candidates (as they are at the end of the iteration),
-the extracted primitives
-and the time it took to run the algorithm (in seconds).
+Return the extracted primitives and the time it took to run the algorithm (in seconds).
 
 # Arguments
 - `pc::PointCloud`: the point cloud.
@@ -236,7 +232,7 @@ function ransac(pc, params; reset_rand = false)
     end # iterate end
     fint = trunc((time_ns() - start_time)/1_000_000_000, digits=2)
     @logmsg IterInf "Iteration finished in $fint seconds with $(length(extracted)) extracted and $(length(scoredshapes)) scored shapes."
-    return scoredshapes, extracted, fint
+    return extracted, fint
 end # ransac function
 
 """
@@ -249,7 +245,7 @@ function rerunleftover!(pc, nofs, params, sofarextr; reset_rand=true)
     lftvr_i = collect(1:pc.size)[pc.isenabled]
     @logmsg IterInf "Rerunning ransac."
     newpc = PointCloud(pc.vertices[lftvr_i], pc.normals[lftvr_i], nofs)
-    _, extr2, rtime2 = ransac(newpc, params, true; reset_rand=reset_rand);
+    extr2, rtime2 = ransac(newpc, params, true; reset_rand=reset_rand);
     @warn "Additional $rtime2 sec. must be added!!!"
     for i in eachindex(extr2)
         scored = extr2[i]
