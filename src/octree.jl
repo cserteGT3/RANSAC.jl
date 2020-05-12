@@ -85,32 +85,34 @@ end
 """
     PointCloud(vertices, normals, subsets, isenabled)
 
-Construct a `PointCloud` with filling it's `size`, `isenabled` and `levelweight` fields.
-
-`size=length(vertices)`, `levelweight=[1.0]`, `levelscore=[1.0]`
+Construct a `PointCloud` with the given fields.
+Not defined fields default to: `size=size(vertices,1)`,
+`levelweight` and `levelscore` defaults to `[0]` with appropriate type.
 """
 function PointCloud(vertices, normals, subsets, isenabled)
-    return PointCloud(vertices, normals, subsets, isenabled, length(vertices),[1.0],[1.0])
+    za = zeros(eltype(eltype(vertices)), 1)
+    return PointCloud(vertices, normals, subsets, isenabled, size(vertices,1),za,za)
 end
 
 """
     PointCloud(vertices, normals, subsets)
 
-Construct a `PointCloud`, filling it's other fields.
-
-`size=length(vertices)`, `levelweight=[1.0]`, `levelscore=[1.0]`,
-`isenabled=trues(length(vertices))`
+Construct a `PointCloud` with the given fields.
+Not defined fields default to: `size=size(vertices,1)`,
+`levelweight` and `levelscore` defaults to `[0]` with appropriate type,
+and all vertices are enabled.
 """
 function PointCloud(vertices, normals, subsets)
-    return PointCloud(vertices, normals, subsets, trues(length(vertices)), length(vertices), [1.0], [1.0])
+    return PointCloud(vertices, normals, subsets, trues(size(vertices,1)))
 end
 
 """
     PointCloud(vertices, normals, numofsubsets::Int)
 
 Construct a `PointCloud` with `numofsubsets` number of random subsets.
-
-Every point is enabled, and the weight vector defaults to `[1.0]`.
+Every point is enabled, and other fields default to: `size=size(vertices,1)`,
+`levelweight` and `levelscore` defaults to `[0]` with appropriate type,
+and all vertices are enabled.
 """
 function PointCloud(vertices, normals, numofsubsets::Int)
     @assert numofsubsets > 0 "At least 1 subset please!"
@@ -123,7 +125,7 @@ function PointCloud(vertices, normals, numofsubsets::Int)
         subsets
     end
     subs = makesubset(length(vertices), numofsubsets)
-    return PointCloud(vertices, normals, subs, trues(length(vertices)), length(vertices), [1.0], [1.0])
+    return PointCloud(vertices, normals, subs)
 end
 
 """
@@ -144,7 +146,7 @@ Base.show(io::IO, x::OctreeNode{A}) where {A} =
     print(io, "OctreeNode: $(length(x.incellpoints)) ps, $(x.depth) d")
 
 Base.show(io::IO, ::MIME"text/plain", x::OctreeNode{A}) where {A} =
-    print(io, """OctreeNode{$A}\n$(x.pointcloud.size) pointcloud, $(x.depth) deep, $(length(x.incellpoints)) ps""")
+    print(io, """OctreeNode{$A}\n with a $(x.pointcloud.size) pointcloud, at depth $(x.depth)""")
 
 struct OctreeRefinery <: AbstractRefinery
     count::Int64
@@ -198,13 +200,28 @@ function updatelevelweight(pc, x = 0.9)
     end
 end
 
-function octreedepth(pc, n::Int=8)
+"""
+    octreedepth(pc::PointCloud, n::Int=8)
+
+Construct an octree with `OctreeRefinery(n)` and compute its depth.
+(It's only an octree if `n==8`, but nevermind.)
+"""
+function octreedepth(pc::PointCloud, n::Int=8)
     minV, maxV = findAABB(pc.vertices)
     octree=Cell(SVector{3}(minV), SVector{3}(maxV), OctreeNode(pc, collect(1:pc.size), 1))
     r = OctreeRefinery(n)
     adaptivesampling!(octree, r)
-    alll = allleaves(octree)
-    maxdepth = 0
+    return octreedepth(octree)
+end
+
+"""
+    octreedepth(cell::Cell)
+
+Iterate through the leafes and search the maximum depth (`cell.data.depth`).
+"""
+function octreedepth(cell::Cell)
+    maxdepth = cell.data.depth
+    alll = allleaves(cell)
     for a in alll
         if a.data.depth > maxdepth
             maxdepth = a.data.depth

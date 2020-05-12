@@ -135,3 +135,20 @@ end
     @test RANSAC.getnthcell(l, 4) === nothing
     @test RANSAC.getnthcell(l, 5) === nothing
 end
+
+@testset "octree depth" begin
+    ps = [SVector(i, j, k)/3 for i in 0:5 for j in 0:5 for k in 0:5]
+    pc = PointCloud(ps, ps, 1)
+    minV, maxV = RANSAC.findAABB(pc.vertices)
+    octree=Cell(SVector{3}(minV), SVector{3}(maxV), OctreeNode(pc, collect(1:pc.size), 1))
+    r = OctreeRefinery(2)
+    adaptivesampling!(octree, r)
+    @test RANSAC.octreedepth(octree) == 4
+    @test RANSAC.octreedepth(pc, 2) == 4
+
+    octree=Cell(SVector{3}(minV), SVector{3}(maxV), OctreeNode(pc, collect(1:pc.size), 1))
+    r = OctreeRefinery(8)
+    adaptivesampling!(octree, r)
+    @test RANSAC.octreedepth(octree) == 3
+    @test RANSAC.octreedepth(pc, 8) == 3
+end
