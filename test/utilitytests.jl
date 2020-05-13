@@ -112,3 +112,22 @@ end
     dpars = merge(dpars, cop)
     @test isntequal(rpn, dpars)
 end
+
+@testset "cross prod" begin
+    A = rand(3,3)
+    val = deg2rad(15)
+    vec = normalize(rand(3))
+
+    orival = A + sin(val) .* RANSAC.crossprodtensor(vec)
+    dA = deepcopy(A)
+    RANSAC.pluscrossprod!(dA, sin(val), vec)
+    @test orival == dA
+
+    orival2 = A + RANSAC.crossprodtensor(vec)
+    dA2 = deepcopy(A)
+    RANSAC.pluscrossprod!(dA2, 1, vec)
+    @test orival2 == dA2
+
+    newval3 = RANSAC.pluscrossprod!(deepcopy(A), 0, vec)
+    @test A == newval3
+end

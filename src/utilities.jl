@@ -5,9 +5,41 @@ Create a rotation matrix from a normalized axis and an angle (in radian).
 """
 function rodrigues(nv, Θ)
     et = eltype(nv)
-    R = zeros(et,3,3)
-    R = nv*nv' + cos(Θ).*(Matrix{et}(I, 3,3) - nv*nv') + sin(Θ).*crossprodtensor(nv)
+    #R = nv*nv' + cos(Θ).*(Matrix{et}(I, 3,3) - nv*nv') + sin(Θ).*crossprodtensor(nv)
+    R = nv*nv' + cos(Θ).*(Matrix(I, 3,3) - nv*nv')
+    pluscrossprod!(R, sin(Θ), nv)
     return R
+end
+
+"""
+    rodrigues(nv, Θ)
+
+Create a rotation matrix from a normalized axis and an angle (in radian).
+"""
+function rodrigues(nv::SA, Θ) where {SA<:StaticArray}
+    #R = nv*nv' + cos(Θ).*(Matrix{et}(I, 3,3) - nv*nv') + sin(Θ).*crossprodtensor(nv)
+    R = MMatrix{3,3}(nv*nv' + cos(Θ).*(Matrix(I, 3,3) - nv*nv'))
+    pluscrossprod!(R, sin(Θ), nv)
+    return SMatrix{3,3}(R)
+end
+
+"""
+    pluscrossprod!(A, value, v)
+
+Add a crossproduct tensor to `A`.
+Equals to: `A+value .* crossprodtensor(v)`
+"""
+function pluscrossprod!(A, value, v)
+    A[1,2] -= value*v[3]
+    A[1,3] += value*v[2]
+    
+    A[2,1] += value*v[3]
+    A[2,3] -= value*v[1]
+
+    A[3,1] -= value*v[2]
+    A[3,2] += value*v[1]
+
+    return A
 end
 
 """
