@@ -75,7 +75,7 @@ function scorecandidate(pc, candidate::FittedPlane, subsetID, params)
     ns = @view pc.normals[pc.subsets[subsetID]]
     ens = @view pc.isenabled[pc.subsets[subsetID]]
 
-    cp, _ = compatiblesPlane(candidate, ps, ns, params)
+    cp = compatiblesPlane(candidate, ps, ns, params)
     inder = cp.&ens
     inpoints = (pc.subsets[subsetID])[inder]
     score = estimatescore(length(pc.subsets[subsetID]), pc.size, length(inpoints))
@@ -99,13 +99,19 @@ function project2plane(plane, points)
     o_x = normalize(arbitrary_orthogonal(o_z))
     # y is created so it's a right hand coord. frame
     o_y = normalize(cross(o_z, o_x))
-    answer = similar(points)
+    #answer = similar(points)
     # get the coordinates of the points in the prev. created coord. frame
-    for i in eachindex(points)
-        v = points[i]-plane.point
-        answer[i] = eltype(answer)(dot(o_x,v), dot(o_y,v), dot(o_z,v))
+    function proj_plane(p)
+        v = p-plane.point
+        return eltype(points)(dot(o_x,v), dot(o_y,v), dot(o_z,v))
     end
-    answer
+
+    #for i in eachindex(points)
+    #    v = points[i]-plane.point
+    #    answer[i] = eltype(answer)(dot(o_x,v), dot(o_y,v), dot(o_z,v))
+    #end
+    #answer
+    return [proj_plane(ps) for ps in points]
 end
 
 """
@@ -128,7 +134,7 @@ function compatiblesPlane(plane, points, normals, params)
     # alpha check
     c2 = [isparallel(plane.normal, normals[i], α_plane) && c1[i] for i in eachindex(normals)]
     # projecteds[c2] are the compatible points
-    return c2, projecteds
+    return c2
 end
 
 """
@@ -138,7 +144,7 @@ Refit plane. Only s.inpoints is updated.
 """
 function refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedPlane}
     # TODO: use octree for that
-    cp, _ = compatiblesPlane(s.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], params)
+    cp = compatiblesPlane(s.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], params)
     empty!(s.inpoints)
     append!(s.inpoints, ((1:pc.size)[pc.isenabled])[cp])
     return nothing
