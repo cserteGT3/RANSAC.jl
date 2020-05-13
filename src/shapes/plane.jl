@@ -111,7 +111,7 @@ function project2plane(plane, points)
     #    answer[i] = eltype(answer)(dot(o_x,v), dot(o_y,v), dot(o_z,v))
     #end
     #answer
-    return [proj_plane(ps) for ps in points]
+    return (proj_plane(ps) for ps in points)
 end
 
 """
