@@ -3,9 +3,7 @@
 
 Run the RANSAC algorithm on a pointcloud with the given parameters.
 
-Returns the candidates (as they are at the end of the iteration),
-the extracted primitives
-and the time it took to run the algorithm (in seconds).
+Return the extracted primitives and the time it took to run the algorithm (in seconds).
 
 # Arguments
 - `pc::PointCloud`: the point cloud.
@@ -25,9 +23,7 @@ end
 
 Run the RANSAC algorithm on a pointcloud with the given parameters.
 
-Returns the candidates (as they are at the end of the iteration),
-the extracted primitives
-and the time it took to run the algorithm (in seconds).
+Return the extracted primitives and the time it took to run the algorithm (in seconds).
 
 # Arguments
 - `pc::PointCloud`: the point cloud.
@@ -55,10 +51,11 @@ function ransac(pc, params; reset_rand = false)
     r = OctreeRefinery(8)
     adaptivesampling!(octree, r)
     @logmsg IterLow1 "Octree finished."
+    # initialize levelscore vector to 0
     # initialize levelweight vector to 1/d
-    # TODO: check if levelweight is not empty
-    fill!(pc.levelweight, 1/length(pc.levelweight))
-    fill!(pc.levelscore, zero(eltype(pc.levelscore)))
+    octree_d = octreedepth(octree)
+    pc.levelscore = zeros(eltype(eltype(pc.vertices)), (octree_d,))
+    pc.levelweight = fill!(similar(pc.levelscore), 1/octree_d)
 
     random_points = randperm(pc.size)
     
@@ -110,15 +107,14 @@ function ransac(pc, params; reset_rand = false)
             end
             # search for r1 in octree
             current_leaf = findleaf(octree, pc.vertices[r1])
-            # get all the parents
-            cs = getcellandparents(current_leaf)
-            # revese the order, cause it's easier to map with levelweight
-            reverse!(cs)
-            # chosse the level with the highest score
-            # if multiple maximum, the first=largest cell will be used
-            curr_level = argmax(pc.levelweight[1:length(cs)])
-            #an indexer array for random indexing
-            cell_ind = cs[curr_level].data.incellpoints
+            # get the depth
+            max_depth = current_leaf.data.depth
+            # get the best level index == best depth
+            curr_level_i = argmax(pc.levelweight[1:max_depth])
+            # get the best cell, based on the index
+            curr_cell = getnthcell(current_leaf, curr_level_i)
+            # an indexer array for random indexing
+            cell_ind = curr_cell.data.incellpoints
             # frome the above, those that are enabled
             bool_cell_ind = @view pc.isenabled[cell_ind]
             enabled_inds = cell_ind[bool_cell_ind]
@@ -168,7 +164,7 @@ function ransac(pc, params; reset_rand = false)
             f_v = @view pc.vertices[sd]
             f_n = @view pc.normals[sd]
 
-            forcefitshapes!(pc, f_v, f_n, params, candidates, shape_octree_level, curr_level)
+            forcefitshapes!(pc, f_v, f_n, params, candidates, shape_octree_level, curr_level_i)
         end # for t
 
         # evaluate the compatible points, currently used as score
@@ -190,14 +186,14 @@ function ransac(pc, params; reset_rand = false)
             bestshape = scoredshapes[best.index]
             # TODO: refine if best.overlap
             scr = E(bestshape.score)
-            best_length = size(bestshape.inpoints, 1)
+            #best_length = size(bestshape.inpoints, 1)
 
             s = chooseS(countcandidates, extract_s)
-            ppp = prob(best_length*subsetN, s, pc.size, drawN)
+            ppp = prob(scr, s, pc.size, drawN)
 
             #info printing: there's a best
             if k%notifit == 0
-                @logmsg IterInf "$k. it, best: $best_length db, score: $scr, prob: $ppp, scored shapes: $(length(scoredshapes)) pcs."
+                @logmsg IterInf "$k. it, best: $scr score, prob: $ppp, scored shapes: $(length(scoredshapes)) pcs."
             end
 
             # if the probability is large enough, extract the shape
@@ -236,7 +232,7 @@ function ransac(pc, params; reset_rand = false)
     end # iterate end
     fint = trunc((time_ns() - start_time)/1_000_000_000, digits=2)
     @logmsg IterInf "Iteration finished in $fint seconds with $(length(extracted)) extracted and $(length(scoredshapes)) scored shapes."
-    return scoredshapes, extracted, fint
+    return extracted, fint
 end # ransac function
 
 """
@@ -249,7 +245,7 @@ function rerunleftover!(pc, nofs, params, sofarextr; reset_rand=true)
     lftvr_i = collect(1:pc.size)[pc.isenabled]
     @logmsg IterInf "Rerunning ransac."
     newpc = PointCloud(pc.vertices[lftvr_i], pc.normals[lftvr_i], nofs)
-    _, extr2, rtime2 = ransac(newpc, params, true; reset_rand=reset_rand);
+    extr2, rtime2 = ransac(newpc, params, true; reset_rand=reset_rand);
     @warn "Additional $rtime2 sec. must be added!!!"
     for i in eachindex(extr2)
         scored = extr2[i]

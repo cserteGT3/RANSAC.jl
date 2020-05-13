@@ -64,7 +64,7 @@ sphere = (ϵ = 0.05, α = 0.17453292519943295, sphere_par = 0.02))
 The `ransac()` function runs the iteration.
 
 ```julia
-julia> _, extr, _ = ransac(pc, p, true, reset_rand=true);
+julia> extr, _ = ransac(pc, p, true, reset_rand=true);
 ```
 
 ## See the results

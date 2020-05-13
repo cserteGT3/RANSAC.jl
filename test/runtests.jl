@@ -6,8 +6,8 @@ import JSON
 
 include("testhelpers.jl")
 
-@testset "iswithinrectangle test" begin
-    include("rectangletest.jl")
+@testset "octree tests" begin
+    include("octree.jl")
 end
 
 @testset "dummy sphere test" begin

@@ -55,7 +55,7 @@ rparams = ransacparameters()
 ### Run the iteration
 
 ```julia
- _, extr, _ = ransac(pc, rparams, true);
+extr, _ = ransac(pc, rparams, true);
 ```
 
 See the [Example](@ref) page for a detailed tour.
