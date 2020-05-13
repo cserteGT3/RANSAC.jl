@@ -136,10 +136,10 @@ Stores the reference of the point cloud,
 the indices of the points that are inside of the cell,
 and its own depth (depth of the root is 1).
 """
-struct OctreeNode{B<:AbstractArray}
+struct OctreeNode{B<:AbstractArray, I<:Integer}
     pointcloud::PointCloud
     incellpoints::B
-    depth::Int64
+    depth::I
 end
 
 Base.show(io::IO, x::OctreeNode{A}) where {A} =
