@@ -130,11 +130,15 @@ function compatiblesPlane(plane, points, normals, params)
     @assert length(points) == length(normals) "Size must be the same."
     projecteds = project2plane(plane, points)
     # eps check
-    c1 = [abs(a[3]) < ϵ_plane for a in projecteds]
+    #c1 = [abs(a[3]) < ϵ_plane for a in projecteds]
     # alpha check
-    c2 = [isparallel(plane.normal, normals[i], α_plane) && c1[i] for i in eachindex(normals)]
-    # projecteds[c2] are the compatible points
-    return c2
+    #c2 = [isparallel(plane.normal, normals[i], α_plane) && c1[i] for i in eachindex(normals)]
+    # projecteds[comp] are the compatible points
+
+    # zip projected points and normals
+    zpn = zip(projecteds, normals) 
+    comp = [isparallel(plane.normal, n, α_plane) && (abs(p[3]) < ϵ_plane) for (p,n) in zpn]
+    return comp
 end
 
 """

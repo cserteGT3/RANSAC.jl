@@ -134,14 +134,21 @@ function compatiblesCone(cone, points, normals, params)
     #@unpack α_cone, ϵ_cone = params
     @extract params : params_cone=cone
     @extract params_cone : α_cone=α ϵ_cone=ϵ
-    calcs = [project2cone(cone, points[i]) for i in eachindex(points)]
+    calcs = (project2cone(cone, points[i]) for i in eachindex(points))
 
     # eps check
-    c1 = [abs(calcs[i][1]) < ϵ_cone for i in eachindex(calcs)]
+    # c1 = [abs(calcs[i][1]) < ϵ_cone for i in eachindex(calcs)]
+    #if cone.outwards
+    #    c2=[isparallel(calcs[i][2], normals[i], α_cone) && c1[i] for i in eachindex(calcs)]
+    #else
+    #    c2=[isparallel(-calcs[i][2], normals[i], α_cone) && c1[i] for i in eachindex(calcs)]
+    #end
+
+    zcn = zip(calcs, normals)
     if cone.outwards
-        c2=[isparallel(calcs[i][2], normals[i], α_cone) && c1[i] for i in eachindex(calcs)]
+        c2=[isparallel(c[2], n, α_cone) && (abs(c[1]) < ϵ_cone) for (c,n) in zcn]
     else
-        c2=[isparallel(-calcs[i][2], normals[i], α_cone) && c1[i] for i in eachindex(calcs)]
+        c2=[isparallel(-c[2], n, α_cone) && (abs(c[1]) < ϵ_cone) for (c,n) in zcn]
     end
     return c2
 end

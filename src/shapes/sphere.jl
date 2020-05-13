@@ -144,17 +144,25 @@ and an `alpharad` angle to it's normal.
 function compatiblesSphere(sphere, points, normals, params)
     #@unpack ϵ_sphere, α_sphere = params
     @extract params : params_sphere=sphere
-    @extract params_sphere : α_sphere=α ϵ_sphere=ϵ
+    @extract params_sphere : α ϵ
     @assert length(points) == length(normals) "Size must be the same."
     # eps check
     o = sphere.center
     R = sphere.radius
-    c1 = [abs(norm(a-o)-R) < ϵ_sphere for a in points]
+    # c1 = [abs(norm(a-o)-R) < ϵ_sphere for a in points]
     # alpha check
+    #if sphere.outwards
+    #    c2=[isparallel(normalize(points[i]-o), normals[i], α_sphere) && c1[i] for i in eachindex(points)]
+    #else
+    #    c2=[isparallel(normalize(o-points[i]), normals[i], α_sphere) && c1[i] for i in eachindex(points)]
+    #end
+
+    zpn = zip(points, normals)
+
     if sphere.outwards
-        c2=[isparallel(normalize(points[i]-o), normals[i], α_sphere) && c1[i] for i in eachindex(points)]
+        c2=[isparallel(normalize(p-o), n, α) && (abs(norm(p-o)-R) < ϵ) for (p,n) in zpn]
     else
-        c2=[isparallel(normalize(o-points[i]), normals[i], α_sphere) && c1[i] for i in eachindex(points)]
+        c2=[isparallel(normalize(o-p), n, α) && (abs(norm(p-o)-R) < ϵ) for (p,n) in zpn]
     end
 
     # TODO
