@@ -178,7 +178,9 @@ Refit sphere. Only s.inpoints is updated.
 """
 function refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedSphere}
     # TODO: use octree for that
-    cpl = compatiblesSphere(s.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], params)
+    pcv = @view pc.vertices[pc.isenabled]
+    pcn = @view pc.normals[pc.isenabled]
+    cpl = compatiblesSphere(s.shape, pcv, pcn, params)
     # verti: összes pont indexe, ami enabled és kompatibilis
     verti = (1:pc.size)[pc.isenabled]
     #underEn = uo.under .& cpl

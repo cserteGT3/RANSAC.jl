@@ -36,10 +36,8 @@ end
 
 ## fitting
 
-function fit3pointcone(psok, nsok)
+function fit3pointcone(p, n)
     # rank of the coefficient matrix
-    p = @view psok[1:3]
-    n = @view nsok[1:3]
     r = Array{Float64,2}(undef, (3,3))
     for i in 1:3; for j in 1:3; r[i,j] = n[i][j]; end; end
     rank(r) == 3 || return nothing
@@ -50,7 +48,7 @@ function fit3pointcone(psok, nsok)
     # apex
     ap = SVector{3, Float64}(r\ds)
     # axis
-    axis3p = [ap+((v-ap)/norm(v-ap)) for v in p]
+    axis3p = [ap+((p[i]-ap)/norm(p[i]-ap)) for i in 1:3]
     ax = normalize(cross(axis3p[2]-axis3p[1], axis3p[3]-axis3p[1]))
     midp = sum(axis3p)/3
     dirv = normalize(midp-ap)
