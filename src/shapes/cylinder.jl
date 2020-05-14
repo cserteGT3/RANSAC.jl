@@ -179,7 +179,7 @@ function scorecandidate(pc, candidate::FittedCylinder, subsetID, params)
     inpoints = (pc.subsets[subsetID])[inder]
     #inpoints = ((pc.subsets[1])[ens])[cp]
     score = estimatescore(length(pc.subsets[subsetID]), pc.size, length(inpoints))
-    return ShapeCandidate(candidate, score, inpoints)
+    return (score, inpoints)
 end
 
 """
@@ -221,16 +221,14 @@ function compatiblesCylinder(cylinder, points, normals, params)
 end
 
 """
-    refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedCylinder}
+    refit(s::T, pc, params) where {T<:FittedCylinder}
 
-Refit cylinder. Only s.inpoints is updated.
+Refit cylinder.
 """
-function refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedCylinder}
+function refit(s::T, pc, params) where {T<:FittedCylinder}
     # TODO: use octree for that
     pcv = @view pc.vertices[pc.isenabled]
     pcn = @view pc.normals[pc.isenabled]
     cp = compatiblesCylinder(s.shape, pcv, pcn, params)
-    empty!(s.inpoints)
-    append!(s.inpoints, ((1:pc.size)[pc.isenabled])[cp])
-    return nothing
+    return ExtractedShape(s, ((1:pc.size)[pc.isenabled])[cp])
 end

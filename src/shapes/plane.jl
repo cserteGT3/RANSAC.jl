@@ -67,7 +67,7 @@ function scorecandidate(pc, candidate::FittedPlane, subsetID, params)
     inder = cp.&ens
     inpoints = (pc.subsets[subsetID])[inder]
     score = estimatescore(length(pc.subsets[subsetID]), pc.size, length(inpoints))
-    return ShapeCandidate(candidate, score, inpoints)
+    return (score, inpoints)
 end
 
 """
@@ -130,16 +130,14 @@ function compatiblesPlane(plane, points, normals, params)
 end
 
 """
-    refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedPlane}
+    refit(s::T, pc, params) where {T<:FittedPlane}
 
-Refit plane. Only s.inpoints is updated.
+Refit plane.
 """
-function refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedPlane}
+function refit(s::T, pc, params) where {T<:FittedPlane}
     # TODO: use octree for that
     pcv = @view pc.vertices[pc.isenabled]
     pcn = @view pc.normals[pc.isenabled]
     cp = compatiblesPlane(s.shape, pcv, pcn, params)
-    empty!(s.inpoints)
-    append!(s.inpoints, ((1:pc.size)[pc.isenabled])[cp])
-    return nothing
+    return ExtractedShape(s, ((1:pc.size)[pc.isenabled])[cp])
 end

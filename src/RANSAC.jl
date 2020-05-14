@@ -12,7 +12,7 @@ import JSON
 import YAML
 
 import RegionTrees: AbstractRefinery, needs_refinement, refine_data
-import Base: show
+import Base: show, length, deleteat!
 
 # debuuugggggg
 #using Infiltrator
@@ -44,11 +44,11 @@ export  FittedShape,
         FittedSphere,
         FittedCylinder,
         FittedCone,
-        ShapeCandidate,
+        ExtractedShape,
         ransacparameters
 
 export  project2plane,
-        refit!
+        refit
 
 export  ransac,
         rerunleftover!

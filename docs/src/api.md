@@ -255,5 +255,5 @@ Under the hood, the `toDict()` function does the job of converting the primitive
 
 ```@docs
 RANSAC.toDict(s::FittedShape)
-RANSAC.toDict(::Vector{T}) where {T<:Union{FittedShape,ShapeCandidate}}
+RANSAC.toDict(::Vector{T}) where {T<:Union{FittedShape,ExtractedShape}}
 ```

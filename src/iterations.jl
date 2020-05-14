@@ -61,8 +61,8 @@ function ransac(pc, params; reset_rand = false)
     
     # FittedShape[] is abstract array, which is bad
     candidates = FittedShape[]
-    scoredshapes = ShapeCandidate[]
-    extracted = ShapeCandidate[]
+    scoredshapes = IterationCandidates()
+    extracted = ExtractedShape[]
     
     # save octree level of a FittedShape
     shape_octree_level = Int[]
@@ -86,7 +86,7 @@ function ransac(pc, params; reset_rand = false)
     # iterate begin
     for k in 1:itermax
         if count(pc.isenabled) < τ
-            @logmsg IterInf "Break at $k it., because left only: $(count(pc.isenabled))"
+            @logmsg IterInf "Break at $k iteration, because left less points, then τ"
             break
         end
         # generate minsubsetN candidate
@@ -178,14 +178,14 @@ function ransac(pc, params; reset_rand = false)
 
         # considered so far k*minsubsetN pcs. minimal sets
         countcandidates[3] = k*minsubsetN
-        # length of the candidate array
+        # length of the candidate struct
 
-        countcandidates[1] = size(scoredshapes, 1)
-        if ! (size(scoredshapes, 1) < 1)
+        countcandidates[1] = length(scoredshapes)
+        if ! (length(scoredshapes) < 1)
             best = findhighestscore(scoredshapes)
-            bestshape = scoredshapes[best.index]
+            bestshape = scoredshapes.shapes[best.index]
             # TODO: refine if best.overlap
-            scr = E(bestshape.score)
+            scr = E(scoredshapes.scores[best.index])
             #best_length = size(bestshape.inpoints, 1)
 
             s = chooseS(countcandidates, extract_s)
@@ -202,13 +202,13 @@ function ransac(pc, params; reset_rand = false)
                 # TODO: proper refit, not only getting the points that fit to that shape
                 # what do you mean by refit?
                 # refit on the whole pointcloud
-                refit!(bestshape, pc, params)
+                extr_shape = refit(bestshape, pc, params)
                 
-                @logmsg IterInf "Extracting best: $(strt(bestshape.shape)) score: $scr, size: $(size(bestshape.inpoints,1)) ps."
+                @logmsg IterInf "Extracting best: $(strt(bestshape)) score: $scr, size: $(size(extr_shape.inpoints,1)) ps."
                 # invalidate indexes
-                invalidate_indexes!(pc, bestshape)
+                invalidate_indexes!(pc, extr_shape.inpoints)
                 # extract the shape and delete from scoredshapes
-                push!(extracted, bestshape)
+                push!(extracted, extr_shape)
                 deleteat!(scoredshapes, best.index)
                 # remove invalid shapes
                 removeinvalidshapes!(pc, scoredshapes)
