@@ -24,7 +24,7 @@ RANSAC.defaultshapeparameters
 RANSAC.fit
 RANSAC.scorecandidate
 RANSAC.estimatescore
-RANSAC.refit!
+RANSAC.refit
 RANSAC.strt
 ```
 

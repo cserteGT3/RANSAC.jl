@@ -162,22 +162,20 @@ function scorecandidate(pc, candidate::FittedCone, subsetID, params)
     inder = cp.&ens
     inpoints = (pc.subsets[subsetID])[inder]
     score = estimatescore(length(pc.subsets[subsetID]), pc.size, length(inpoints))
-    return ShapeCandidate(candidate, score, inpoints)
+    return (score, inpoints)
 end
 
 ## refit
 
 """
-    refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedCone}
+    refit(s::T, pc, params) where {T<:FittedCone}
 
-Refit cone. Only s.inpoints is updated.
+Refit cone.
 """
-function refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedCone}
+function refit(s::T, pc, params) where {T<:FittedCone}
     # TODO: use octree for that
     p = @view pc.vertices[pc.isenabled]
     n = @view pc.normals[pc.isenabled]
-    cp = compatiblesCone(s.shape, p, n, params)
-    empty!(s.inpoints)
-    append!(s.inpoints, ((1:pc.size)[pc.isenabled])[cp])
-    return nothing
+    cp = compatiblesCone(s, p, n, params)
+    return ExtractedShape(s, ((1:pc.size)[pc.isenabled])[cp])
 end

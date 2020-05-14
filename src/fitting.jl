@@ -28,7 +28,7 @@ It should return an instance of `MyShape` or `nothing`.
 function fit end
 
 """
-Compute the score of a candidate and return a `ShapeCandidate`.
+Compute the score of a candidate and return its score and the corresponding points.
 
 # Implementation
 Signature: `scorecandidate(pc, candidate::MyShape, subsetID, params)`.
@@ -37,7 +37,7 @@ Signature: `scorecandidate(pc, candidate::MyShape, subsetID, params)`.
 You must count the compatible points (that are enabled) in the given subset.
 You can get the points by: `pc.vertices[pc.subsets[subsetID]]` and normals similarly.
 Use the [`estimatescore`](@ref) function to estimate a score,
-then return a `ShapeCandidate`: `ShapeCandidate(candidate, score, inpoints)`,
+then return a  `(score, inpoints)`,
 where `inpoints` is the indexes of the points, that are counted.
 """
 function scorecandidate end
@@ -47,19 +47,12 @@ Refit a primitive to thw whole point cloud, say search for all the compatible po
 in the point cloud.
 
 # Implementation
-Signature: `refit!(s::ShapeCandidate{T}, pc, params) where {T<:MyShape}`.
+Signature: `refit(s::T, pc, params) where {T<:MyShape}`.
 
 Search all the compatible (and enabled) points in the whole point cloud.
-After finding the indexes, update `s.inpoints` by:
-
-```julia
-empty!(s.inpoints)
-append!(s.inpoints, newindexes)
-```
-
-Return `nothing`.
+After finding the indexes, return an [`ExtractedShape`](@ref).
 """
-function refit! end
+function refit end
         
 """
 Return a string that tells the "human-readable" type
@@ -73,63 +66,88 @@ function strt end
 # functions to work with primitives
 
 """
-    struct ShapeCandidate{S<:FittedShape}
+    ExtractedShape{S<:FittedShape}
 
-Store a primitive (`ShapeCandidate`) with its score(`ConfidenceInterval`)
+Store an extraced primitive (`FittedShape`)
 and the points that belong to the shape as `Vector{Int}`.
 """
-struct ShapeCandidate{S<:FittedShape}
+struct ExtractedShape{S<:FittedShape}
     shape::S
-    score::ConfidenceInterval
     inpoints::Vector{Int}
 end
 
-Base.show(io::IO, x::ShapeCandidate{A}) where {A} =
+Base.show(io::IO, x::ExtractedShape{A}) where {A} =
     print(io, "Cand: (", x.shape, "), $(length(x.inpoints)) ps")
 
-getscore(shapecandidate::ShapeCandidate) = shapecandidate.score
+"""
+    struct IterationCandidates
+
+Store shapes, their score and their points in a struct of arrays.
+"""
+struct IterationCandidates
+    shapes::Vector{FittedShape}
+    scores::Vector{ConfidenceInterval}
+    inpoints::Vector{Vector{Int}}
+end
+
+function IterationCandidates()
+    return IterationCandidates(FittedShape[], ConfidenceInterval[], Vector{Vector{Int}}())
+end
+
+Base.length(x::IterationCandidates) = size(x.shapes, 1)
+
+Base.show(io::IO, x::IterationCandidates) =
+    print(io, "IterationCandidates: $(size(x.shapes,1)) candidates")
 
 """
-    findhighestscore(A)
+    recordscore!(ic::IterationCandidates, shape, score, inpoints)
 
-Find the largest expected value in an array of `ShapeCandidate`s.
+Record the score and inpoints of a shape to an `IterationCandidates`.
+"""
+function recordscore!(ic::IterationCandidates, shape, score, inpoints)
+    push!(ic.shapes, shape)
+    push!(ic.scores, score)
+    push!(ic.inpoints, inpoints)
+    return ic
+end
+
+"""
+    deleteat!(ic::IterationCandidates, args...)
+
+Forward `deleteat!` to field arrays.
+"""
+function deleteat!(ic::IterationCandidates, arg)
+    deleteat!(ic.shapes, arg)
+    deleteat!(ic.scores, arg)
+    deleteat!(ic.inpoints, arg)
+    return ic
+end
+
+"""
+    findhighestscore(A::IterationCandidates)
+
+Find the largest expected value in an `IterationCandidates`.
 
 Indicate if there's an overlap.
 """
-function findhighestscore(A)
+function findhighestscore(A::IterationCandidates)
     (length(A) > 0) || return (index = 0, overlap = false)
     ind = 1
-    highest = E(getscore(A[1]))
-    for i in eachindex(A)
-        esc = E(getscore(A[i]))
+    scores = A.scores
+    highest = E(scores[1])
+    for i in eachindex(scores)
+        esc = E(scores[i])
         if esc > highest
             highest = esc
             ind = i
         end
     end
 
-    for i in eachindex(A)
+    for i in eachindex(scores)
         i == ind && continue
-        isoverlap(getscore(A[i]), getscore(A[ind])) && return (index = ind, overlap = true)
+        isoverlap(scores[i], scores[ind]) && return (index = ind, overlap = true)
     end
     return (index = ind, overlap = false)
-end
-
-"""
-    largestshape(A)
-
-Find the largest shape in an array of `ShapeCandidate`s.
-"""
-function largestshape(A)
-    length(A) < 1 && return (index = 0, size = 0)
-    bestscore = length(A[1].inpoints)
-    bestind = 1
-    for i in eachindex(A)
-        length(A[i].inpoints) <= bestscore && continue
-        bestscore = length(A[i].inpoints)
-        bestind = i
-    end
-    return (index = bestind, size = bestscore)
 end
 
 function forcefitshapes!(points, normals, parameters, candidates, level_array, octree_lev)
@@ -144,16 +162,16 @@ function forcefitshapes!(points, normals, parameters, candidates, level_array, o
 end
 
 """
-    scorecandidates!(pc, scored_cands, candidates, subsetID, params, octree_levels)
+    scorecandidates!(pc, iterationcandidates, candidates, subsetID, params, octree_levels)
 
 Call [`scorecandidate`](@ref) for all candidates.
 Reset candidate, and octree level lists (`candidates` and `octree_levels` respectively).
 """
-function scorecandidates!(pc, scored_cands, candidates, subsetID, params, octree_levels)
+function scorecandidates!(pc, iterationcandidates, candidates, subsetID, params, octree_levels)
     for i in eachindex(candidates)
-        sc = scorecandidate(pc, candidates[i], subsetID, params)
-        pc.levelscore[octree_levels[i]] += E(sc.score)
-        push!(scored_cands, sc)
+        sc, ip = scorecandidate(pc, candidates[i], subsetID, params)
+        pc.levelscore[octree_levels[i]] += E(sc)
+        recordscore!(iterationcandidates, candidates[i], sc, ip)
     end
     empty!(candidates)
     empty!(octree_levels)
@@ -161,32 +179,32 @@ function scorecandidates!(pc, scored_cands, candidates, subsetID, params, octree
 end
 
 """
-    invalidate_indexes!(pc, shape)
+    invalidate_indexes!(pc, indexlist)
 
-Invalidate indexes of the to-be-extracted shape's points.
+Invalidate indexes of the to-be-extracted shape's points, based on the `indexlist`.
 """
-function invalidate_indexes!(pc, shape)
-    for a in shape.inpoints
+function invalidate_indexes!(pc, indexlist)
+    for a in indexlist
         pc.isenabled[a] = false
     end
     return nothing
 end
 
 """
-    removeinvalidshapes!(pc, shapelist)
+    removeinvalidshapes!(pc, candidates::IterationCandidates)
 
-Remove shapes from `shapelist`, which are invalid, say have points that are not enabled.
+Remove shapes from `candidates`, which are invalid, say have points that are not enabled.
 """
-function removeinvalidshapes!(pc, shapelist)
+function removeinvalidshapes!(pc, candidates::IterationCandidates)
     toremove = Int[]
-    for i in eachindex(shapelist)
-        for a in shapelist[i].inpoints
+    for i in eachindex(candidates.inpoints)
+        for a in candidates.inpoints[i]
             if ! pc.isenabled[a]
                 push!(toremove, i)
                 break
             end
         end
     end
-    deleteat!(shapelist, toremove)
+    deleteat!(candidates, toremove)
     return nothing
 end

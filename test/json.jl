@@ -34,11 +34,11 @@
 
     @test d_cone == Dict("type"=>"cone", "apex"=>ap1, "axis"=>ax1, "opang"=>0.785, "outwards"=>true)
 
-    ## ShapeCandidate
-    sc1 = ShapeCandidate(s_plane, ConfidenceInterval(0.5,0.9), [1])
+    ## ExtractedShape
+    sc1 = ExtractedShape(s_plane, [1])
     @test RANSAC.toDict(sc1) == d_plane
 
-    ss1 = ShapeCandidate(s_cone, ConfidenceInterval(0,1.0), [1,2,3])
+    ss1 = ExtractedShape(s_cone, [1,2,3])
     @test RANSAC.toDict(ss1) == d_cone
 
     ## Array of primitives
@@ -49,7 +49,7 @@
 
     @test d_sa == Dict("primitives"=>sa_dict)
 
-    ## Array of ShapeCandidate
+    ## Array of ExtractedShape
     sc_a = [sc1, ss1]
     sc_a_dict = [d_plane, d_cone]
 

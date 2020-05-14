@@ -1,7 +1,8 @@
 struct ConfidenceInterval
     min::Float64
     max::Float64
-    ConfidenceInterval(x, y) = x > y ? error("out of order") : new(x, y)
+    E::Float64
+    ConfidenceInterval(x, y) = x > y ? error("out of order") : new(x, y, (x+y)/2)
 end
 
 Base.show(io::IO, x::ConfidenceInterval) =
@@ -39,7 +40,7 @@ end
 
 Expected value of a [ConfidenceInterval](@ref).
 """
-E(x::ConfidenceInterval) = (x.min+x.max)/2
+E(x::ConfidenceInterval) = x.E
 
 
 """

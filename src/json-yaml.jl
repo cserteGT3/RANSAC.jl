@@ -15,16 +15,16 @@ function toDict(s::FittedShape)
     d
 end
 
-toDict(sc::ShapeCandidate) = toDict(sc.shape)
+toDict(sc::ExtractedShape) = toDict(sc.shape)
 
 """
-    toDict(a::Vector{T}) where {T<:Union{FittedShape,ShapeCandidate}}
+    toDict(a::Vector{T}) where {T<:Union{FittedShape,ExtractedShape}}
 
 Convert a vector of shapes to a `Dict{String,Any}`.
 The top key is a "primitive", whose value is the array of the shapes.
 See the documentation for examples.
 """
-function toDict(a::Vector{T}) where {T<:Union{FittedShape,ShapeCandidate}}
+function toDict(a::Vector{T}) where {T<:Union{FittedShape,ExtractedShape}}
     ad = toDict.(a)
     return Dict("primitives"=>ad)
 end
@@ -32,12 +32,12 @@ end
 """
     printJSON(io::IO, s, indent)
 
-Print a `FittedShape`, `ShapeCandidate` or a vector of them to `io` as a JSON string.
+Print a `FittedShape`, `ExtractedShape` or a vector of them to `io` as a JSON string.
 With `indent` given, it prints a representation with newlines and indents.
 
 # Arguments:
 - `io::IO`: must be specified, use `stdout` for interactive purposes.
-- `s`: a `FittedShape`, `ShapeCandidate` or a vector of one of them.
+- `s`: a `FittedShape`, `ExtractedShape` or a vector of one of them.
 - `indent::Int`: indentation level.
 """
 function exportJSON(io::IO, s, indent)
@@ -47,12 +47,12 @@ end
 """
     printJSON(io::IO, s)
 
-Print a `FittedShape`, `ShapeCandidate`
+Print a `FittedShape`, `ExtractedShape`
 or a vector of them to `io` as a compact JSON string.
 
 # Arguments:
 - `io::IO`: must be specified, use `stdout` for interactive purposes.
-- `s`: a `FittedShape`, `ShapeCandidate` or a vector of one of them.
+- `s`: a `FittedShape`, `ExtractedShape` or a vector of one of them.
 """
 function exportJSON(io::IO, s)
     JSON.print(io, toDict(s))
