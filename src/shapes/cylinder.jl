@@ -229,6 +229,6 @@ function refit(s::T, pc, params) where {T<:FittedCylinder}
     # TODO: use octree for that
     pcv = @view pc.vertices[pc.isenabled]
     pcn = @view pc.normals[pc.isenabled]
-    cp = compatiblesCylinder(s.shape, pcv, pcn, params)
+    cp = compatiblesCylinder(s, pcv, pcn, params)
     return ExtractedShape(s, ((1:pc.size)[pc.isenabled])[cp])
 end

@@ -180,7 +180,7 @@ function refit(s::T, pc, params) where {T<:FittedSphere}
     # TODO: use octree for that
     pcv = @view pc.vertices[pc.isenabled]
     pcn = @view pc.normals[pc.isenabled]
-    cpl = compatiblesSphere(s.shape, pcv, pcn, params)
+    cpl = compatiblesSphere(s, pcv, pcn, params)
     # verti: összes pont indexe, ami enabled és kompatibilis
     verti = (1:pc.size)[pc.isenabled]
     #underEn = uo.under .& cpl

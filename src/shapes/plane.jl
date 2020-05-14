@@ -138,6 +138,6 @@ function refit(s::T, pc, params) where {T<:FittedPlane}
     # TODO: use octree for that
     pcv = @view pc.vertices[pc.isenabled]
     pcn = @view pc.normals[pc.isenabled]
-    cp = compatiblesPlane(s.shape, pcv, pcn, params)
+    cp = compatiblesPlane(s, pcv, pcn, params)
     return ExtractedShape(s, ((1:pc.size)[pc.isenabled])[cp])
 end
