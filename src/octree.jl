@@ -22,7 +22,7 @@ Also return nothing, if the asked level is below the minimum level, currently se
 """
 function getnthcell(c::Cell, n)
     #n < 1 && throw(BoundsError(c, n))
-    n < 1 && return
+    n < 1 && return nothing
     maxd = c.data.depth
     n == maxd && return c
     for cell in allparents(c)
