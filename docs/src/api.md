@@ -149,6 +149,12 @@ The `ransac()` function does the iteration.
 ransac
 ```
 
+The iteration returns an array of `ExtractedShape`:
+
+```@docs
+ExtractedShape
+```
+
 ## Exporting the results
 
 With the help of [JSON.jl](https://github.com/JuliaIO/JSON.jl), the resulted shapes can be easily saved to JSON files.
