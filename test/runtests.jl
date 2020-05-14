@@ -26,6 +26,10 @@ end
     include("yaml.jl")
 end
 
+@testset "confidence interval" begin
+    include("confidenceintervals.jl")
+end
+
 #=
 @testset "parameterspace bitmap" begin
     include("parameterspacebitmap.jl")
