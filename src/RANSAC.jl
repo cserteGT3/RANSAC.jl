@@ -4,7 +4,7 @@ using LinearAlgebra
 using Random
 using Logging
 using Logging: default_logcolor
-using StaticArrays: SVector, SMatrix
+using StaticArrays: SVector, SMatrix, MMatrix, StaticArray
 using RegionTrees
 #using Images: label_components, component_lengths, component_subscripts
 using ExtractMacro

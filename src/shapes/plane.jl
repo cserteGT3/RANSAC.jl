@@ -40,19 +40,7 @@ function fit(::Type{FittedPlane}, p, n, params)
     @assert lp == length(n) "Size must be the same."
     crossv = normalize(cross(p[2]-p[1], p[3]-p[1]))
     # how many point's normal must be checked
-    if norm(crossv) < collin_threshold
-        # The points are collinear
-        # solution: use 1 more point
-        if length(p) < 4
-            # return with false, cause no more points can be used
-            return nothing
-        end
-        crossv = normalize(cross(p[2]-p[4], p[3]-p[1]))
-        if norm(crossv) < collin_threshold
-            # return false, cause these are definitely on one line
-            return nothing
-        end
-    end
+    norm(crossv) < collin_threshold && return nothing
     # here we have the normal of the theoretical plane
     norm_ok = falses(lp)
     invnorm_ok = falses(lp)
@@ -111,7 +99,7 @@ function project2plane(plane, points)
     #    answer[i] = eltype(answer)(dot(o_x,v), dot(o_y,v), dot(o_z,v))
     #end
     #answer
-    return [proj_plane(ps) for ps in points]
+    return (proj_plane(ps) for ps in points)
 end
 
 """
@@ -130,11 +118,15 @@ function compatiblesPlane(plane, points, normals, params)
     @assert length(points) == length(normals) "Size must be the same."
     projecteds = project2plane(plane, points)
     # eps check
-    c1 = [abs(a[3]) < ϵ_plane for a in projecteds]
+    #c1 = [abs(a[3]) < ϵ_plane for a in projecteds]
     # alpha check
-    c2 = [isparallel(plane.normal, normals[i], α_plane) && c1[i] for i in eachindex(normals)]
-    # projecteds[c2] are the compatible points
-    return c2
+    #c2 = [isparallel(plane.normal, normals[i], α_plane) && c1[i] for i in eachindex(normals)]
+    # projecteds[comp] are the compatible points
+
+    # zip projected points and normals
+    zpn = zip(projecteds, normals) 
+    comp = [isparallel(plane.normal, n, α_plane) && (abs(p[3]) < ϵ_plane) for (p,n) in zpn]
+    return comp
 end
 
 """
@@ -144,7 +136,9 @@ Refit plane. Only s.inpoints is updated.
 """
 function refit!(s::ShapeCandidate{T}, pc, params) where {T<:FittedPlane}
     # TODO: use octree for that
-    cp = compatiblesPlane(s.shape, pc.vertices[pc.isenabled], pc.normals[pc.isenabled], params)
+    pcv = @view pc.vertices[pc.isenabled]
+    pcn = @view pc.normals[pc.isenabled]
+    cp = compatiblesPlane(s.shape, pcv, pcn, params)
     empty!(s.inpoints)
     append!(s.inpoints, ((1:pc.size)[pc.isenabled])[cp])
     return nothing

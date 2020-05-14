@@ -36,10 +36,8 @@ end
 
 ## fitting
 
-function fit3pointcone(psok, nsok)
+function fit3pointcone(p, n)
     # rank of the coefficient matrix
-    p = @view psok[1:3]
-    n = @view nsok[1:3]
     r = Array{Float64,2}(undef, (3,3))
     for i in 1:3; for j in 1:3; r[i,j] = n[i][j]; end; end
     rank(r) == 3 || return nothing
@@ -50,7 +48,7 @@ function fit3pointcone(psok, nsok)
     # apex
     ap = SVector{3, Float64}(r\ds)
     # axis
-    axis3p = [ap+((v-ap)/norm(v-ap)) for v in p]
+    axis3p = [ap+((p[i]-ap)/norm(p[i]-ap)) for i in 1:3]
     ax = normalize(cross(axis3p[2]-axis3p[1], axis3p[3]-axis3p[1]))
     midp = sum(axis3p)/3
     dirv = normalize(midp-ap)
@@ -134,14 +132,21 @@ function compatiblesCone(cone, points, normals, params)
     #@unpack α_cone, ϵ_cone = params
     @extract params : params_cone=cone
     @extract params_cone : α_cone=α ϵ_cone=ϵ
-    calcs = [project2cone(cone, points[i]) for i in eachindex(points)]
+    calcs = (project2cone(cone, points[i]) for i in eachindex(points))
 
     # eps check
-    c1 = [abs(calcs[i][1]) < ϵ_cone for i in eachindex(calcs)]
+    # c1 = [abs(calcs[i][1]) < ϵ_cone for i in eachindex(calcs)]
+    #if cone.outwards
+    #    c2=[isparallel(calcs[i][2], normals[i], α_cone) && c1[i] for i in eachindex(calcs)]
+    #else
+    #    c2=[isparallel(-calcs[i][2], normals[i], α_cone) && c1[i] for i in eachindex(calcs)]
+    #end
+
+    zcn = zip(calcs, normals)
     if cone.outwards
-        c2=[isparallel(calcs[i][2], normals[i], α_cone) && c1[i] for i in eachindex(calcs)]
+        c2=[isparallel(c[2], n, α_cone) && (abs(c[1]) < ϵ_cone) for (c,n) in zcn]
     else
-        c2=[isparallel(-calcs[i][2], normals[i], α_cone) && c1[i] for i in eachindex(calcs)]
+        c2=[isparallel(-c[2], n, α_cone) && (abs(c[1]) < ϵ_cone) for (c,n) in zcn]
     end
     return c2
 end

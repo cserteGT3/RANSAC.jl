@@ -132,7 +132,7 @@ function largestshape(A)
     return (index = bestind, size = bestscore)
 end
 
-function forcefitshapes!(pc, points, normals, parameters, candidates, level_array, octree_lev)
+function forcefitshapes!(points, normals, parameters, candidates, level_array, octree_lev)
     @extract parameters.iteration : shape_types
     for s in shape_types
         fitted = fit(s, points, normals, parameters)
