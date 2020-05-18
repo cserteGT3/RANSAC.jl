@@ -1,18 +1,6 @@
 ## extend RegionTrees
 
 """
-    getcellandparents(cell::Cell)
-
-Collect the cell and it's parents into an array.
-"""
-function getcellandparents(cell::Cell)
-    p = allparents(cell)
-    aoc = [i for i in p]
-    pushfirst!(aoc, cell)
-    aoc
-end
-
-"""
     getnthcell(c::Cell, n)
 
 Get the cell at the n-th level (at the depth `n`) from the parents of a cell.
@@ -25,8 +13,10 @@ function getnthcell(c::Cell, n)
     n < 1 && return nothing
     maxd = c.data.depth
     n == maxd && return c
-    for cell in allparents(c)
-        cell.data.depth == n && return cell
+    while true
+        c = parent(c)
+        c === nothing && return nothing
+        c.data.depth == n && return c
     end
     return nothing
 end
