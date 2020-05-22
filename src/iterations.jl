@@ -45,8 +45,6 @@ function ransac(pc, params; reset_rand = false)
     # @unpack extract_s, terminate_s = params
     start_time = time_ns()
 
-    random_points = randperm(pc.size)
-    
     # FittedShape[] is abstract array, which is bad
     candidates = FittedShape[]
     scoredshapes = IterationCandidates()
@@ -79,7 +77,7 @@ function ransac(pc, params; reset_rand = false)
         end
         # generate minsubsetN candidate
         for i in 1:minsubsetN
-            sampling_res = samplepointcloud!(sd, pc, octree, random_points, params)
+            sampling_res = samplepointcloud!(sd, pc, octree, params)
             sampling_res[1] || continue
 
             # sd: indexes of the actually selected points

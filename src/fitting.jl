@@ -210,17 +210,11 @@ function removeinvalidshapes!(pc, candidates::IterationCandidates)
 end
 
 
-function samplepointcloud!(indexv, pointcloud, octree, rperm, params)
+function samplepointcloud!(indexv, pointcloud, octree, params)
     @extract params : iter_params=iteration
     @extract iter_params : drawN minsubsetN prob_det τ
 
-    #TODO: that is unsafe, but probably won't interate over the whole pc
-    # select a random point
-    if length(rperm) < 10
-        rperm = randperm(pointcloud.size)
-        @logmsg IterLow1 "Recomputing randperm."
-    end
-    r1 = popfirst!(rperm)
+    r1 = rand(1:pointcloud.size)
 
     #TODO: helyettesíteni valami okosabbal,
     # pl mindig az első enabled - ha már nagyon sok ki van véve,
