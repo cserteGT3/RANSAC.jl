@@ -77,7 +77,7 @@ function ransac(pc, params; reset_rand = false)
         end
         # generate minsubsetN candidate
         for i in 1:minsubsetN
-            sampling_res = samplepointcloud!(sd, pc, octree, params)
+            sampling_res = samplepointcloud4!(sd, pc, params)
             sampling_res[1] || continue
 
             # sd: indexes of the actually selected points
