@@ -20,14 +20,14 @@ julia> using FileIO
 julia> m = load("fandisk_input.obj");
 ```
 
-## Constructing a `PointCloud`
+## Constructing a `RANSACCloud`
 
 Currently the package only handles vectors of `Float64`.
 
 ```julia
 julia> using RANSAC
 
-julia> pc = PointCloud(m.position, m.normals, 8);
+julia> pc = RANSACCloud(m.position, m.normals, 8);
 ```
 
 ## Set the parameters

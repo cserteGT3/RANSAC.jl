@@ -6,14 +6,16 @@ Run the RANSAC algorithm on a pointcloud with the given parameters.
 Return the extracted primitives and the time it took to run the algorithm (in seconds).
 
 # Arguments
-- `pc::PointCloud`: the point cloud.
+- `pc::RANSACCloud`: the point cloud.
 - `params::NamedTuple`: parameters.
 - `setenabled::Bool`: if `true`: set every point to enabled.
 - `reset_rand::Bool=false`: if `true`, resets the random seed with `Random.seed!(1234)`
 """
 function ransac(pc, params, setenabled; reset_rand = false)
     if setenabled
-        pc.isenabled = trues(pc.size)
+        for i in eachindex(pc.isenabled)
+            pc.isenabled[i] = true
+        end
     end
     ransac(pc, params, reset_rand=reset_rand)
 end
@@ -26,7 +28,7 @@ Run the RANSAC algorithm on a pointcloud with the given parameters.
 Return the extracted primitives and the time it took to run the algorithm (in seconds).
 
 # Arguments
-- `pc::PointCloud`: the point cloud.
+- `pc::RANSACCloud`: the point cloud.
 - `params::NamedTuple`: parameters.
 - `reset_rand::Bool=false`: if `true`, resets the random seed with `Random.seed!(1234)`
 """
@@ -42,20 +44,6 @@ function ransac(pc, params; reset_rand = false)
     # @unpack itermax, shape_types = params
     # @unpack extract_s, terminate_s = params
     start_time = time_ns()
-
-    # build an octree
-    subsetN = length(pc.subsets)
-    @logmsg IterLow1 "Building octree."
-    minV, maxV = findAABB(pc.vertices)
-    octree=Cell(SVector{3}(minV), SVector{3}(maxV), OctreeNode(pc, collect(1:pc.size), 1))
-    r = OctreeRefinery(8)
-    adaptivesampling!(octree, r)
-    @logmsg IterLow1 "Octree finished."
-    # initialize levelscore vector to 0
-    # initialize levelweight vector to 1/d
-    octree_d = octreedepth(octree)
-    pc.levelscore = zeros(eltype(eltype(pc.vertices)), (octree_d,))
-    pc.levelweight = fill!(similar(pc.levelscore), 1/octree_d)
 
     random_points = randperm(pc.size)
     
@@ -106,7 +94,7 @@ function ransac(pc, params; reset_rand = false)
                 r1 = rand(1:pc.size)
             end
             # search for r1 in octree
-            current_leaf = findleaf(octree, pc.vertices[r1])
+            current_leaf = findleaf(pc.octree, pc.vertices[r1])
             # get the depth
             max_depth = current_leaf.data.depth
             # get the best level index == best depth
@@ -234,35 +222,3 @@ function ransac(pc, params; reset_rand = false)
     @logmsg IterInf "Iteration finished in $fint seconds with $(length(extracted)) extracted and $(length(scoredshapes)) scored shapes."
     return extracted, fint
 end # ransac function
-
-"""
-    rerunleftover!(pc, nofs, params, sofarextr; reset_rand=true)
-
-For example: `rerunleftover(pcr, 4, p, extr, reset_rand=true)`.
-It modifies the list of extracted candidates (`sofarextr`) and `pointcloud.isenabled`.
-"""
-function rerunleftover!(pc, nofs, params, sofarextr; reset_rand=true)
-    lftvr_i = collect(1:pc.size)[pc.isenabled]
-    @logmsg IterInf "Rerunning ransac."
-    newpc = PointCloud(pc.vertices[lftvr_i], pc.normals[lftvr_i], nofs)
-    extr2, rtime2 = ransac(newpc, params, true; reset_rand=reset_rand);
-    @warn "Additional $rtime2 sec. must be added!!!"
-    for i in eachindex(extr2)
-        scored = extr2[i]
-        old_indexes = lftvr_i[scored.inpoints]
-        scored.inpoints = old_indexes
-    end
-
-    # set isenabled to false
-    for j in eachindex(extr2)
-        for i in extr2[j].inpoints
-            if pc.isenabled[i]
-                pc.isenabled[i] = false
-            else
-                @warn "$j at $i made mistake."
-            end
-        end
-    end
-    append!(sofarextr, extr2)
-    return sofarextr, rtime2, extr2
-end

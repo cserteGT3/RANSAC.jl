@@ -44,11 +44,11 @@ using FileIO
 m = load("testm.obj")
 ```
 
-### Construct a `PointCloud`
+### Construct a `RANSACCloud`
 
 ```julia
 using RANSAC
-pc = PointCloud(m, 2)
+pc = RANSACCloud(m.position, m.normals, 2)
 rparams = ransacparameters()
 ```
 

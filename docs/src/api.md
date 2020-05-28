@@ -6,10 +6,9 @@ The private API is not mature yet, expect it to change.
 ## Representing a point cloud
 
 ```@docs
-PointCloud
-PointCloud(vertices, normals, subsets)
-PointCloud(vertices, normals, subsets, isenabled)
-PointCloud(vertices, normals, subsets, isenabled, size, levelweight, levelscore)
+RANSACCloud
+RANSACCloud(vertices, normals, numofsubsets::Int)
+RANSACCloud(vertices, normals, subsets)
 ```
 
 ## Parameters

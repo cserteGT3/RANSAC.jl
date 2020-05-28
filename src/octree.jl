@@ -22,9 +22,10 @@ function getnthcell(c::Cell, n)
 end
 
 """
-    mutable struct PointCloud{A<:AbstractArray, B<:AbstractArray, C<:AbstractArray}
+    struct RANSACCloud{A<:AbstractArray, B<:AbstractArray, C<:AbstractArray}
 
 A struct to wrap a point cloud. Stores the vertices, the normals,
+    the octree of the vertices,
     the subsets (as an array of arrays of vertice indexes),
     an array to indicate if a point is part of an already extracted primitive,
     the size of the point cloud (number of vertices),
@@ -33,78 +34,60 @@ A struct to wrap a point cloud. Stores the vertices, the normals,
     an array to store the sum of the score of already
     extracted primitives for each octree level.
 """
-mutable struct PointCloud{A<:AbstractArray, B<:AbstractArray, C<:AbstractArray}
+struct RANSACCloud{A<:AbstractArray, B<:AbstractArray, C<:AbstractArray}
     vertices::A
     normals::A
+    octree::Cell
     subsets::B
     isenabled::BitArray{1}
     size::Int
     levelweight::C
     levelscore::C
+    #= 
+    # Arguments
+    - `vertices::AbstractArray`: an array of vertices.
+    - `normals::AbstractArray`: an array of surface normals.
+    - `subsets::AbstractArray`: an array consisting of index-arrays,
+        that describe which point is in which subset.
+    - `isenabled::BitArray{1}`: an array indicating if the given point is enabled
+        (`true`) or already has been extracted (`false`).
+    - `size::Int`: number of points in the cloud.
+    - `levelweight::Vector{Float}`: the weight of every octree level.
+    - `levelscore::Vector{Float}`: for every octree level,
+        store the sum of the scores of primitives that have been extracted.
+    =#
 end
 
-Base.show(io::IO, x::PointCloud{A,B,C}) where {A,B,C} =
-    print(io, "PointCloud of size $(x.size) & $(length(x.subsets)) subsets")
+Base.show(io::IO, x::RANSACCloud{A,B,C}) where {A,B,C} =
+    print(io, "RANSACCloud of size $(x.size)")
 
-Base.show(io::IO, ::MIME"text/plain", x::PointCloud{A,B,C}) where {A,B,C} =
-    print(io, "PointCloud{$A,$B,$C}\n", x)
-
-"""
-    PointCloud(vertices, normals, subsets, isenabled, size, levelweight, levelscore)
-
-Constructor that converts vertices and normals to array of `SVector{3,Float64}`.
-
-# Arguments
-- `vertices::AbstractArray`: an array of vertices.
-- `normals::AbstractArray`: an array of surface normals.
-- `subsets::AbstractArray`: an array consisting of index-arrays,
-    that describe which point is in which subset.
-- `isenabled::BitArray{1}`: an array indicating if the given point is enabled
-    (`true`) or already has been extracted (`false`).
-- `size::Int`: number of points in the cloud.
-- `levelweight::Vector{Float}`: the weight of every octree level.
-- `levelscore::Vector{Float}`: for every octree level,
-    store the sum of the scores of primitives that have been extracted.
-"""
-function PointCloud(vertices, normals, subsets, isenabled, size, levelweight, levelscore)
-    vc = [SVector{3,Float64}(v) for v in vertices]
-    nc = [SVector{3,Float64}(v) for v in normals]
-    PointCloud(vc, nc, subsets, isenabled, size, levelweight, levelscore)
-end
+Base.show(io::IO, ::MIME"text/plain", x::RANSACCloud{A,B,C}) where {A,B,C} =
+    print(io, "RANSACCloud of size $(x.size) & $(length(x.subsets)) subsets")
 
 """
-    PointCloud(vertices, normals, subsets, isenabled)
+    RANSACCloud(vertices, normals, subsets)
 
-Construct a `PointCloud` with the given fields.
-Not defined fields default to: `size=size(vertices,1)`,
-`levelweight` and `levelscore` defaults to `[0]` with appropriate type.
+Construct a `RANSACCloud` with the given `subsets`.
+Converts vertices and normals to array of `SVector{3,Float64}`.
 """
-function PointCloud(vertices, normals, subsets, isenabled)
-    za = zeros(eltype(eltype(vertices)), 1)
-    return PointCloud(vertices, normals, subsets, isenabled, size(vertices,1),za,za)
+function RANSACCloud(vertices, normals, subsets)
+    @assert size(vertices) == size(normals) "Every point must have a normal."
+    vc = [SVector{3}(v) for v in vertices]
+    nc = [SVector{3}(v) for v in normals]
+    octree = buildoctree(vertices)
+    octree_d = octreedepth(octree)
+    s = size(vertices, 1)
+    levelscore = zeros(eltype(eltype(vertices)), (octree_d,))
+    levelweight = fill!(similar(levelscore), 1/octree_d)
+    RANSACCloud(vc, nc, octree, subsets, trues(s), s, levelscore, levelweight)
 end
 
 """
-    PointCloud(vertices, normals, subsets)
+    RANSACCloud(vertices, normals, numofsubsets::Int)
 
-Construct a `PointCloud` with the given fields.
-Not defined fields default to: `size=size(vertices,1)`,
-`levelweight` and `levelscore` defaults to `[0]` with appropriate type,
-and all vertices are enabled.
+Construct a `RANSACCloud` with `numofsubsets` number of random subsets.
 """
-function PointCloud(vertices, normals, subsets)
-    return PointCloud(vertices, normals, subsets, trues(size(vertices,1)))
-end
-
-"""
-    PointCloud(vertices, normals, numofsubsets::Int)
-
-Construct a `PointCloud` with `numofsubsets` number of random subsets.
-Every point is enabled, and other fields default to: `size=size(vertices,1)`,
-`levelweight` and `levelscore` defaults to `[0]` with appropriate type,
-and all vertices are enabled.
-"""
-function PointCloud(vertices, normals, numofsubsets::Int)
+function RANSACCloud(vertices, normals, numofsubsets::Int)
     @assert numofsubsets > 0 "At least 1 subset please!"
     # subset length
     function makesubset(l, n)
@@ -115,19 +98,17 @@ function PointCloud(vertices, normals, numofsubsets::Int)
         subsets
     end
     subs = makesubset(length(vertices), numofsubsets)
-    return PointCloud(vertices, normals, subs)
+    return RANSACCloud(vertices, normals, subs)
 end
 
 """
     struct OctreeNode{B<:AbstractArray}
 
 Store the data attached to one cell of the octree.
-Stores the reference of the point cloud,
-the indices of the points that are inside of the cell,
+Stores the indices of the points that are inside of the cell,
 and its own depth (depth of the root is 1).
 """
 struct OctreeNode{B<:AbstractArray, I<:Integer}
-    pointcloud::PointCloud
     incellpoints::B
     depth::I
 end
@@ -136,10 +117,11 @@ Base.show(io::IO, x::OctreeNode{A}) where {A} =
     print(io, "OctreeNode: $(length(x.incellpoints)) ps, $(x.depth) d")
 
 Base.show(io::IO, ::MIME"text/plain", x::OctreeNode{A}) where {A} =
-    print(io, """OctreeNode{$A}\n with a $(x.pointcloud.size) pointcloud, at depth $(x.depth)""")
+    print(io, """OctreeNode{$A}\n with $(length(x.incellpoints)) points, at depth $(x.depth)""")
 
-struct OctreeRefinery <: AbstractRefinery
+struct OctreeRefinery{A<:AbstractArray} <: AbstractRefinery
     count::Int64
+    vertices::A
 end
 
 function needs_refinement(r::OctreeRefinery, cell)
@@ -147,19 +129,15 @@ function needs_refinement(r::OctreeRefinery, cell)
 end
 
 function refine_data(r::OctreeRefinery, cell::Cell, indices)
+    # new boundary
     boundary = child_boundary(cell, indices)
-    # a visszatérési érték azoknak a pontoknak az indexe, amelyik a boundary-ban van
-    # de hogyan szerzem meg a pontokat az index alapján?-> pointcloud
-    points = @view cell.data.pointcloud.vertices[cell.data.incellpoints]
+    # points that are in the current cell
+    points = @view r.vertices[cell.data.incellpoints]
+    # points that are in the new cell
     bolarr = map(x -> iswithinrectangle(boundary, x), points)
-    # new cell inherits the weight and ++ of the depth
+    # new cell inherits ++ of the depth
     d = cell.data.depth + 1
-    lw = cell.data.pointcloud.levelweight
-    if d > length(lw)
-        push!(lw, convert(eltype(lw), d))
-        push!(cell.data.pointcloud.levelscore, convert(eltype(lw), d))
-    end
-    OctreeNode(cell.data.pointcloud, cell.data.incellpoints[bolarr], d)
+    OctreeNode(cell.data.incellpoints[bolarr], d)
 end
 
 """
@@ -191,17 +169,12 @@ function updatelevelweight(pc, x = 0.9)
 end
 
 """
-    octreedepth(pc::PointCloud, n::Int=8)
+    octreedepth(pc::RANSACCloud)
 
-Construct an octree with `OctreeRefinery(n)` and compute its depth.
-(It's only an octree if `n==8`, but nevermind.)
+Compute the depth of the octree stored in the cloud.
 """
-function octreedepth(pc::PointCloud, n::Int=8)
-    minV, maxV = findAABB(pc.vertices)
-    octree=Cell(SVector{3}(minV), SVector{3}(maxV), OctreeNode(pc, collect(1:pc.size), 1))
-    r = OctreeRefinery(n)
-    adaptivesampling!(octree, r)
-    return octreedepth(octree)
+function octreedepth(pc::RANSACCloud)
+    return octreedepth(pc.octree)
 end
 
 """
@@ -218,4 +191,18 @@ function octreedepth(cell::Cell)
         end
     end
     return maxdepth
+end
+
+"""
+    buildoctree(vertices)
+
+Build octree of the vertices.
+"""
+function buildoctree(vertices)
+    l = size(vertices, 1)
+    minV, maxV = findAABB(vertices)
+    root=Cell(SVector{3}(minV), SVector{3}(maxV), OctreeNode(collect(1:l), 1))
+    r = OctreeRefinery(8, vertices)
+    adaptivesampling!(root, r)
+    return root
 end

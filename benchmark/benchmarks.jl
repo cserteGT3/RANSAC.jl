@@ -8,7 +8,7 @@ SUITE["RANSAC"] = BenchmarkGroup()
 
 function setupme(iterations)
     vs, ns, norms4Plot, shape_s = examplepc3()
-    pcr = PointCloud(vs, ns, 32)
+    pcr = RANSACCloud(vs, ns, 32)
     #p = RANSACParameters{Float64}()
     # plane
     # p = RANSACParameters(p, ϵ_plane=0.3, α_plane=deg2rad(5))

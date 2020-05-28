@@ -37,7 +37,7 @@ export  ConfidenceInterval,
 
 export  OctreeNode,
         OctreeRefinery,
-        PointCloud
+        RANSACCloud
 
 export  FittedShape,
         FittedPlane,
@@ -50,8 +50,7 @@ export  FittedShape,
 export  project2plane,
         refit
 
-export  ransac,
-        rerunleftover!
+export  ransac
 
 export  nosource_debuglogger,
         nosource_infologger,
