@@ -120,7 +120,7 @@ Base.show(io::IO, ::MIME"text/plain", x::OctreeNode{A}) where {A} =
     print(io, """OctreeNode{$A}\n with $(length(x.incellpoints)) points, at depth $(x.depth)""")
 
 struct OctreeRefinery{A<:AbstractArray} <: AbstractRefinery
-    count::Int64
+    count::Int
     vertices::A
 end
 
