@@ -8,6 +8,7 @@ In this file I keep track of the changes from release to release.
 
 - complete rework of the fitting and `FittedShape` API
 - rework parameters: change Parameters.jl to named tuples (and `@extract` macro)
+- replace `PointCloud` with `RANSACCloud` and merge octree into it
 
 ## v0.3.0
 
