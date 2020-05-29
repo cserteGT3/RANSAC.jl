@@ -2,13 +2,15 @@
 
 In this file I keep track of the changes from release to release.
 
-## v0.4.0 - not yet released
+## v0.4.0
 
 #### Changes
 
-- complete rework of the fitting and `FittedShape` API
-- rework parameters: change Parameters.jl to named tuples (and `@extract` macro)
-- replace `PointCloud` with `RANSACCloud` and merge octree into it
+- complete rework of the fitting and `FittedShape` API - [docs](https://csertegt3.github.io/RANSAC.jl/stable/newprimitive/)
+- rework parameters: change Parameters.jl to named tuples (and `@extract` macro) - [docs](https://csertegt3.github.io/RANSAC.jl/stable/api/#Parameters-1)
+- replace `PointCloud` with `RANSACCloud` and merge octree into it - [docs](https://csertegt3.github.io/RANSAC.jl/stable/api/#Representing-a-point-cloud-1)
+- speed optimizations
+- removed the sampling functions, that generate shapes for testing - see [RANSACBenchmark.jl](https://github.com/cserteGT3/RANSACBenchmark.jl)
 
 ## v0.3.0
 
