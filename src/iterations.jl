@@ -45,8 +45,6 @@ function ransac(pc, params; reset_rand = false)
     # @unpack extract_s, terminate_s = params
     start_time = time_ns()
 
-    random_points = randperm(pc.size)
-    
     # FittedShape[] is abstract array, which is bad
     candidates = FittedShape[]
     scoredshapes = IterationCandidates()
@@ -79,72 +77,8 @@ function ransac(pc, params; reset_rand = false)
         end
         # generate minsubsetN candidate
         for i in 1:minsubsetN
-            #TODO: that is unsafe, but probably won't interate over the whole pc
-            # select a random point
-            if length(random_points)<10
-                random_points = randperm(pc.size)
-                @logmsg IterLow1 "Recomputing randperm."
-            end
-            r1 = popfirst!(random_points)
-
-            #TODO: helyettesíteni valami okosabbal,
-            # pl mindig az első enabled - ha már nagyon sok ki van véve,
-            # akkor az gyorsabb lesz
-            while ! pc.isenabled[r1]
-                r1 = rand(1:pc.size)
-            end
-            # search for r1 in octree
-            current_leaf = findleaf(pc.octree, pc.vertices[r1])
-            # get the depth
-            max_depth = current_leaf.data.depth
-            # get the best level index == best depth
-            curr_level_i = argmax(pc.levelweight[1:max_depth])
-            # get the best cell, based on the index
-            curr_cell = getnthcell(current_leaf, curr_level_i)
-            # an indexer array for random indexing
-            cell_ind = curr_cell.data.incellpoints
-            # frome the above, those that are enabled
-            bool_cell_ind = @view pc.isenabled[cell_ind]
-            enabled_inds = cell_ind[bool_cell_ind]
-            # if there's less enabled vertice than needed, skip the rest
-            size(enabled_inds, 1) < drawN && continue
-            sd[1] = r1
-
-            # made up heuristic
-            if size(enabled_inds, 1) < 20*drawN
-                # if there's few randoms, then just choose the first ones
-                # random index
-                sel = 0
-                # sd index
-                seli = 2
-                while true
-                    sel += 1
-                    # don't choose the first one
-                    enabled_inds[sel] == sd[1] && continue
-                    sd[seli] = enabled_inds[sel]
-                    seli += 1
-                    seli == drawN+1 && break
-                end
-                route = 1
-            else
-                # if there's enough random, randomly select
-                for idk in 2:drawN
-                    nexti = rand(1:size(enabled_inds, 1))
-                    if sd[1] == enabled_inds[nexti]
-                        # try oncemore
-                        nexti = rand(1:size(enabled_inds, 1))
-                    end
-                    #TODO: check if the same
-                    #TODO: do something with it
-                    sd[idk] = enabled_inds[nexti]
-                end
-                route = 2
-            end
-
-            if !allisdifferent(sd)
-                @logmsg IterLow1 "Selected indexes have same element: $sd; route $route was taken."
-                continue
-            end
+            sampling_res = samplepointcloud4!(sd, pc, params)
+            sampling_res[1] || continue
 
             # sd: indexes of the actually selected points
             #TODO: this should be something more general
@@ -152,7 +86,7 @@ function ransac(pc, params; reset_rand = false)
             f_v = @view pc.vertices[sd]
             f_n = @view pc.normals[sd]
 
-            forcefitshapes!(f_v, f_n, params, candidates, shape_octree_level, curr_level_i)
+            forcefitshapes!(f_v, f_n, params, candidates, shape_octree_level, sampling_res[2])
         end # for t
 
         # evaluate the compatible points, currently used as score

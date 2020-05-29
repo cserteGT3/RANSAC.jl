@@ -208,3 +208,212 @@ function removeinvalidshapes!(pc, candidates::IterationCandidates)
     deleteat!(candidates, toremove)
     return nothing
 end
+
+
+function samplepointcloud!(indexv, pointcloud, octree, params)
+    @extract params : iter_params=iteration
+    @extract iter_params : drawN minsubsetN prob_det τ
+
+    r1 = rand(1:pointcloud.size)
+
+    #TODO: helyettesíteni valami okosabbal,
+    # pl mindig az első enabled - ha már nagyon sok ki van véve,
+    # akkor az gyorsabb lesz
+    while ! pointcloud.isenabled[r1]
+        r1 = rand(1:pointcloud.size)
+    end
+    # search for r1 in octree
+    current_leaf = findleaf(octree, pointcloud.vertices[r1])
+    # get the depth
+    max_depth = current_leaf.data.depth
+    # get the best level index == best depth
+    curr_level_i = argmax(pointcloud.levelweight[1:max_depth])
+    # get the best cell, based on the index
+    curr_cell = getnthcell(current_leaf, curr_level_i)
+    # an indexer array for random indexing
+    cell_ind = curr_cell.data.incellpoints
+    # frome the above, those that are enabled
+    bool_cell_ind = @view pointcloud.isenabled[cell_ind]
+    enabled_inds = cell_ind[bool_cell_ind]
+    # if there's less enabled vertice than needed, skip the rest
+    size(enabled_inds, 1) < drawN && return (false, 0)
+    indexv[1] = r1
+
+    # made up heuristic
+    if size(enabled_inds, 1) < 20*drawN
+        # if there's few randoms, then just choose the first ones
+        # random index
+        sel = 0
+        # sd index
+        seli = 2
+        while true
+            sel += 1
+            # don't choose the first one
+            enabled_inds[sel] == indexv[1] && continue
+            indexv[seli] = enabled_inds[sel]
+            seli += 1
+            seli == drawN+1 && return (false, 1)
+        end
+        route = 1
+    else
+        # if there's enough random, randomly select
+        for idk in 2:drawN
+            nexti = rand(1:size(enabled_inds, 1))
+            if indexv[1] == enabled_inds[nexti]
+                # try oncemore
+                nexti = rand(1:size(enabled_inds, 1))
+            end
+            #TODO: check if the same
+            #TODO: do something with it
+            indexv[idk] = enabled_inds[nexti]
+        end
+        route = 2
+    end
+
+    if ! allisdifferent(indexv)
+        @logmsg IterLow1 "Selected indexes have same element: $indexv; route $route was taken."
+        return (false, 1)
+    end
+    return (true, curr_level_i)
+end
+
+
+function samplepointcloud2!(indexv, pointcloud, octree, params)
+    @extract params : iter_params=iteration
+    @extract iter_params : drawN minsubsetN prob_det τ
+    @assert drawN > 1 "At least 2 point is expected in this sampling function!"
+
+    r1 = rand(1:pointcloud.size)
+
+    #TODO: helyettesíteni valami okosabbal,
+    # pl mindig az első enabled - ha már nagyon sok ki van véve,
+    # akkor az gyorsabb lesz
+    while ! pointcloud.isenabled[r1]
+        r1 = rand(1:pointcloud.size)
+    end
+    # search for r1 in octree
+    current_leaf = findleaf(octree, pointcloud.vertices[r1])
+    # get the depth
+    max_depth = current_leaf.data.depth
+    # get the best level index == best depth
+    curr_level_i = argmax(pointcloud.levelweight[1:max_depth])
+    # get the best cell, based on the index
+    curr_cell = getnthcell(current_leaf, curr_level_i)
+    # an indexer array for random indexing
+    cell_ind = curr_cell.data.incellpoints
+    # frome the above, those that are enabled
+    bool_cell_ind = @view pointcloud.isenabled[cell_ind]
+    count(bool_cell_ind) < drawN && return (false, 0)
+
+    enabled_inds = cell_ind[bool_cell_ind]
+    # if there's less enabled vertice than needed, skip the rest
+    indexv[1] = r1
+
+    # if there's enough random, randomly select
+    for idk in 2:drawN
+        nexti = rand(1:size(enabled_inds, 1))
+        if indexv[1] == enabled_inds[nexti]
+            # try oncemore
+            nexti = rand(1:size(enabled_inds, 1))
+        end
+        #TODO: check if the same
+        #TODO: do something with it
+        indexv[idk] = enabled_inds[nexti]
+    end
+
+    if ! allisdifferent(indexv)
+        @logmsg IterLow1 "Selected indexes have same element: $indexv."
+        return (false, 1)
+    end
+    return (true, curr_level_i)
+end
+
+function samplepointcloud3!(indexv, pointcloud, octree, params)
+    @extract params : iter_params=iteration
+    @extract iter_params : drawN minsubsetN prob_det τ
+    @assert drawN > 1 "At least 2 point is expected in this sampling function!"
+
+    r1 = rand(1:pointcloud.size)
+
+    #TODO: helyettesíteni valami okosabbal,
+    # pl mindig az első enabled - ha már nagyon sok ki van véve,
+    # akkor az gyorsabb lesz
+    while ! pointcloud.isenabled[r1]
+        r1 = rand(1:pointcloud.size)
+    end
+    # search for r1 in octree
+    current_leaf = findleaf(octree, pointcloud.vertices[r1])
+    # get the depth
+    max_depth = current_leaf.data.depth
+    # get the best level index == best depth
+    curr_level_i = argmax(pointcloud.levelweight[1:max_depth])
+    # get the best cell, based on the index
+    curr_cell = getnthcell(current_leaf, curr_level_i)
+    # an indexer array for random indexing
+    cell_ind = curr_cell.data.incellpoints
+    # frome the above, those that are enabled
+    bool_cell_ind = @view pointcloud.isenabled[cell_ind]
+    count(bool_cell_ind) < drawN && return (false, 0)
+
+    enabled_inds = cell_ind[bool_cell_ind]
+    # if there's less enabled vertice than needed, skip the rest
+    indexv[1] = r1
+
+    # if there's enough random, randomly select
+    indexv[2:end] = rand(enabled_inds, drawN-1)
+
+    if ! allisdifferent(indexv)
+        @logmsg IterLow1 "Selected indexes have same element: $indexv."
+        return (false, 1)
+    end
+    return (true, curr_level_i)
+end
+
+function samplepointcloud4!(indexv, pointcloud, params)
+    @extract params : iter_params=iteration
+    @extract iter_params : drawN minsubsetN prob_det τ
+    @assert drawN > 1 "At least 2 point is expected in this sampling function!"
+
+    r1 = rand(1:pointcloud.size)
+
+    #TODO: helyettesíteni valami okosabbal,
+    # pl mindig az első enabled - ha már nagyon sok ki van véve,
+    # akkor az gyorsabb lesz
+    while ! pointcloud.isenabled[r1]
+        r1 = rand(1:pointcloud.size)
+    end
+    # search for r1 in octree
+    current_leaf = findleaf(pointcloud.octree, pointcloud.vertices[r1])
+    # get the depth
+    max_depth = current_leaf.data.depth
+    # get the best level index == best depth
+    curr_level_i = argmax(pointcloud.levelweight[1:max_depth])
+    # get the best cell, based on the index
+    curr_cell = getnthcell(current_leaf, curr_level_i)
+    # an indexer array for random indexing
+    cell_ind = curr_cell.data.incellpoints
+    # frome the above, those that are enabled
+    enabled_inds = @view cell_ind[pointcloud.isenabled[cell_ind]]
+    size(enabled_inds, 1) < drawN && return (false, 0)
+
+    # if there's less enabled vertice than needed, skip the rest
+    indexv[1] = r1
+
+    # if there's enough random, randomly select
+    for idk in 2:drawN
+        nexti = rand(1:size(enabled_inds, 1))
+        if indexv[1] == enabled_inds[nexti]
+            # try oncemore
+            nexti = rand(1:size(enabled_inds, 1))
+        end
+        #TODO: check if the same
+        #TODO: do something with it
+        indexv[idk] = enabled_inds[nexti]
+    end
+
+    if ! allisdifferent(indexv)
+        @logmsg IterLow1 "Selected indexes have same element: $indexv."
+        return (false, 1)
+    end
+    return (true, curr_level_i)
+end
