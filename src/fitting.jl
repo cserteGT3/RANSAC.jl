@@ -18,10 +18,11 @@ function defaultshapeparameters end
 Fit a primitive shape to point-normal pairs
 (passed as an array of points and an array of normals).
 The type of the primitive and a parameter named tuple is also passed.
+The RANSACCloud is also passed if needed for more advanced methods.
 Return `nothing`, if can't fit the shape to the points.
 
 # Implementation
-Signature: `fit(::Type{MyShape}, p, n, params)`.
+Signature: `fit(::Type{MyShape}, p, n, pc, params)`.
 
 It should return an instance of `MyShape` or `nothing`.
 """
@@ -150,10 +151,10 @@ function findhighestscore(A::IterationCandidates)
     return (index = ind, overlap = false)
 end
 
-function forcefitshapes!(points, normals, parameters, candidates, level_array, octree_lev)
+function forcefitshapes!(points, normals, parameters, candidates, level_array, octree_lev, pc)
     @extract parameters.iteration : shape_types
     for s in shape_types
-        fitted = fit(s, points, normals, parameters)
+        fitted = fit(s, points, normals, pc, parameters)
         fitted === nothing && continue
         push!(candidates, fitted)
         push!(level_array, octree_lev)

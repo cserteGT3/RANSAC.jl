@@ -79,12 +79,12 @@ function setsphereOuterity(sp, b)
 end
 
 """
-    fit(::Type{FittedSphere}, p, n, params)
+    fit(::Type{FittedSphere}, p, n, pc, params)
 
 Fit a sphere to 2 points. Additional points and their normals are used to validate the fit.
 Return `nothing` if points do not fit to a sphere.
 """
-function fit(::Type{FittedSphere}, p, n, params)
+function fit(::Type{FittedSphere}, p, n, pc, params)
     #@unpack ϵ_sphere, α_sphere = params
     @extract params : params_sphere=sphere
     @extract params_sphere : α_sphere=α ϵ_sphere=ϵ

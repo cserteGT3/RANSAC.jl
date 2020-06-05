@@ -125,14 +125,14 @@ function fit2pointcylinder(p, n, params)
 end
 
 """
-    fit(::Type{FittedCylinder}, p, n, params)
+    fit(::Type{FittedCylinder}, p, n, pc, params)
 
 Fit a cylinder to 2 points.
 Additional points and their normals are used to validate the fit.
 Normals are expected to be normalized.
 Return `nothing` if points do not fit to a cylinder.
 """
-function fit(::Type{FittedCylinder}, p, n, params)
+function fit(::Type{FittedCylinder}, p, n, pc, params)
     #@unpack ϵ_cylinder, α_cylinder, parallelthrdeg = params
     @extract params : params_sphere=sphere
     @extract params_sphere : ϵ_cylinder=ϵ α_cylinder=α

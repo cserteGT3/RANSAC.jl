@@ -23,14 +23,14 @@ function defaultshapeparameters(::Type{FittedPlane})
 end
 
 """
-    fit(::Type{FittedPlane}, p, n, params)
+    fit(::Type{FittedPlane}, p, n, pc, params)
 
 Fit a plane to 3 points. Their and additional point's normals are used to validate the fit.
 Return `nothing` if points do not fit to a plane.
 
 A collinearity check is used to not filter out points on one line.
 """
-function fit(::Type{FittedPlane}, p, n, params)
+function fit(::Type{FittedPlane}, p, n, pc, params)
     #@unpack α_plane, collin_threshold = params
     @extract params : params_plane=plane
     @extract params_plane : α_plane=α

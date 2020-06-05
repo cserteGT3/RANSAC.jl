@@ -114,12 +114,12 @@ function validatecone(cone, ps, ns, params)
 end
 
 """
-    fit(::Type{FittedCone}, p, n, params)
+    fit(::Type{FittedCone}, p, n, pc, params)
 
 Fit a cone to 3 points. Normals are expected to be normalized.
 Return `nothing` if points do not fit to a cone.
 """
-function fit(::Type{FittedCone}, p, n, params)
+function fit(::Type{FittedCone}, p, n, pc, params)
     fcone = fit3pointcone(p, n)
     fcone === nothing && return nothing
     valid_cone = validatecone(fcone, p, n, params)
