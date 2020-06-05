@@ -2,6 +2,12 @@
 
 In this file I keep track of the changes from release to release.
 
+## v0.5.0
+
+#### Changes
+
+- **BREAKING**: pass `RANSACCloud` too when fitting shapes - [docs](https://csertegt3.github.io/RANSAC.jl/stable/newprimitive/)
+
 ## v0.4.0
 
 #### Changes
