@@ -45,7 +45,7 @@ where `inpoints` is the indexes of the points, that are counted.
 function scorecandidate end
 
 """
-Refit a primitive to thw whole point cloud, say search for all the compatible points
+Refit a primitive to the whole point cloud, say search for all the compatible points
 in the point cloud.
 
 # Implementation
@@ -72,6 +72,11 @@ function strt end
 
 Store an extraced primitive (`FittedShape`)
 and the points that belong to the shape as `Vector{Int}`.
+
+# Implementation
+
+When constructing in a `refit` function, just call the constructor with:
+`ExtractedShape(shape, compatible_points)`.
 """
 struct ExtractedShape{S<:FittedShape}
     shape::S

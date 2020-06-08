@@ -14,7 +14,7 @@ The primitive must be subtype of `FittedShape` (`struct MyShape<:FittedShape`), 
 - `defaultshapeparameters()`
 - `fit()`
 - `scorecandidate()`
-- `refit!()`
+- `refit()`
 - `strt()`
 
 Docs of the functions:
