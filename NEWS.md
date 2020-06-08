@@ -8,6 +8,12 @@ In this file I keep track of the changes from release to release.
 
 - **BREAKING**: pass `RANSACCloud` too when fitting shapes - [docs](https://csertegt3.github.io/RANSAC.jl/stable/newprimitive/)
 
+### v0.5.1
+
+#### Changes
+
+- enable returning multiple shapes when fitting - [docs](https://csertegt3.github.io/RANSAC.jl/stable/newprimitive/)
+
 ## v0.4.0
 
 #### Changes

@@ -24,7 +24,8 @@ Return `nothing`, if can't fit the shape to the points.
 # Implementation
 Signature: `fit(::Type{MyShape}, p, n, pc, params)`.
 
-It should return an instance of `MyShape` or `nothing`.
+It should return `nothing` if the fit wasn't succesfull, `MyShape` otherwise.
+If the fit results multiple shapes, it can return an array of `MyShape`s as well.
 """
 function fit end
 
@@ -151,13 +152,17 @@ function findhighestscore(A::IterationCandidates)
     return (index = ind, overlap = false)
 end
 
+"""
+    forcefitshapes!(points, normals, parameters, candidates, level_array, octree_lev, pc)
+
+Call `fit` based on the given parameters and add valid candidates to
+"""
 function forcefitshapes!(points, normals, parameters, candidates, level_array, octree_lev, pc)
     @extract parameters.iteration : shape_types
     for s in shape_types
         fitted = fit(s, points, normals, pc, parameters)
         fitted === nothing && continue
-        push!(candidates, fitted)
-        push!(level_array, octree_lev)
+        push2candidatesandlevels!(candidates, fitted, level_array, octree_lev)
     end
     return nothing
 end
