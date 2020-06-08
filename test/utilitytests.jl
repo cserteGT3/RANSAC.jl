@@ -131,3 +131,20 @@ end
     newval3 = RANSAC.pluscrossprod!(deepcopy(A), 0, vec)
     @test A == newval3
 end
+
+@testset "push2candidatesandlevels!" begin
+    fp = FittedPlane(SVector(0.5,0.5,0.5), SVector{3}(0,0,1.))
+    candidates = FittedShape[]
+    levels = Int[]
+
+    RANSAC.push2candidatesandlevels!(candidates, fp, levels, 3)
+    @test size(candidates) == (1,)
+    @test size(levels) == (1,)
+
+    RANSAC.push2candidatesandlevels!(candidates, [fp, fp], levels, 0)
+    @test size(candidates) == (3,)
+    @test size(levels) == (3,)
+    @test levels[1] == 3
+    @test levels[2] == 0
+    @test levels[3] == 0
+end

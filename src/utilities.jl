@@ -462,3 +462,20 @@ function ransacparameters(p::Array{T}; kwargs...) where {T<:UnionAll}
     dpars = defaultparameters(p)
     return ransacparameters(dpars; kwargs...)
 end
+
+"""
+    push2candidatesandlevels!(candidates, candidate, levels, current_level)
+
+Push `candidate` to `candidates` and `current_level` to `levels`.
+Handle the case, when `candidate` is an array of candidates.
+Used in [`forcefitshapes!`](@ref).
+"""
+function push2candidatesandlevels!(candidates, candidate, levels, current_level)
+    push!(candidates, candidate)
+    push!(levels, current_level)
+end
+
+function push2candidatesandlevels!(candidates, candidate::AbstractArray, levels, current_level)
+    append!(candidates, candidate)
+    append!(levels, fill(current_level, size(candidate)))
+end
