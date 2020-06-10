@@ -64,10 +64,10 @@ The `defaultparameters` function joins these together:
 RANSAC.defaultparameters
 ```
 
-If you wish to change the type of floating point values from the default `Float64` to anything else, you can use the `setrealsto` function.
+If you wish to change the type of floating point values from the default `Float64` to anything else, you can use the `setfloattype` function.
 
 ```@docs
-setrealsto
+setfloattype
 ```
 
 ### Construct by hand

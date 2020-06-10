@@ -47,7 +47,7 @@ export  FittedShape,
         FittedCone,
         ExtractedShape,
         ransacparameters,
-        setrealsto
+        setfloattype
 
 export  project2plane,
         refit

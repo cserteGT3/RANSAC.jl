@@ -149,12 +149,12 @@ end
     @test levels[3] == 0
 end
 
-@testset "setrealsto" begin
+@testset "setfloattype" begin
     nta = (α=1.0, somepar = "key1", intpar=1,)
     ntb = (α=1, otherpar=0.145f0, str="str")
     nt = (α=9, ϵ=0.1, γ=0.01f0, shapea=nta, shapeb=ntb,)
 
-    ntf32 = setrealsto(nt, Float32)
+    ntf32 = setfloattype(nt, Float32)
     @test ntf32.α === 9
     @test ntf32.ϵ isa Float32
     @test isapprox(ntf32.ϵ, 0.1f0)
@@ -171,7 +171,7 @@ end
     @test isapprox(ntf32.shapeb.otherpar, 0.145f0)
     @test ntf32.shapeb.str === "str"
 
-    ntf64 = setrealsto(ntf32, Float64)
+    ntf64 = setfloattype(ntf32, Float64)
     @test ntf64.α === 9
     @test ntf64.ϵ isa Float64
     @test isapprox(ntf64.ϵ, 0.1; rtol=sqrt(eps(Float32)))
