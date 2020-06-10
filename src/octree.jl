@@ -105,7 +105,7 @@ function RANSACCloud(vertices, normals, subsets; force_eltype::Union{Nothing,Dat
     n_type = force_eltype === nothing ? eltype(eltype(normals)) : force_eltype
     vc = [SVector{3,v_type}(v) for v in vertices]
     nc = [SVector{3,n_type}(v) for v in normals]
-    nomodRANSACCloud(vc, vc, subsets)
+    nomodRANSACCloud(vc, nc, subsets)
 end
 
 """
