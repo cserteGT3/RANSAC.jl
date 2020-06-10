@@ -64,6 +64,12 @@ The `defaultparameters` function joins these together:
 RANSAC.defaultparameters
 ```
 
+If you wish to change the type of floating point values from the default `Float64` to anything else, you can use the `setrealsto` function.
+
+```@docs
+setrealsto
+```
+
 ### Construct by hand
 
 As parameters are plain named tuples, one can easily construct their own.

@@ -46,7 +46,8 @@ export  FittedShape,
         FittedCylinder,
         FittedCone,
         ExtractedShape,
-        ransacparameters
+        ransacparameters,
+        setrealsto
 
 export  project2plane,
         refit
