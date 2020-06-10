@@ -11,6 +11,13 @@ RANSACCloud(vertices, normals, numofsubsets::Int)
 RANSACCloud(vertices, normals, subsets)
 ```
 
+The above constructors copy the vertices and normals and convert them to arrays of `SVector`s.
+If you want to pass the arrays directly, without modification, you can use the following function:
+
+```@docs
+nomodRANSACCloud
+```
+
 ## Parameters
 
 For parameters nested named tuples are used, because it's easy to construct them, change their values or extend them.

@@ -36,9 +36,9 @@ A struct to wrap a point cloud. Stores the vertices, the normals,
 """
 struct RANSACCloud{A<:AbstractArray, B<:AbstractArray, C<:AbstractArray}
     vertices::A
-    normals::A
+    normals::B
     octree::Cell
-    subsets::B
+    subsets::Vector{Vector{Int}}
     isenabled::BitArray{1}
     size::Int
     levelweight::C
@@ -47,7 +47,7 @@ struct RANSACCloud{A<:AbstractArray, B<:AbstractArray, C<:AbstractArray}
     # Arguments
     - `vertices::AbstractArray`: an array of vertices.
     - `normals::AbstractArray`: an array of surface normals.
-    - `subsets::AbstractArray`: an array consisting of index-arrays,
+    - `subsets::Vector{Vector{Int}}`: an array consisting of index-arrays,
         that describe which point is in which subset.
     - `isenabled::BitArray{1}`: an array indicating if the given point is enabled
         (`true`) or already has been extracted (`false`).
@@ -65,29 +65,65 @@ Base.show(io::IO, ::MIME"text/plain", x::RANSACCloud{A,B,C}) where {A,B,C} =
     print(io, "RANSACCloud of size $(x.size) & $(length(x.subsets)) subsets")
 
 """
-    RANSACCloud(vertices, normals, subsets)
+    nomodRANSACCloud(vertices, normals, subsets)
 
-Construct a `RANSACCloud` with the given `subsets`.
-Converts vertices and normals to array of `SVector{3,Float64}`.
+Construct a `RANSACCloud` without touching the vertices, normals and subsets.
+Other fields are computed.
+
+# Arguments
+- `vertices`: an array of vertices.
+- `normals`: an array of surface normals.
+- `subsets::Vector{Vector{Int}}`: a list of indexes for each subset.
 """
-function RANSACCloud(vertices, normals, subsets)
-    @assert size(vertices) == size(normals) "Every point must have a normal."
-    vc = [SVector{3}(v) for v in vertices]
-    nc = [SVector{3}(v) for v in normals]
+function nomodRANSACCloud(vertices, normals, subsets)
     octree = buildoctree(vertices)
     octree_d = octreedepth(octree)
     s = size(vertices, 1)
     levelscore = zeros(eltype(eltype(vertices)), (octree_d,))
     levelweight = fill!(similar(levelscore), 1/octree_d)
-    RANSACCloud(vc, nc, octree, subsets, trues(s), s, levelscore, levelweight)
+    RANSACCloud(vertices, normals, octree, subsets, trues(s), s, levelscore, levelweight)
+end
+
+"""
+    RANSACCloud(vertices, normals, subsets; force_eltype::Union{Nothing,DataType}=nothing)
+
+Construct a `RANSACCloud` with the given `subsets`.
+Vertices and normals are converted to array of `SVector`s.
+
+# Arguments
+- `vertices`: an array of vertices.
+- `normals`: an array of surface normals.
+- `subsets::Vector{Vector{Int}}`: a list of indexes for each subset.
+- `force_eltype::Union{Nothing,DataType}=nothing`:
+    an element type can be forced for the normals and vertices
+    (in practice `Float64` or `Float32`). If not specified,
+    the element type of the passed `vertices` and `normals` will be used.
+"""
+function RANSACCloud(vertices, normals, subsets; force_eltype::Union{Nothing,DataType}=nothing)
+    @assert size(vertices) == size(normals) "Every point must have a normal."
+    v_type = force_eltype === nothing ? eltype(eltype(vertices)) : force_eltype
+    n_type = force_eltype === nothing ? eltype(eltype(normals)) : force_eltype
+    vc = [SVector{3,v_type}(v) for v in vertices]
+    nc = [SVector{3,n_type}(v) for v in normals]
+    nomodRANSACCloud(vc, vc, subsets)
 end
 
 """
     RANSACCloud(vertices, normals, numofsubsets::Int)
 
 Construct a `RANSACCloud` with `numofsubsets` number of random subsets.
+Vertices and normals are converted to array of `SVector`s.
+
+# Arguments
+- `vertices`: an array of vertices.
+- `normals`: an array of surface normals.
+- `numofsubsets::Int`: number of subsets.
+- `force_eltype::Union{Nothing,DataType}=nothing`:
+    an element type can be forced for the normals and vertices
+    (in practice `Float64` or `Float32`). If not specified,
+    the element type of the passed `vertices` and `normals` will be used.
 """
-function RANSACCloud(vertices, normals, numofsubsets::Int)
+function RANSACCloud(vertices, normals, numofsubsets::Int; force_eltype::Union{Nothing,DataType}=nothing)
     @assert numofsubsets > 0 "At least 1 subset please!"
     # subset length
     function makesubset(l, n)
@@ -98,7 +134,7 @@ function RANSACCloud(vertices, normals, numofsubsets::Int)
         subsets
     end
     subs = makesubset(length(vertices), numofsubsets)
-    return RANSACCloud(vertices, normals, subs)
+    return RANSACCloud(vertices, normals, subs; force_eltype=force_eltype)
 end
 
 """

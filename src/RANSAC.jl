@@ -37,6 +37,7 @@ export  ConfidenceInterval,
 
 export  OctreeNode,
         OctreeRefinery,
+        nomodRANSACCloud,
         RANSACCloud
 
 export  FittedShape,
