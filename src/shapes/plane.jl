@@ -1,20 +1,20 @@
 # fitting
 
 """
-    struct FittedPlane{A<:AbstractArray} <: FittedShape
+    struct FittedPlane{A<:AbstractVector,B<:AbstractVector} <: FittedShape
 
 Plane primitive, defined by one of its point, and its normalvector.
 """
-struct FittedPlane{A<:AbstractArray} <: FittedShape
+struct FittedPlane{A<:AbstractVector,B<:AbstractVector} <: FittedShape
     point::A
-    normal::A
+    normal::B
 end
 
 Base.show(io::IO, x::FittedPlane) =
     print(io, """plane""")
 
-Base.show(io::IO, ::MIME"text/plain", x::FittedPlane{A}) where {A} =
-    print(io, """FittedPlane{$A}\nnormal: $(x.normal), point: $(x.point) """)
+Base.show(io::IO, ::MIME"text/plain", x::FittedPlane{A,B}) where {A,B} =
+    print(io, """FittedPlane{$A,$B}\nnormal: $(x.normal), point: $(x.point) """)
 
 strt(x::FittedPlane) = "plane"
 
