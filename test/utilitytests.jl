@@ -148,3 +148,43 @@ end
     @test levels[2] == 0
     @test levels[3] == 0
 end
+
+@testset "setfloattype" begin
+    nta = (α=1.0, somepar = "key1", intpar=1,)
+    ntb = (α=1, otherpar=0.145f0, str="str")
+    nt = (α=9, ϵ=0.1, γ=0.01f0, shapea=nta, shapeb=ntb,)
+
+    ntf32 = setfloattype(nt, Float32)
+    @test ntf32.α === 9
+    @test ntf32.ϵ isa Float32
+    @test isapprox(ntf32.ϵ, 0.1f0)
+    @test ntf32.γ isa Float32
+    @test isapprox(ntf32.γ, 0.01f0)
+    
+    @test ntf32.shapea.α isa Float32
+    @test isapprox(ntf32.shapea.α, 1.0f0)
+    @test ntf32.shapea.somepar == "key1"
+    @test ntf32.shapea.intpar === 1
+
+    @test ntf32.shapeb.α === 1
+    @test ntf32.shapeb.otherpar isa Float32
+    @test isapprox(ntf32.shapeb.otherpar, 0.145f0)
+    @test ntf32.shapeb.str === "str"
+
+    ntf64 = setfloattype(ntf32, Float64)
+    @test ntf64.α === 9
+    @test ntf64.ϵ isa Float64
+    @test isapprox(ntf64.ϵ, 0.1; rtol=sqrt(eps(Float32)))
+    @test ntf64.γ isa Float64
+    @test isapprox(ntf64.γ, 0.01; rtol=sqrt(eps(Float32)))
+    
+    @test ntf64.shapea.α isa Float64
+    @test isapprox(ntf64.shapea.α, 1.0; rtol=sqrt(eps(Float32)))
+    @test ntf64.shapea.somepar == "key1"
+    @test ntf64.shapea.intpar === 1
+
+    @test ntf64.shapeb.α === 1
+    @test ntf64.shapeb.otherpar isa Float64
+    @test isapprox(ntf64.shapeb.otherpar, 0.145; rtol=sqrt(eps(Float32)))
+    @test ntf64.shapeb.str === "str"
+end

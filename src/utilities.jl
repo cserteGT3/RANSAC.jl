@@ -479,3 +479,26 @@ function push2candidatesandlevels!(candidates, candidate::AbstractArray, levels,
     append!(candidates, candidate)
     append!(levels, fill(current_level, size(candidate)))
 end
+
+"""
+    setfloattype(nt, T)
+
+Convert every `Real` but not `Integer` value to type `T` in a `NamedTuple` recursively.
+"""
+function setfloattype(nt, T)
+    Keys = []
+    Values = []
+    for (k,v) in pairs(nt)
+        push!(Keys, k)
+        v = nt[k]
+        if v isa NamedTuple
+            push!(Values, setfloattype(v,T))
+        elseif (v isa Number) && ! (v isa Integer)
+            # v is a Real or a float
+            push!(Values, convert(T, v))
+        else
+            push!(Values, v)
+        end
+    end
+    return (; zip(Keys,Values)...)
+end

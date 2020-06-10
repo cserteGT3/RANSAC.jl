@@ -195,7 +195,7 @@ function iswithinrectangle(rect::HyperRectangle, p)
     return true
 end
 
-function updatelevelweight(pc, x = 0.9)
+function updatelevelweight(pc, x = 9//10)
     P = pc.levelweight
     σ = pc.levelscore
     w = sum( σ[i]/P[i] for i in eachindex(P) )

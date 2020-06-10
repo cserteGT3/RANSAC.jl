@@ -38,7 +38,8 @@ end
 
 function fit3pointcone(p, n)
     # rank of the coefficient matrix
-    r = Array{Float64,2}(undef, (3,3))
+    ftype = eltype(eltype(p))
+    r = Array{ftype,2}(undef, (3,3))
     for i in 1:3; for j in 1:3; r[i,j] = n[i][j]; end; end
     rank(r) == 3 || return nothing
     ds = [dot(p[i], n[i]) for i in 1:3]
@@ -46,7 +47,7 @@ function fit3pointcone(p, n)
     rv = hcat(r, -1 .* ds)
     rank(rv) == 3 || return nothing
     # apex
-    ap = SVector{3, Float64}(r\ds)
+    ap = SVector{3, ftype}(r\ds)
     # axis
     axis3p = [ap+((p[i]-ap)/norm(p[i]-ap)) for i in 1:3]
     ax = normalize(cross(axis3p[2]-axis3p[1], axis3p[3]-axis3p[1]))
