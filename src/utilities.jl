@@ -433,7 +433,7 @@ function ransacparameters(p::T=DEFAULT_PARAMETERS; kwargs...) where {T<:NamedTup
 end
 
 """
-    ransacparameters(p::Array{T}; kwargs...) where {T<:UnionAll}
+    ransacparameters(p::AbstractArray; kwargs...)
 
 Construct a `NamedTuple` for a given types of shapes 
 using [`defaultparameters`](@ref) and override it with the kwargs.
@@ -458,7 +458,7 @@ sphere = (ϵ = 0.01, α = 0.08726646259971647, sphere_par = 0.02),
 cylinder = (ϵ = 0.3, α = 0.02))
 ```
 """
-function ransacparameters(p::Array{T}; kwargs...) where {T<:UnionAll}
+function ransacparameters(p::AbstractArray; kwargs...)
     dpars = defaultparameters(p)
     return ransacparameters(dpars; kwargs...)
 end
