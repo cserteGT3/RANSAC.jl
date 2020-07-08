@@ -125,15 +125,17 @@ function ransac(pc, params; reset_rand = false)
                 # what do you mean by refit?
                 # refit on the whole pointcloud
                 extr_shape = refit(bestshape, pc, params)
-                
-                @logmsg IterInf "Extracting best: $(strt(bestshape)) score: $scr, size: $(size(extr_shape.inpoints,1)) ps."
-                # invalidate indexes
-                invalidate_indexes!(pc, extr_shape.inpoints)
-                # extract the shape and delete from scoredshapes
-                push!(extracted, extr_shape)
-                deleteat!(scoredshapes, best.index)
-                # remove invalid shapes
-                removeinvalidshapes!(pc, scoredshapes)
+
+                if ! (extr_shape === nothing)
+                    @logmsg IterInf "Extracting best: $(strt(bestshape)) score: $scr, size: $(size(extr_shape.inpoints,1)) ps."
+                    # invalidate indexes
+                    invalidate_indexes!(pc, extr_shape.inpoints)
+                    # extract the shape and delete from scoredshapes
+                    push!(extracted, extr_shape)
+                    deleteat!(scoredshapes, best.index)
+                    # remove invalid shapes
+                    removeinvalidshapes!(pc, scoredshapes)
+                end
             end # if extract shape
         else
             #info printing: not best
