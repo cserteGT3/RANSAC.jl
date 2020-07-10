@@ -7,7 +7,7 @@
 ## Fitting API
 
 If you want to extend the package with a new primitive, this page will guide you what to define/extend.
-You can also check the "built-in" primitives (´src/shapes/...´), which follow the same API.
+You can also check the "built-in" primitives (`src/shapes/...`), which follow the same API.
 
 The primitive must be subtype of `FittedShape` (`struct MyShape<:FittedShape`), and you must define the following functions:
 
