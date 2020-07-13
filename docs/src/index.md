@@ -20,7 +20,7 @@ Up to now mostly C++ and Python implementations have been published, this is the
 
 * easy-to-use primitive recognition
 * extensible: it's easy to add new primitive shapes
-* fast (to be honest, it's not yet comparable with the reference and PCL implementations)
+* fast (work in progress)
 
 ### Differences from the reference implementation
 
