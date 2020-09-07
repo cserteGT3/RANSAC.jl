@@ -4,3 +4,15 @@
 /deps/deps.jl
 /docs/build
 *.jlprop
+
+# JuliaConSubmission
+.DS_Store
+paper/paper.pdf
+*.aux
+*.fdb_latexmk
+*.fls
+*.blg
+*.out
+*.bbl
+*.synctex.gz
+*.log
