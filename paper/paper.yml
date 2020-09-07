@@ -1,14 +1,14 @@
-title: "My JuliaCon proceeding"
+title: "Efficient RANSAC in efficient Julia"
 keywords:
   - Julia
   - Optimization
   - Game theory
   - Compiler
 authors:
-  - name: 1st author
+  - name: Tamás Cserteg
     orcid: 0000-0003-1361-440X
     affiliation: 1
-  - name: 2nd author
+  - name: 2nd
     affiliation: 1, 2
   - name: 3rd author
     affiliation: 2
