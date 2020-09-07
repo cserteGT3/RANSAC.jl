@@ -14,6 +14,12 @@ In this file I keep track of the changes from release to release.
 
 - enable returning multiple shapes when fitting - [docs](https://csertegt3.github.io/RANSAC.jl/stable/newprimitive/)
 
+### v0.5.2
+
+#### Changes
+
+- I thought that there's a license file in the repo. I was wrong so I fixed that.
+
 ## v0.4.0
 
 #### Changes
