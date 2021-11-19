@@ -33,7 +33,7 @@ end
 
 function fit2pointcylinder(p, n, params)
     #@unpack α_cylinder, ϵ_cylinder, parallelthrdeg = params
-    @extract params : params_sphere=sphere
+    @extract params : params_sphere=cylinder
     @extract params_sphere : ϵ_cylinder=ϵ α_cylinder=α
     @extract params.common : parallelthrdeg
     # the normals are too parallel so cannot fit cylinder to it
@@ -134,7 +134,7 @@ Return `nothing` if points do not fit to a cylinder.
 """
 function fit(::Type{FittedCylinder}, p, n, pc, params)
     #@unpack ϵ_cylinder, α_cylinder, parallelthrdeg = params
-    @extract params : params_sphere=sphere
+    @extract params : params_sphere=cylinder
     @extract params_sphere : ϵ_cylinder=ϵ α_cylinder=α
     @extract params.common : parallelthrdeg
     pl = length(p)
@@ -193,7 +193,7 @@ and an `alpharad` angle to it's normal.
 """
 function compatiblesCylinder(cylinder, points, normals, params)
     #@unpack ϵ_cylinder, α_cylinder = params
-    @extract params : params_sphere=sphere
+    @extract params : params_sphere=cylinder
     @extract params_sphere : ϵ_cylinder=ϵ α_cylinder=α
     @assert length(points) == length(normals) "Size must be the same."
 
