@@ -52,3 +52,9 @@ Follow the [detailed example](https://csertegt3.github.io/RANSAC.jl/stable/examp
 
 Here's an example with a point cloud and the detected primitives colored according to their type.
 ![RANSAC example](img/ransac_example.png)
+
+## Related projects
+
+* The [RANSACVisualizer.jl](https://github.com/cserteGT3/RANSACVisualizer.jl) package implements Makie.jl recipes to visualize results from this package.
+* There are other RANSAC implementations in Julia, for example:
+  * [ImageProjectiveGeometry.jl](https://github.com/peterkovesi/ImageProjectiveGeometry.jl/blob/master/doc/ransac.md): fits planes and lines to 3d points using RANSAC.
