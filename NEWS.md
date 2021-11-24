@@ -2,6 +2,18 @@
 
 In this file I keep track of the changes from release to release.
 
+## v0.6.0
+
+#### Bugfixes
+
+- handling negative sqrt error - closes #29
+
+#### Changes
+
+- progress is shown with the ProgressMeter.jl
+- documentation is updated to use the new RANSACVisualizer package with Makie recipes
+- the Readme have been extended with a related projects section
+
 ## v0.5.0
 
 #### Changes
