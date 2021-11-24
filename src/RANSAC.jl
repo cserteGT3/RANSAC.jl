@@ -82,6 +82,10 @@ include("iterations.jl")
 include("logging.jl")
 include("orientedbox_.jl")
 include("json-yaml.jl")
+# functions and tools unrelated to RANSAC,
+# but using the same methods
+# these are not exported
+include("unrelated.jl")
 
 """
 `const DEFAULT_PARAMETERS = 
