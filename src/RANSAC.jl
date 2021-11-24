@@ -10,6 +10,7 @@ using RegionTrees
 using ExtractMacro
 import JSON
 import YAML
+using ProgressMeter
 
 import RegionTrees: AbstractRefinery, needs_refinement, refine_data
 import Base: show, length, deleteat!
