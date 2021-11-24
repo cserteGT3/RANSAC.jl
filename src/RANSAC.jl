@@ -10,6 +10,7 @@ using RegionTrees
 using ExtractMacro
 import JSON
 import YAML
+using ProgressMeter
 
 import RegionTrees: AbstractRefinery, needs_refinement, refine_data
 import Base: show, length, deleteat!
@@ -81,6 +82,10 @@ include("iterations.jl")
 include("logging.jl")
 include("orientedbox_.jl")
 include("json-yaml.jl")
+# functions and tools unrelated to RANSAC,
+# but using the same methods
+# these are not exported
+include("unrelated.jl")
 
 """
 `const DEFAULT_PARAMETERS = 

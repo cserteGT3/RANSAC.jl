@@ -70,6 +70,7 @@ function ransac(pc, params; reset_rand = false)
     countcandidates = [0, 0, 0]
 
     # iterate begin
+    progbar = Progress(itermax; desc = "Running iteration...", dt=1, barglyphs=BarGlyphs("[=> ]"))
     for k in 1:itermax
         if count(pc.isenabled) < τ
             @logmsg IterInf "Break at $k iteration, because left less points, then τ"
@@ -153,6 +154,7 @@ function ransac(pc, params; reset_rand = false)
             @logmsg IterInf "Break, at this point all shapes should be extracted: $k. iteration."
             break
         end
+        next!(progbar)
     end # iterate end
     fint = trunc((time_ns() - start_time)/1_000_000_000, digits=2)
     @logmsg IterInf "Iteration finished in $fint seconds with $(length(extracted)) extracted and $(length(scoredshapes)) scored shapes."
