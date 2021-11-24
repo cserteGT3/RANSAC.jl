@@ -69,34 +69,29 @@ julia> extr, _ = ransac(pc, p, true, reset_rand=true);
 
 ## See the results
 
-The [RANSACVisualizer](https://csertegt3.github.io/RANSACVisualizer.jl/stable/) package provides a few utility functions to check the results (check the docs for function signatures).
+The [RANSACVisualizer](https://csertegt3.github.io/RANSACVisualizer.jl/stable/) package provides Makie recipes to check the results (check the docs for function signatures).
+To use them, install the package, and a Makie backend as well, for example:
+
+```julia
+]add GLMakie
+add https://github.com/cserteGT3/RANSACVisualizer.jl.git
+using RANSACVisualizer, GLMakie
+```
 
 ### Check the input
 
-The `showgeometry()` function shows a mesh and its normal vectors:
+The `meshschatter`, `mesh` or `wireframe` functions (from Makie.jl) can be used to inspect a mesh:
 
 ```julia
-julia> showgeometry(m, arrow=0.3; show_axis = false)
+julia> mesh(m)
 ```
 
-![](img/showgeometry.png)
+### See the coloured result
 
-### Results colored randomly
-
-The `showshapes()` function provides this functionality.
+The `visualize()` function (from RANSACVisualizer.jl) plots one `ExtractedShape`.
+It can be coloured by type or randomly.
+(See the [docs](https://csertegt3.github.io/RANSACVisualizer.jl/stable/) for details.)
 
 ```julia
-julia> showshapes(pc, extr; show_axis = false)
+julia> visualize(extr[1],pc, pointsize=0.5, coloringtype=:bytype)
 ```
-
-![](img/showshapes.png)
-
-### Results colored according to their type
-
-The `showbytype()` function provides this functionality.
-
-```julia
-julia> showbytype(pc, extr; show_axis = false)
-```
-
-![](img/bytype.png)
