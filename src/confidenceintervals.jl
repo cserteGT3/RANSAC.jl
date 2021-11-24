@@ -51,7 +51,10 @@ Standard deviation of the hypergeometric distribution.
 Just copied from the article (Efficient RANSAC).
 """
 function hypergeomdev(N, x, n)
-    sq = sqrt((x*n*(N-x)*(N-n))/(N-1))
+    sq_ = (x*n*(N-x)*(N-n))/(N-1)
+    # handle floating point errors:
+    # small negative numbers, that should be zero
+    sq = sq_ < 0 ? zero(sq_) : sqrt(sq_)
     (min=(x*n+sq)/N, max=(x*n-sq)/N)
 end
 
