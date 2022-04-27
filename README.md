@@ -20,6 +20,8 @@ Paper can be found [here](https://cg.cs.uni-bonn.de/en/publications/paper-detail
 	in Computer Graphics Forum, Vol. 26, No. 2, pages 214-226,
 	Blackwell Publishing, June 2007
 
+**WARNING: this implementation seems to be incorrect. It is slow and may not produce correct results. I'm sad, but almost certainly I won't revisit this project soon.**
+
 ## Efficient RANSAC
 
 The efficient RANSAC algorithm is used to segment and fit primitive shapes (sphere, plane, cylinder, torus, cone) to point clouds.
