@@ -34,10 +34,10 @@ A struct to wrap a point cloud. Stores the vertices, the normals,
     an array to store the sum of the score of already
     extracted primitives for each octree level.
 """
-struct RANSACCloud{A<:AbstractArray, B<:AbstractArray, C<:AbstractArray}
+struct RANSACCloud{A<:AbstractArray, B<:AbstractArray, C<:AbstractArray, T}
     vertices::A
     normals::B
-    octree::Cell
+    octree::Cell{T}
     subsets::Vector{Vector{Int}}
     isenabled::BitArray{1}
     size::Int
@@ -75,37 +75,13 @@ Other fields are computed.
 - `normals`: an array of surface normals.
 - `subsets::Vector{Vector{Int}}`: a list of indexes for each subset.
 """
-function nomodRANSACCloud(vertices, normals, subsets)
+function RANSACCloud(vertices, normals, subsets)
     octree = buildoctree(vertices)
     octree_d = octreedepth(octree)
     s = size(vertices, 1)
-    levelscore = zeros(eltype(eltype(vertices)), (octree_d,))
+    levelscore = zeros(Float64, (octree_d,))
     levelweight = fill!(similar(levelscore), 1/octree_d)
     RANSACCloud(vertices, normals, octree, subsets, trues(s), s, levelscore, levelweight)
-end
-
-"""
-    RANSACCloud(vertices, normals, subsets; force_eltype::Union{Nothing,DataType}=nothing)
-
-Construct a `RANSACCloud` with the given `subsets`.
-Vertices and normals are converted to array of `SVector`s.
-
-# Arguments
-- `vertices`: an array of vertices.
-- `normals`: an array of surface normals.
-- `subsets::Vector{Vector{Int}}`: a list of indexes for each subset.
-- `force_eltype::Union{Nothing,DataType}=nothing`:
-    an element type can be forced for the normals and vertices
-    (in practice `Float64` or `Float32`). If not specified,
-    the element type of the passed `vertices` and `normals` will be used.
-"""
-function RANSACCloud(vertices, normals, subsets; force_eltype::Union{Nothing,DataType}=nothing)
-    @assert size(vertices) == size(normals) "Every point must have a normal."
-    v_type = force_eltype === nothing ? eltype(eltype(vertices)) : force_eltype
-    n_type = force_eltype === nothing ? eltype(eltype(normals)) : force_eltype
-    vc = [SVector{3,v_type}(v) for v in vertices]
-    nc = [SVector{3,n_type}(v) for v in normals]
-    nomodRANSACCloud(vc, nc, subsets)
 end
 
 """
@@ -118,12 +94,8 @@ Vertices and normals are converted to array of `SVector`s.
 - `vertices`: an array of vertices.
 - `normals`: an array of surface normals.
 - `numofsubsets::Int`: number of subsets.
-- `force_eltype::Union{Nothing,DataType}=nothing`:
-    an element type can be forced for the normals and vertices
-    (in practice `Float64` or `Float32`). If not specified,
-    the element type of the passed `vertices` and `normals` will be used.
 """
-function RANSACCloud(vertices, normals, numofsubsets::Int; force_eltype::Union{Nothing,DataType}=nothing)
+function RANSACCloud(vertices, normals, numofsubsets::Int)
     @assert numofsubsets > 0 "At least 1 subset please!"
     # subset length
     function makesubset(l, n)
@@ -134,19 +106,20 @@ function RANSACCloud(vertices, normals, numofsubsets::Int; force_eltype::Union{N
         subsets
     end
     subs = makesubset(length(vertices), numofsubsets)
-    return RANSACCloud(vertices, normals, subs; force_eltype=force_eltype)
+    return RANSACCloud(vertices, normals, subs)
 end
 
 """
-    struct OctreeNode{B<:AbstractArray}
+    struct OctreeNode{A}
 
 Store the data attached to one cell of the octree.
 Stores the indices of the points that are inside of the cell,
 and its own depth (depth of the root is 1).
 """
-struct OctreeNode{B<:AbstractArray, I<:Integer}
-    incellpoints::B
-    depth::I
+struct OctreeNode{A}
+    geometries::Vector{A}
+    nodeindices::Vector{Int}
+    depth::Int
 end
 
 Base.show(io::IO, x::OctreeNode{A}) where {A} =
@@ -155,44 +128,32 @@ Base.show(io::IO, x::OctreeNode{A}) where {A} =
 Base.show(io::IO, ::MIME"text/plain", x::OctreeNode{A}) where {A} =
     print(io, """OctreeNode{$A}\n with $(length(x.incellpoints)) points, at depth $(x.depth)""")
 
-struct OctreeRefinery{A<:AbstractArray} <: AbstractRefinery
+struct OctreeRefinery <: AbstractRefinery
     count::Int
-    vertices::A
 end
 
 function needs_refinement(r::OctreeRefinery, cell)
-    length(cell.data.incellpoints) > r.count
+    length(cell.data.nodeindices) > r.count
 end
+
+hr2b(hr::RegionTrees.HyperRectangle) = boundingbox([sv2p(hr.origin), sv2p(hr.origin + hr.widths)])
+
+hr2b(c::RegionTrees.Cell) = hr2b(c.boundary)
 
 function refine_data(r::OctreeRefinery, cell::Cell, indices)
     # new boundary
     boundary = child_boundary(cell, indices)
+    newbox = hr2b(boundary)
     # points that are in the current cell
-    points = @view r.vertices[cell.data.incellpoints]
+    geoms = @view cell.data.geometries[cell.data.nodeindices]
     # points that are in the new cell
-    bolarr = map(x -> iswithinrectangle(boundary, x), points)
+    newinds = Int[]
+    for (g, i) in zip(geoms, cell.data.nodeindices)
+        intersects(g, newbox) && push!(newinds, i)
+    end
     # new cell inherits ++ of the depth
     d = cell.data.depth + 1
-    OctreeNode(cell.data.incellpoints[bolarr], d)
-end
-
-"""
-    iswithinrectangle(rect::HyperRectangle, p)
-
-Decide if p (3 dimensional point) is within rect.
-
-Works only with those prisms which axes are aligned with the coordinate frame.
-"Bottom/left" gives `false` and "top/right" gives `true`.
-"""
-function iswithinrectangle(rect::HyperRectangle, p)
-    vs = vertices(rect)
-    vmin = vs[1,1,1]
-    vmax = vs[2,2,2]
-    for i in 1:3
-        vmin[i] < p[i] || return false
-        vmax[i] >= p[i] || return false
-    end
-    return true
+    OctreeNode(cell.data.geometries, newinds, d)
 end
 
 function updatelevelweight(pc, x = 9//10)
@@ -235,10 +196,11 @@ end
 Build octree of the vertices.
 """
 function buildoctree(vertices)
-    l = size(vertices, 1)
-    minV, maxV = findAABB(vertices)
-    root=Cell(SVector{3}(minV), SVector{3}(maxV), OctreeNode(collect(1:l), 1))
-    r = OctreeRefinery(8, vertices)
+    b = boundingbox(vertices)
+    allinds = collect(1:size(vertices, 1))
+    r = OctreeRefinery(8)
+    width = b.max - b.min
+    root = Cell(p2sv(b.min), v2sv(width), OctreeNode(vertices, allinds, 1))
     adaptivesampling!(root, r)
     return root
 end

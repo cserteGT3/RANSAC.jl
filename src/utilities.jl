@@ -502,3 +502,59 @@ function setfloattype(nt, T)
     end
     return (; zip(Keys,Values)...)
 end
+
+## StaticArrays.jl compat functions
+# conversion functions for working with SVectors
+# main purpose to help the usage of RegionTrees and Meshes combined
+
+"""
+    point2staticvector(x::Meshes.Point)
+
+Converts a `Meshes.Point` to `SVector`.
+Note that units are stripped!
+"""
+point2staticvector(x::Meshes.Point) = vec2staticvector(to(x))
+
+"""
+    vec2staticvector(x::Meshes.Vec{N,T})
+
+Converts a `Meshes.Vec` to `SVector`.
+Note that units are stripped!
+"""
+vec2staticvector(x::Meshes.Vec{N,T}) where {N,T} = Meshes.StaticArrays.SVector{N}(x)
+
+"""
+    point2vector(x::Meshes.Point)
+
+Convert a `Meshes.Point` to Julia base vector.
+Units are stripped
+"""
+point2vector(x::Meshes.Point) = [Meshes.ustrip.(to(x))...]
+
+"""
+    staticvector2point(x::StaticArrays.SVector{N,F})
+
+Convert an `SVector` to `Meshes.point`. Note that default units are used.
+"""
+staticvector2point(x::Meshes.StaticArrays.SVector{N,F}) where {N,F} = Point(x...)
+
+"""
+    p2sv(x::Meshes.Point)
+
+Alias for [`point2staticvector`](@ref).
+"""
+const p2sv = point2staticvector
+
+"""
+    v2sv(x::Meshes.Vec)
+
+Alias for [`point2staticvector`](@ref).
+"""
+const v2sv = vec2staticvector
+
+"""
+    sv2p(x::StaticArrays.SVector{N,F})
+
+Alias for [`staticvector2point`](@ref).
+"""
+const sv2p = staticvector2point

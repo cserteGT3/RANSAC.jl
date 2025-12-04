@@ -242,7 +242,7 @@ function samplepointcloud!(indexv, pointcloud, octree, params)
     # get the best cell, based on the index
     curr_cell = getnthcell(current_leaf, curr_level_i)
     # an indexer array for random indexing
-    cell_ind = curr_cell.data.incellpoints
+    cell_ind = curr_cell.data.nodeindices
     # frome the above, those that are enabled
     bool_cell_ind = @view pointcloud.isenabled[cell_ind]
     enabled_inds = cell_ind[bool_cell_ind]
@@ -311,7 +311,7 @@ function samplepointcloud2!(indexv, pointcloud, octree, params)
     # get the best cell, based on the index
     curr_cell = getnthcell(current_leaf, curr_level_i)
     # an indexer array for random indexing
-    cell_ind = curr_cell.data.incellpoints
+    cell_ind = curr_cell.data.nodeindices
     # frome the above, those that are enabled
     bool_cell_ind = @view pointcloud.isenabled[cell_ind]
     count(bool_cell_ind) < drawN && return (false, 0)
@@ -361,7 +361,7 @@ function samplepointcloud3!(indexv, pointcloud, octree, params)
     # get the best cell, based on the index
     curr_cell = getnthcell(current_leaf, curr_level_i)
     # an indexer array for random indexing
-    cell_ind = curr_cell.data.incellpoints
+    cell_ind = curr_cell.data.nodeindices
     # frome the above, those that are enabled
     bool_cell_ind = @view pointcloud.isenabled[cell_ind]
     count(bool_cell_ind) < drawN && return (false, 0)
@@ -394,7 +394,7 @@ function samplepointcloud4!(indexv, pointcloud, params)
         r1 = rand(1:pointcloud.size)
     end
     # search for r1 in octree
-    current_leaf = findleaf(pointcloud.octree, pointcloud.vertices[r1])
+    current_leaf = findleaf(pointcloud.octree, p2sv(pointcloud.vertices[r1]))
     # get the depth
     max_depth = current_leaf.data.depth
     # get the best level index == best depth
@@ -402,7 +402,7 @@ function samplepointcloud4!(indexv, pointcloud, params)
     # get the best cell, based on the index
     curr_cell = getnthcell(current_leaf, curr_level_i)
     # an indexer array for random indexing
-    cell_ind = curr_cell.data.incellpoints
+    cell_ind = curr_cell.data.nodeindices
     # frome the above, those that are enabled
     enabled_inds = @view cell_ind[pointcloud.isenabled[cell_ind]]
     size(enabled_inds, 1) < drawN && return (false, 0)
