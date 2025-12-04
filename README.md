@@ -53,7 +53,7 @@ The output is a set of primitive shapes with corresponding sets of points, and t
 Follow the [detailed example](https://csertegt3.github.io/RANSAC.jl/stable/example/) in the documentation.
 
 Here's an example with a point cloud and the detected primitives colored according to their type.
-![RANSAC example](img/ransac_example.png)
+![RANSAC example](docs/img/ransac_example.png)
 
 ## Related projects
 

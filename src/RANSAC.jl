@@ -4,6 +4,7 @@ using LinearAlgebra
 using Random
 using Logging
 using Logging: default_logcolor
+using Meshes
 using StaticArrays: SVector, SMatrix, MMatrix, StaticArray
 using RegionTrees
 #using Images: label_components, component_lengths, component_subscripts

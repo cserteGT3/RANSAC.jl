@@ -5,16 +5,16 @@
 
 Plane primitive, defined by one of its point, and its normalvector.
 """
-struct FittedPlane{A<:AbstractVector,B<:AbstractVector} <: FittedShape
-    point::A
-    normal::B
+struct FittedPlane <: FittedShape
+    point
+    normal
 end
 
 Base.show(io::IO, x::FittedPlane) =
     print(io, """plane""")
 
-Base.show(io::IO, ::MIME"text/plain", x::FittedPlane{A,B}) where {A,B} =
-    print(io, """FittedPlane{$A,$B}\nnormal: $(x.normal), point: $(x.point) """)
+Base.show(io::IO, ::MIME"text/plain", x::FittedPlane) =
+    print(io, """FittedPlane\nnormal: $(x.normal), point: $(x.point) """)
 
 strt(x::FittedPlane) = "plane"
 
@@ -91,7 +91,7 @@ function project2plane(plane, points)
     # get the coordinates of the points in the prev. created coord. frame
     function proj_plane(p)
         v = p-plane.point
-        return eltype(points)(dot(o_x,v), dot(o_y,v), dot(o_z,v))
+        return Vec(dot(o_x,v), dot(o_y,v), dot(o_z,v))
     end
 
     #for i in eachindex(points)
