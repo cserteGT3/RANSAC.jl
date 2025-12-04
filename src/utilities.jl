@@ -113,7 +113,7 @@ Check if `v1` and `v2` are parallel in an `alpharad` angle
 The vectors considered to be normalized.
 """
 function isparallel(v1, v2, alpharad)
-    dot(v1, v2) > cos(alpharad)
+    Meshes.Unitful.ustrip(v1 ⋅ v2) > cos(alpharad)
 end
 
 
